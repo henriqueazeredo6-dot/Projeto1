@@ -1,15 +1,17 @@
-<!DOCTYPE html>
-<html lang="pt-br">
+<!DOCTYPE html>  <!--procurei não sair muito do modelo que você usou e inclui outros elementos, por favor verifique se está correto-->
+<html lang="pt-br"> 
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8"> 
     <title>Titan - Login</title>
 </head>
+
 <body>
+
     <main>
 
         <section>
             <h1>CONFIE PERSONAL</h1>
-            <h1>Gestão Profissional de Personal Training</h1>
+            <p>Gestão Profissional de Personal Training</p>
         </section>
 
         <section>
@@ -18,27 +20,25 @@
         
             <form>
 
-                <label>EMAIL</label>
+                <label for="email">EMAIL</label>
                 <br>
-                <input type="email" placeholder="seu@email.com">
+                <input id="email" name="email" type= "email" placeholder="seu@email.com" required> <!--aqui inclui id, name e required(campo obrigatório?), está certo?-->
                 <br><br>
 
-                <label>SENHA</label>
+                <label for="senha">SENHA</label>
                 <br>
-                <input type="password" placeholder="........"
+                <input id="senha" name="senha" type="password" placeholder="........" required> <!--aqui também nome, id e required-->
                 <br><br>
-t
-                <button type="submi"> ENTRAR</button>
+
+                <button type="submit">ENTRAR</button>
 
             </form>
 
             <p>Não tem uma conta? <a href="cadastro.html"> Cadastre-se </a></p>
-            <a href="index.html">Voltar para home</a>
+            <a href="index.html">← Voltar para home</a> <!--fiquei em duvida aqui se retorna para index.html (se nome é esse mesmo, tipo a primeira pagina sempre é index, isso?)-->
             
         </section>
-
         
-
     </main>
     
 </body>
