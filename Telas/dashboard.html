@@ -66,7 +66,91 @@
             font-size: 0.9rem;
         }
 
-     </style>
+        .dashboard-layout {
+            min-height: 100vh;
+            align-items: stretch;
+        }
+    
+        .content {
+            flex: 1;
+            padding: 24px 30px;
+            background-color: #09090B;
+        }
+
+        .hero {
+            font-size: 3.2rem;
+            line-height: 1;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #fafafa;
+            }
+        
+        .hero p {
+            margin-top: 10px;
+            margin-bottom: 0;
+            font-size: 1rem;
+            color: #71717a;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 108px;
+            padding: 14px 16px;
+            border: 1px solid #27272a;
+            background-color: #111114;
+        }
+
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            color: #ff5e00;
+        }
+
+
+        .card-top span:last-child {
+            color: #71717a;
+            font-size: 0.68rem;
+            letter-spacing: 0.5px;
+        }
+
+        .card strong {
+            font-size: 2rem;
+            line-height: 1;
+            font-weight: 900;
+            color: #FAFAFA;
+        }
+
+        .card p {
+            margin: 0;
+            color: #71717a;
+            font-size: 0.82rem;
+        }
+
+        .activity-summary {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .positive {
+            color: #64d28a;
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+            
+    </style>
+
 </head>
 <body>
     <main class="dashboard-layout">
@@ -122,11 +206,62 @@
         </aside>
 
         <section class="content">
+            <header class="header">
+                <h2>Dashboard</h2>
+                <p>Bem vindo(a) Leticia Martins Silva</p>
+            </header>
+
+        <section class="stats">
+            <article class="card">
+                <div class="card-top">
+                    <span></span>
+                    <span>ALUNOS</span>                
+                </div>
+                <strong>3</strong>
+                <p>Total Cadastrados</p>
+            </article>
+
+            <article class="card">
+                <div class="card-top">
+                    <span></span>
+                    <span>SESSÕES</span>
+                </div>
+                <strong>5</strong>
+                <p>Aulas Concluídas</p>
+            </article>
+
+            <article class="card">
+                <div class="card-top">
+                    <span>$</span>
+                    <span>RECEITA</span>
+                </div>
+                <strong>R$ 0,00</strong>
+                <p>Total recebido</p>
+            </article>
+
+            <article class="card">
+                <div class="card-top">
+                    <span>∿</span>
+                    <span>ATIVIDADE</span>
+                </div>
+                <div class="activity-summary">
+                <strong>10</strong>
+                    <span class="positive">(33%)</span>
+                </div>
+                <p>Check-ins recentes</p>
+            </article>
+
+
+
+
+
+
+
+
         </section>
             
-        <header.hero></header.hero>
-        <section.stats></section.stats>
-        <section.quick-actions></section.quick-actions>
+       
+        
         
     </main>
     
