@@ -8,10 +8,10 @@
 
      <style>
         .sidebar {
-            width: 160px;
+            width: 240px;
             background-color: #050507;
             border-right: 1px solid #1f1f23;
-            padding: 16px 8px;
+            padding: 20px 12px;
             display: flex;
             flex-direction: column;
         }
@@ -69,43 +69,54 @@
         .dashboard-layout {
             min-height: 100vh;
             align-items: stretch;
+            display: flex;
         }
     
         .content {
             flex: 1;
-            padding: 24px 30px;
-            background-color: #09090B;
+            padding: 40px 60px;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: flex-start;
         }
 
+        .header {
+            margin-bottom: 40px;
+        }
         .hero {
-            font-size: 3.2rem;
-            line-height: 1;
+            font-size: 3.8rem;
             font-weight: 900;
-            text-transform: uppercase;
             letter-spacing: 1px;
-            color: #fafafa;
-            }
+        }
+
+        .subtitle {
+            margin-top: 12px;
+            color: #71717a;
+            font-size: 1rem;
+        }
         
         .hero p {
             margin-top: 10px;
             margin-bottom: 0;
-            font-size: 1rem;
+            font-size: 4.2rem;
             color: #71717a;
         }
         
         .stats {
+            width: 100%;
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-            margin-bottom: 20px;
+            gap: 20px;
+            margin-bottom: 40px;
         }
 
         .card {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            min-height: 108px;
-            padding: 14px 16px;
+            min-height: 130px;
+            padding: 18px;
             border: 1px solid #27272a;
             background-color: #111114;
         }
@@ -113,19 +124,25 @@
         .card-top {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
+            
+        }
+
+        .metric-icon {
             color: #ff5e00;
+            font-size: 1.2rem;
         }
 
 
         .card-top span:last-child {
             color: #71717a;
             font-size: 0.68rem;
+            text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         .card strong {
-            font-size: 2rem;
+            font-size: 2.3rem;
             line-height: 1;
             font-weight: 900;
             color: #FAFAFA;
@@ -151,15 +168,17 @@
             
 
         .quick-actions {
-            display: block;
-            padding: 20px;
+            width: 100%;
+            margin-top: 20px;
             border: 1px solid #27272a;
             background-color: #111114;
+            padding: 24px;
         }
 
         .quick-actions h3 {
             margin-bottom: 18px;
-            font-size: 2rem;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
             line-height: 1;
             text-transform: uppercase;
             font-weight: 900;
@@ -169,12 +188,13 @@
         .action-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
+            gap: 16px;
         }
 
         .action-card {
             margin-top: 0;
-            min-height: 58px;
+            width: 100%;
+            min-height: 70px;
             padding: 14px 16px;
             border: 1px solid #3a3a40;
             border-radius: 0;
@@ -183,11 +203,22 @@
             text-transform: none;
             font-size: 0.95rem;
             font-weight: 500;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+            gap: 6px;
+
         }
 
         .action-card.active {
+            font-weight: 700;
             background-color: #ff5e00;
             border-color: #ff5e00;
+        }
+
+        .action-icon {
+            font-size: 1rem;
         }
 
     </style>
@@ -229,7 +260,7 @@
 
                 <a href="#">
                     <span class="icon"></span>
-                    <span>Mensagem</span>
+                    <span>Mensagens</span>
                 </a>
 
                 <a href="#">
@@ -248,14 +279,14 @@
 
         <section class="content">
             <header class="header">
-                <h2>Dashboard</h2>
-                <p>Bem vindo(a) Leticia Martins Silva</p>
+                <h1>Dashboard</h1>
+                <p class="subtitle">Bem vindo(a), Leticia Martins Silva</p>
             </header>
 
         <section class="stats">
             <article class="card">
                 <div class="card-top">
-                    <span></span>
+                    <span class="metric-icon">👥</span>
                     <span>ALUNOS</span>                
                 </div>
                 <strong>3</strong>
@@ -264,7 +295,7 @@
 
             <article class="card">
                 <div class="card-top">
-                    <span></span>
+                    <span class="metric-icon">📅</span>
                     <span>SESSÕES</span>
                 </div>
                 <strong>5</strong>
@@ -273,7 +304,7 @@
 
             <article class="card">
                 <div class="card-top">
-                    <span>$</span>
+                    <span class="metric-icon">$</span>
                     <span>RECEITA</span>
                 </div>
                 <strong>R$ 0,00</strong>
@@ -298,9 +329,20 @@
             <h3>AÇÔES RÁPIDAS</h3>
 
             <div class="action-grid"> 
-                <button class="action-card ative"> Adicionar alunos</button>
-                <button class="action-card">Criar Treino</button>
-                <button class="action-card">Agendar aula</button>
+                <button class="action-card active"> 
+                    <span class="icon">👥</span>
+                    <span>Adicionar aluno</span>
+                </button>
+
+                <button class="action-card">
+                    <span class="icon">🏋️</span>
+                    <span>Criar Treino</span>
+                </button>
+
+                <button class="action-card">
+                    <span class="icon">📅</span>
+                    <span>Agendar aula</span>
+                </button>
             </div>
 
        </section>
