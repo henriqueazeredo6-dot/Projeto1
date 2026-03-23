@@ -8,294 +8,243 @@
      <script src="https://unpkg.com/lucide@latest"></script>
 
      <style>
-        .sidebar {
-            width: 240px;
+                
+        main {
+            display: flex !important;
+            min-height: 100vh;
             background-color: #050507;
-            border-right: 1px solid #1f1f23;
-            padding: 20px 12px;
-            display: flex;
-            flex-direction: column;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
 
-        
-        body {
-            background-color: #050507;
-        }
-    
+        /* Estilização da Sidebar  - baseado no style.css */
+            main > section:first-child {
+            flex: 0 0 240px;
+            background-color: #09090b;
+            border-right: 1px solid #1f1f23;
+            padding: 40px 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+           
+            }
+        /* Ajuste do Conteúdo (Lado Direito) */
+            main > section:last-child {
+                    flex: 1;
+                    padding: 40px 50px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: flex-start;
+                    align-items:flex-start;
+                    background-color: #050507;
+                }        
+            
+
         .brand {
-            display: block;
-            padding: 4px 2px 18px;
-            margin-bottom: 10px;
+
+            padding: 0 20px 40px ;
+                                    
+        }
+
+        .brand h1, .header h1, .quick-action.actions h3 {
+            font-family: 'Arial Black', sans-serif;
+            font-weight: 900;
+           
+            text-transform: uppercase;
+            letter-spacing: -2 px;
+            line-height: 0.9;
+                
         }
 
         .brand h1 {
             color: #ff5e00;
-            font-size: 1.75rem;
-            font-weight: 900;
-            line-height: 1;
-            letter-spacing: 1px;
+            font-size: 1.8rem;
+           
         }
 
         .brand p {
-            margin-top: 6px;
-            margin-bottom: 0;
-            color: #6b7280;
-            font-size: 0.68rem;
+            color: #52525b;
+            font-size: 0.7rem;
+            margin-top: 5px 0 0 ;
         }
 
-        .menu {
-            display:  flex;
-            flex-direction: column;
-            gap: 4px;
+        .header h1 {
+            font-size: 4rem;
+            color:#fff;
+            margin: 0;
         }
-        
-        .menu a {
+
+        .header p {
+            color: #71717a;
+            font-size: 1rem;
+            margin: 10 px 0 40px 0;
+        }
+
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+        .nav-menu a {
             display: flex;
             align-items: center;
-            gap:10px;
-            padding: 10px 12px;
-            min-height: 38px;
+            gap: 12px;
+            padding: 12px 24px;
             color: #a1a1aa;
+            text-decoration: none;
             font-size: 0.9rem;
-            font-weight:500;
+            font-weight: 700;
+            
         }
 
-        .menu a.active {
-            background-color: #ff5e00;
+        .nav-menu a.active { 
+            background-color: #ff5e00; 
+            color: white; 
+        }
+        
+        .stats-grid {
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 50px;
+        }
+
+        .stat-card {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border: 1px solid #1f1f23;
+            background-color: #09090b;
+        }
+
+        
+        .stat-card .top   {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            
+        }
+
+        .stat-card .top i {
+            color: #ff5e00; width: 22px;
+
+        }
+
+        
+        .stat-card .top span {
+            color: #52525b;
+            font-size: 0.65rem;
+            font-weight: 800;
+        }
+
+        .stat-card strong {
+            font-size: 2.5rem;
+            font-weight: 900;
             color: #fff;
         }
 
-        .icon {
-            width: 14px;
-            display:inline-flex;
-            justify-content: center;
-            font-size: 0.9rem;
-        }
-
-        .dashboard-layout {
-            min-height: 100vh;
-            align-items: stretch;
-            display: flex;
-        }
-    
-        .content {
-            flex: 1;
-            padding: 40px 40px 40px 30px;
-            width: 100%;
-            max-width: 1400px;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            justify-content: flex-start;
-        }
-
-        .header {
-            margin-bottom: 40px;
-        }
-        .hero {
-            font-size: 4rem;
-            font-weight: 900;
-            letter-spacing: 2px;
-        }
-
-        .subtitle {
-            margin-top: 12px;
-            color: #71717a;
-            font-size: 1rem;
-        }
-        
-        .hero p {
-            margin-top: 10px;
-            margin-bottom: 0;
-            font-size: 4.2rem;
-            color: #71717a;
-        }
-        
-        .stats {
-            width: 100%;
-            max-width: 100%;
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            margin-bottom: 40px;
-        }
-
-        .card {
-            width: 100px;
-            min-height: 110px;
-            padding: 18px;
-            border: 1px solid #1f1f23;
-            background-color: #0a0a0c;
-        }
-
-        .card-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            
-        }
-
-        .metric-icon {
-            color: #ff5e00;
-            width: 18px;
-            height: 18px;
-        }
-
-
-        .card-top span:last-child {
-            color: #52525b;
-            font-size: 0.68rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .card strong {
-            font-size: 2.3rem;
-            line-height: 1;
-            font-weight: 900;
-            color: #FAFAFA;
-        }
-
-        .card p {
+        .stat-card p {
             margin: 0;
-            color: #71717a;
-            font-size: 0.82rem;
+            color: #52525b;
+            font-size: 0.75rem;
         }
 
-        .activity-summary {
-            display: flex;
-            align-items: baseline;
-            gap: 8px;
-        }
-
-        .positive {
-            color: #64d28a;
-            font-size: 0.82rem;
-            font-weight: 700;
-        }
-            
-
-        .quick-actions {
-            width: 100%;
-            margin-top: 20px;
-            border: 1px solid #1f1f23;
-            background-color: #0a0a0c;
-            padding: 24px;
-        }
-
-        .quick-actions h3 {
-            margin-bottom: 18px;
-            font-size: 1.2rem;
-            letter-spacing: 1px;
-            line-height: 1;
-            text-transform: uppercase;
-            font-weight: 900;
-            color: #FAFAFA;
-        }
-
-        .action-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-        }
-
-        .action-card {
-            margin-top: 0;
-            width: 100%;
-            min-height: 60px;
-            padding: 14px 16px;
-            border: 1px solid #3a3a40;
-            border-radius: 0;
-            background-color: transparent;
-            color: #FAFAFA;
-            text-transform: none;
-            font-size: 0.95rem;
-            font-weight: 500;
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-
-        }
-
+        
         .action-card.active {
-            font-weight: 700;
+            font-weight: 900;
             background-color: #ff5e00;
             border-color: #ff5e00;
         }
 
-        .action-icon {
-            font-size: 1rem;
+        .actions-section { 
+            width: 100%; 
         }
+
+        .actions-section h3 { 
+            font-size: 1.3rem; 
+            margin-bottom: 25px; 
+            color: #fff; 
+        }
+
+        .btn-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            width: 100%;
+        }
+
+        .btn-action {
+            background: transparent;
+            border: 1px solid #1f1f23;
+            border-radius: 0;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px;
+            color: #fff;
+            cursor: pointer;
+            transition: 0.2s;
+    }
+
+        .btn-action.active {
+            background-color: #ff5e00;
+            border-color: #ff5e00;
+            
+        }
+
+        .btn-action i {
+            width: 22px;
+            height: 22px;
+        }
+
+        .btn-action span {
+            font-style: italic;
+            font-weight: 800;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+
+
 
     </style>
 
 </head>
 <body>
-    <main class="dashboard-layout">
-        <aside class="sidebar">
+    <main>
+        <section>
             <div class="brand">
-                <h1>CONFIE</h1>
-                <p>Bem vindo(a) Leticia Martins Silva</p>
+                 <h1 style="color: #ff5e00; font-weight: 900; font-style: italic;">CONFIE</h1>
+                 <p style="font-size: 0.7rem; color: #71717a;">Leticia Martins Silva</p>
             </div>
-    
+
             <nav class="menu">
-                <a class="active" href="#">
-                    <span class="icon"></span>
-                    <span>Dashboard</span>
-                </a>
-
-                <a href="#">
-                    <span class="icon"></span>
-                    <span>Alunos</span>
-                </a>
-
-                <a href="#">
-                    <span class="icon"></span>
-                    <span>Exercícios</span>
-                </a>
-
-                <a href="#">
-                    <span class="icon"></span>
-                    <span>Treinos</span>
-                </a>
-
-                <a href="#">
-                    <span class="icon"></span>
-                    <span>Agenda</span>
-                </a>
-
-                <a href="#">
-                    <span class="icon"></span>
-                    <span>Mensagens</span>
-                </a>
-
-                <a href="#">
-                    <span class="icon"></span>
-                    <span>Anamnese</span>
-                </a>
-
-                <a href="#">
-                    <span class="icon"></span>
-                    <span>Financeiro</span>
-                </a>
-
+                <a href="#" class="active"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+                <a href="#"><i data-lucide="users"></i> Alunos</a>
+                <a href="#"><i data-lucide="dumbbell"></i> Exercícios</a>
+                <a href="#"><i data-lucide="clipboard-list"></i> Treinos</a>
+                <a href="#"><i data-lucide="calendar"></i> Agenda</a>
+                <a href="#"><i data-lucide="message-square"></i> Mensagens</a>
+                <a href="#"><i data-lucide="file-text"></i> Anamnese</a>
+                <a href="#"><i data-lucide="dollar-sign"></i> Financeiro</a>  
             </nav>
-
-        </aside>
-
-        <section class="content">
+                
+        </section>
+   
+    
+        <section>
             <header class="header">
-                <h1>Dashboard</h1>
-                <p class="subtitle">Bem vindo(a), Leticia Martins Silva</p>
+                <h1 style="font-size: 3.5rem; font-weight: 900; font-style: italic; ">Dashboard</h1>
+                <p style="color: #71717a;">Bem vindo(a), Leticia Martins Silva</p>
             </header>
 
-        <section class="stats">
+                
+
+        <div class="stats" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 40px;">
             <article class="card">
                 <div class="card-top">
-                    <i data-lucide="users" class="metric-icon"></i>
+                    <i data-lucide="users" style="color: #ff5e00;"></i>
                     <span>ALUNOS</span>                
                 </div>
                 <strong>3</strong>
@@ -304,7 +253,7 @@
 
             <article class="card">
                 <div class="card-top">
-                    <i data-lucide="calendar" class="metric-icon"></i>
+                    <i data-lucide="calendar" style="color: #ff5e00;"></i>
                     <span>SESSÕES</span>
                 </div>
                 <strong>5</strong>
@@ -313,7 +262,7 @@
 
             <article class="card">
                 <div class="card-top">
-                    <i data-lucide="dollar-sign" class="metric-icon"></i>
+                    <i data-lucide="dollar-sign" style="color: #ff5e00;"></i>
                     <span>RECEITA</span>
                 </div>
                 <strong>R$ 0,00</strong>
@@ -322,41 +271,39 @@
 
             <article class="card">
                 <div class="card-top">
-                    <i data-lucide="activity" class="metric-icon"></i>
+                    <i data-lucide="activity" style="color: #ff5e00;"></i>
                     <span>ATIVIDADE</span>
                 </div>
-                <div class="activity-summary">
+                <div style="display: flex; align-items: baseline; gap: 5px;">
                 <strong>10</strong>
-                    <span class="positive">(33%)</span>
+                    <span style="color: #64d28a; font-size: 0.8rem; font-weight: bold;">(33%)</span>
                 </div>
                 <p>Check-ins recentes</p>
             </article>
 
-        </section>
+        </div>
             
-       <section class="quick-actions">
-            <h3>AÇÔES RÁPIDAS</h3>
-
-            <div class="action-grid"> 
+       
+            <div class="action-grid" style="width: 100%;"> 
+                 <h3 style="font-weight: 900; font-style: italic;  margin-bottom: 20px;">Ações rápidas</h3>
+                 <div class="action-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
                 <button class="action-card active"> 
-                    <span class="icon">👥</span>
+                    <i data-lucide="user-plus"></i>
                     <span>Adicionar aluno</span>
                 </button>
 
                 <button class="action-card">
-                    <span class="icon">🏋️</span>
+                    <i data-lucide="activity"></i>
                     <span>Criar Treino</span>
                 </button>
 
                 <button class="action-card">
-                    <span class="icon">📅</span>
+                    <i data-lucide="calendar-plus"></i>
                     <span>Agendar aula</span>
                 </button>
             </div>
-
-       </section>
-        
-        
+    </div>   
+    </section>
     </main>
     
 <script>
