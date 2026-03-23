@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - CONFIE</title>
      <link rel="stylesheet" href="style.css"> 
+     <script src="https://unpkg.com/lucide@latest"></script>
 
      <style>
         .sidebar {
@@ -16,6 +17,10 @@
             flex-direction: column;
         }
 
+        body {
+            background-color: #050507;
+        }
+    
         .brand {
             display: block;
             padding: 4px 2px 18px;
@@ -74,7 +79,7 @@
     
         .content {
             flex: 1;
-            padding: 40px 60px;
+            padding: 40px 40px 40px 30px;
             width: 100%;
             max-width: 1400px;
             margin: 0 auto;
@@ -88,9 +93,9 @@
             margin-bottom: 40px;
         }
         .hero {
-            font-size: 3.8rem;
+            font-size: 4rem;
             font-weight: 900;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
         }
 
         .subtitle {
@@ -108,6 +113,7 @@
         
         .stats {
             width: 100%;
+            max-width: 100%;
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 20px;
@@ -115,10 +121,11 @@
         }
 
         .card {
-            min-height: 130px;
+            width: 100px;
+            min-height: 110px;
             padding: 18px;
-            border: 1px solid #27272a;
-            background-color: #111114;
+            border: 1px solid #1f1f23;
+            background-color: #0a0a0c;
         }
 
         .card-top {
@@ -130,12 +137,13 @@
 
         .metric-icon {
             color: #ff5e00;
-            font-size: 1.2rem;
+            width: 18px;
+            height: 18px;
         }
 
 
         .card-top span:last-child {
-            color: #71717a;
+            color: #52525b;
             font-size: 0.68rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -170,8 +178,8 @@
         .quick-actions {
             width: 100%;
             margin-top: 20px;
-            border: 1px solid #27272a;
-            background-color: #111114;
+            border: 1px solid #1f1f23;
+            background-color: #0a0a0c;
             padding: 24px;
         }
 
@@ -194,7 +202,7 @@
         .action-card {
             margin-top: 0;
             width: 100%;
-            min-height: 70px;
+            min-height: 60px;
             padding: 14px 16px;
             border: 1px solid #3a3a40;
             border-radius: 0;
@@ -204,10 +212,10 @@
             font-size: 0.95rem;
             font-weight: 500;
             display: flex;
-            flex-direction: column;
-            align-items: flex-start;
+            flex-direction: row;
+            align-items: center;
             justify-content: center;
-            gap: 6px;
+            gap: 10px;
 
         }
 
@@ -286,7 +294,7 @@
         <section class="stats">
             <article class="card">
                 <div class="card-top">
-                    <span class="metric-icon">👥</span>
+                    <i data-lucide="users" class="metric-icon"></i>
                     <span>ALUNOS</span>                
                 </div>
                 <strong>3</strong>
@@ -295,7 +303,7 @@
 
             <article class="card">
                 <div class="card-top">
-                    <span class="metric-icon">📅</span>
+                    <i data-lucide="calendar" class="metric-icon"></i>
                     <span>SESSÕES</span>
                 </div>
                 <strong>5</strong>
@@ -304,7 +312,7 @@
 
             <article class="card">
                 <div class="card-top">
-                    <span class="metric-icon">$</span>
+                    <i data-lucide="dollar-sign" class="metric-icon"></i>
                     <span>RECEITA</span>
                 </div>
                 <strong>R$ 0,00</strong>
@@ -313,7 +321,7 @@
 
             <article class="card">
                 <div class="card-top">
-                    <span>∿</span>
+                    <i data-lucide="activity" class="metric-icon"></i>
                     <span>ATIVIDADE</span>
                 </div>
                 <div class="activity-summary">
@@ -350,5 +358,9 @@
         
     </main>
     
+<script>
+    lucide.createIcons();
+</script>
+
 </body>
 </html>
