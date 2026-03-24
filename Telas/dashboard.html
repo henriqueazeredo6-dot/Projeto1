@@ -9,203 +9,93 @@
 
      <style>
                 
-        main {
-            display: flex !important;
-            min-height: 100vh;
-            background-color: #050507;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        }
+               
+        main > section:first-child, 
+        main > section:last-child {
+                justify-content: flex-start;
+                align-items:flex-start;
+                text-align: left;
+        }         
 
-        /* Estilização da Sidebar  - baseado no style.css */
-            main > section:first-child {
-            flex: 0 0 240px;
-            background-color: #09090b;
-            border-right: 1px solid #1f1f23;
-            padding: 40px 0;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-           
-            }
-        /* Ajuste do Conteúdo (Lado Direito) */
-            main > section:last-child {
-                    flex: 1;
-                    padding: 40px 50px;
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: flex-start;
-                    align-items:flex-start;
-                    background-color: #050507;
-                }        
-            
-
-        .brand {
-
-            padding: 0 20px 40px ;
-                                    
-        }
-
-        .brand h1, .header h1, .quick-action.actions h3 {
-            font-family: 'Arial Black', sans-serif;
-            font-weight: 900;
-           
-            text-transform: uppercase;
-            letter-spacing: -2 px;
-            line-height: 0.9;
-                
-        }
-
-        .brand h1 {
-            color: #ff5e00;
-            font-size: 1.8rem;
+        main > section:first-child {
+            flex:0 0 250px;
+            padding-top: 40px;
            
         }
 
-        .brand p {
-            color: #52525b;
-            font-size: 0.7rem;
-            margin-top: 5px 0 0 ;
-        }
-
-        .header h1 {
-            font-size: 4rem;
-            color:#fff;
-            margin: 0;
-        }
-
-        .header p {
-            color: #71717a;
-            font-size: 1rem;
-            margin: 10 px 0 40px 0;
-        }
-
-        .nav-menu {
-            display: flex;
-            flex-direction: column;
+        nav {
             width: 100%;
-        }
-        .nav-menu a {
+        }        
+
+        nav a {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 12px 24px;
+            padding: 12px 25px;
             color: #a1a1aa;
             text-decoration: none;
+            font-weight: bold;
             font-size: 0.9rem;
-            font-weight: 700;
-            
+                                    
         }
 
-        .nav-menu a.active { 
+        nav a.active { 
             background-color: #ff5e00; 
             color: white; 
         }
         
-        .stats-grid {
-            width: 100%;
+        .grid-stats {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 15px;
-            margin-bottom: 50px;
+            width: 100%;
+            margin: 40px 0;
         }
 
-        .stat-card {
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            border: 1px solid #1f1f23;
-            background-color: #09090b;
+        .card-fiel {
+            background: #09090b;
+            border: 1px solid #27272a; 
+            padding: 20px;
+            position: relative;
         }
 
-        
-        .stat-card .top   {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            
-        }
-
-        .stat-card .top i {
-            color: #ff5e00; width: 22px;
-
-        }
-
-        
-        .stat-card .top span {
-            color: #52525b;
-            font-size: 0.65rem;
-            font-weight: 800;
-        }
-
-        .stat-card strong {
+        .card-fiel strong {
             font-size: 2.5rem;
             font-weight: 900;
-            color: #fff;
+            margin: 10px 0;
         }
 
-        .stat-card p {
-            margin: 0;
-            color: #52525b;
-            font-size: 0.75rem;
-        }
-
-        
-        .action-card.active {
-            font-weight: 900;
-            background-color: #ff5e00;
-            border-color: #ff5e00;
-        }
-
-        .actions-section { 
-            width: 100%; 
-        }
-
-        .actions-section h3 { 
-            font-size: 1.3rem; 
-            margin-bottom: 25px; 
-            color: #fff; 
-        }
-
-        .btn-grid {
+        .grid-acoes {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 15px;
             width: 100%;
         }
 
-        .btn-action {
-            background: transparent;
-            border: 1px solid #1f1f23;
-            border-radius: 0;
-            padding: 30px;
+        .btn-dash {
+            height: 110px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            padding-left: 20px;
+        }
+
+        .btn-vazado {
+            height: 110px;
+            border: 1px solid #27272a;
+            display: flex;
+            padding-left: 20px;
+            cursor: pointer;
+        }
+
+        .card-fiel, .btn-vazado {
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            gap: 15px;
-            color: #fff;
-            cursor: pointer;
-            transition: 0.2s;
+            text-align: left;
+            justify-content: center;
     }
-
-        .btn-action.active {
-            background-color: #ff5e00;
-            border-color: #ff5e00;
-            
-        }
-
-        .btn-action i {
-            width: 22px;
-            height: 22px;
-        }
-
-        .btn-action span {
-            font-style: italic;
-            font-weight: 800;
-            text-transform: uppercase;
-            font-size: 0.9rem;
-        }
-
 
 
     </style>
@@ -214,12 +104,12 @@
 <body>
     <main>
         <section>
-            <div class="brand">
-                 <h1 style="color: #ff5e00; font-weight: 900; font-style: italic;">CONFIE</h1>
-                 <p style="font-size: 0.7rem; color: #71717a;">Leticia Martins Silva</p>
+            <div style="padding: 0 25px 40px; width: 100%;">
+                 <h1 style="font-size: 1.8rem; color: #ff5e00;">CONFIE</h1>
+                 <p style="font-size: 0.7rem; margin: 0;">Leticia Martins Silva</p>
             </div>
 
-            <nav class="menu">
+            <nav>
                 <a href="#" class="active"><i data-lucide="layout-dashboard"></i> Dashboard</a>
                 <a href="#"><i data-lucide="users"></i> Alunos</a>
                 <a href="#"><i data-lucide="dumbbell"></i> Exercícios</a>
@@ -234,75 +124,60 @@
    
     
         <section>
-            <header class="header">
-                <h1 style="font-size: 3.5rem; font-weight: 900; font-style: italic; ">Dashboard</h1>
-                <p style="color: #71717a;">Bem vindo(a), Leticia Martins Silva</p>
-            </header>
+            <h2 style="font-size: 3.5rem; text-transform: uppercase;">Dashboard</h2>
+            <p>Bem vindo(a), Leticia Martins Silva</p>
+            
 
                 
-
-        <div class="stats" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 40px;">
-            <article class="card">
-                <div class="card-top">
-                    <i data-lucide="users" style="color: #ff5e00;"></i>
-                    <span>ALUNOS</span>                
+<div class="grid-stats">
+                <div class="card-fiel">
+                    <i data-lucide="users" style="color: #ff5e00; width: 20px;"></i>
+                    <span style="position: absolute; top: 20px; right: 20px; font-size: 0.6rem; font-weight: 800; color: #52525b;">ALUNOS</span>
+                    <strong>3</strong>
+                    <p style="font-size: 0.7rem; color: #52525b; margin: 0;">Total cadastrados</p>
                 </div>
-                <strong>3</strong>
-                <p>Total Cadastrados</p>
-            </article>
-
-            <article class="card">
-                <div class="card-top">
-                    <i data-lucide="calendar" style="color: #ff5e00;"></i>
-                    <span>SESSÕES</span>
+                <div class="card-fiel">
+                    <i data-lucide="calendar" style="color: #ff5e00; width: 20px;"></i>
+                    <span style="position: absolute; top: 20px; right: 20px; font-size: 0.6rem; font-weight: 800; color: #52525b;">SESSÕES</span>
+                    <strong>0</strong>
+                    <p style="font-size: 0.7rem; color: #52525b; margin: 0;">Aulas concluídas</p>
                 </div>
-                <strong>5</strong>
-                <p>Aulas Concluídas</p>
-            </article>
-
-            <article class="card">
-                <div class="card-top">
-                    <i data-lucide="dollar-sign" style="color: #ff5e00;"></i>
-                    <span>RECEITA</span>
+                <div class="card-fiel">
+                    <i data-lucide="dollar-sign" style="color: #ff5e00; width: 20px;"></i>
+                    <span style="position: absolute; top: 20px; right: 20px; font-size: 0.6rem; font-weight: 800; color: #52525b;">RECEITA</span>
+                    <strong>R$ 0,00</strong>
+                    <p style="font-size: 0.7rem; color: #52525b; margin: 0;">Total recebido</p>
                 </div>
-                <strong>R$ 0,00</strong>
-                <p>Total recebido</p>
-            </article>
-
-            <article class="card">
-                <div class="card-top">
-                    <i data-lucide="activity" style="color: #ff5e00;"></i>
-                    <span>ATIVIDADE</span>
+                <div class="card-fiel">
+                    <i data-lucide="activity" style="color: #ff5e00; width: 20px;"></i>
+                    <span style="position: absolute; top: 20px; right: 20px; font-size: 0.6rem; font-weight: 800; color: #52525b;">ATIVIDADE</span>
+                    <div style="display: flex; align-items: baseline; gap: 5px;">
+                        <strong>10</strong>
+                        <span style="color: #22c55e; font-weight: bold; font-size: 0.8rem;">(33%)</span>
+                    </div>
+                    <p style="font-size: 0.7rem; color: #52525b; margin: 0;">Check-ins recentes</p>
                 </div>
-                <div style="display: flex; align-items: baseline; gap: 5px;">
-                <strong>10</strong>
-                    <span style="color: #64d28a; font-size: 0.8rem; font-weight: bold;">(33%)</span>
-                </div>
-                <p>Check-ins recentes</p>
-            </article>
-
-        </div>
-            
-       
-            <div class="action-grid" style="width: 100%;"> 
-                 <h3 style="font-weight: 900; font-style: italic;  margin-bottom: 20px;">Ações rápidas</h3>
-                 <div class="action-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
-                <button class="action-card active"> 
-                    <i data-lucide="user-plus"></i>
-                    <span>Adicionar aluno</span>
-                </button>
-
-                <button class="action-card">
-                    <i data-lucide="activity"></i>
-                    <span>Criar Treino</span>
-                </button>
-
-                <button class="action-card">
-                    <i data-lucide="calendar-plus"></i>
-                    <span>Agendar aula</span>
-                </button>
             </div>
-    </div>   
+            
+     
+            
+            <div class="grid-acoes">
+                <button class="btn-dash">
+                    <i data-lucide="user-plus"></i>
+                    <span style="margin-top: 10px;">Adicionar Aluno</span>
+                </button>
+
+                <div class="btn-vazado">
+                    <i data-lucide="activity"></i>
+                    <span style="font-weight: bold; font-size: 0.8rem; margin-top: 10px;">CRIAR TREINO</span>
+                </div>
+
+                <div class="btn-vazado">
+                    <i data-lucide="calendar"></i>
+                    <span style="font-weight: bold; font-size: 0.8rem; margin-top: 10px;">AGENDAR AULA</span>
+                </div>
+        </div>
+       
     </section>
     </main>
     
@@ -311,4 +186,5 @@
 </script>
 
 </body>
+
 </html>
