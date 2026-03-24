@@ -1,70 +1,71 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Cadastro - CONFIE Personal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CONFIE - Plataforma para Personal Trainers - Cadastro</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-    <main>
-        <section>
-            <h1>CONFIE Personal</h1>
-            <p>Gestão Profissional de Personal Training</p>
+    <main class="auth-layout">
+        <section class="auth-brand">
+            <div class="brand-block">
+                <h1 class="brand-title">CONFIE Personal</h1>
+                <p class="brand-copy">Gestão Profissional de Personal Training</p>
+            </div>
         </section>
 
-        <section>
-            <h2>CADASTRO</h2>
-            <p>Crie sua conta gratuita</p>
+        <section class="auth-panel">
+            <div class="auth-panel-inner">
+                <h2>Cadastro</h2>
+                <p class="auth-subtitle">Crie sua conta gratuita</p>
 
-            <form>
-                <label>NOME COMPLETO</label>
-                <br>
-                <input type="text" placeholder="Seu nome">
-                <br><br>
+                <form>
+                    <div class="field">
+                        <label for="nome">Nome completo</label>
+                        <input id="nome" name="nome" type="text" placeholder="Seu nome" required>
+                    </div>
 
-                <label>EMAIL</label>
-                <br>
-                <input type="email" placeholder="seu@email.com">
-                <br><br>
+                    <div class="field">
+                        <label for="email">Email</label>
+                        <input id="email" name="email" type="email" placeholder="seu@email.com" required>
+                    </div>
 
-                <label>DATA DE NASCIMENTO</label>
-                <br>
-                <input type="date">
-                <br><br>
+                    <div class="field">
+                        <label for="nascimento">Data de nascimento</label>
+                        <input id="nascimento" name="nascimento" type="date" required>
+                    </div>
 
-                <label>TIPO DE CONTA</label>
-                <br>
-                <select>
-                    <option>Personal Trainer</option>
-                    <option>Aluno</option>
-                </select>
-                <br><br>
+                    <div class="field">
+                        <label for="tipo-conta">Tipo de conta</label>
+                        <select id="tipo-conta" name="tipo-conta">
+                            <option>Personal Trainer</option>
+                            <option>Aluno</option>
+                        </select>
+                    </div>
 
-                <label>SENHA</label>
-                <br>
-                <input type="password" placeholder="........">
-                <br><br>
+                    <div class="field">
+                        <label for="senha">Senha</label>
+                        <input id="senha" name="senha" type="password" placeholder="••••••••" required>
+                    </div>
 
-                <label>CONFIRMAR SENHA</label>
-                <br>
-                <input type="password" placeholder="........">
-                <br><br>
+                    <div class="field">
+                        <label for="confirmar-senha">Confirmar senha</label>
+                        <input id="confirmar-senha" name="confirmar-senha" type="password" placeholder="••••••••" required>
+                    </div>
 
-                <div>
-                    <input type="checkbox" id="termos">
-                    <label for="termos">Eu aceito os Termos e Condições e a Política de Privacidade</label>
-                </div>
-                <br>
+                    <div class="checkbox-row">
+                        <input type="checkbox" id="termos" required>
+                        <label for="termos">Eu aceito os <a href="#">Termos e Condições</a> e a <a href="#">Política de Privacidade</a></label>
+                    </div>
 
-                <button type="submit">CRIAR CONTA</button>
-            </form>
+                    <button class="button-block" type="submit">⍟ Criar conta</button>
+                </form>
 
-            <p>Já tem uma conta? <a href="login.html">Faça login</a></p>
-            <a href="index.html">← Voltar para Tela Inicial</a>
-
+                <p class="link-row">Já tem uma conta? <a href="Login.html">Faça login</a></p>
+                <a class="back-link" href="index.html">← Voltar para home</a>
+            </div>
         </section>
     </main>
-
 </body>
 </html>
