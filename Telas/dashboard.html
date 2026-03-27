@@ -5,178 +5,78 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - CONFIE</title>
      <link rel="stylesheet" href="style.css"> 
-     <script src="https://unpkg.com/lucide@latest"></script>
-
-     <style>
-                
-               
-        main > section:first-child, 
-        main > section:last-child {
-                justify-content: flex-start;
-                align-items:flex-start;
-                text-align: left;
-        }         
-
-        main > section:first-child {
-            flex:0 0 250px;
-            padding-top: 40px;
-           
-        }
-
-        nav {
-            width: 100%;
-        }        
-
-        nav a {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 25px;
-            color: #a1a1aa;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 0.9rem;
-                                    
-        }
-
-        nav a.active { 
-            background-color: #ff5e00; 
-            color: white; 
-        }
-        
-        .grid-stats {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            width: 100%;
-            margin: 40px 0;
-        }
-
-        .card-fiel {
-            background: #09090b;
-            border: 1px solid #27272a; 
-            padding: 20px;
-            position: relative;
-        }
-
-        .card-fiel strong {
-            font-size: 2.5rem;
-            font-weight: 900;
-            margin: 10px 0;
-        }
-
-        .grid-acoes {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            width: 100%;
-        }
-
-        .btn-dash {
-            height: 110px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: flex-start;
-            padding-left: 20px;
-        }
-
-        .btn-vazado {
-            height: 110px;
-            border: 1px solid #27272a;
-            display: flex;
-            padding-left: 20px;
-            cursor: pointer;
-        }
-
-        .card-fiel, .btn-vazado {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            text-align: left;
-            justify-content: center;
-    }
-
-
-    </style>
-
+     
+    
 </head>
 <body>
     <main>
-        <section>
-            <div style="padding: 0 25px 40px; width: 100%;">
-                 <h1 style="font-size: 1.8rem; color: #ff5e00;">CONFIE</h1>
-                 <p style="font-size: 0.7rem; margin: 0;">Leticia Martins Silva</p>
-            </div>
+        <section aria-label="Resumo e Menu">
+            <header>
+                 <h1 id="brand-name" data-field="empresa_nome">CONFIE</h1>
+                 <p id="professional-name" data-fiels="profissional_nome">Leticia Martins Silva</p>
+            </header>
 
-            <nav>
-                <a href="#" class="active"><i data-lucide="layout-dashboard"></i> Dashboard</a>
-                <a href="#"><i data-lucide="users"></i> Alunos</a>
-                <a href="#"><i data-lucide="dumbbell"></i> Exercícios</a>
-                <a href="#"><i data-lucide="clipboard-list"></i> Treinos</a>
-                <a href="#"><i data-lucide="calendar"></i> Agenda</a>
-                <a href="#"><i data-lucide="message-square"></i> Mensagens</a>
-                <a href="#"><i data-lucide="file-text"></i> Anamnese</a>
-                <a href="#"><i data-lucide="dollar-sign"></i> Financeiro</a>  
+            <nav aria-label="Menu principal"> aria-current="page">
+                <a href="/dashboard" data-route="dashboard" aria-current="page">Dashboard</a>                    
+                <a href="/alunos" data-route="alunos">Alunos</a>
+                <a href="/exercicios" data-route="exercicios">Exercícios</a>
+                <a href="/treinos" data-route="treinos">Treinos</a>
+                <a href="/agenda" data-route="agenda">Agenda</a>
+                <a href="/mensagens" data-route="mensagens">Mensagens</a>
+                <a href="/anamnese" data-route="anamnese">Anamnese</a>
+                <a href="/financeiro" data-route="financeiro">Financeiro</a>  
             </nav>
                 
         </section>
    
     
-        <section>
-            <h2 style="font-size: 3.5rem; text-transform: uppercase;">Dashboard</h2>
-            <p>Bem vindo(a), Leticia Martins Silva</p>
+        <section aria-label="Conteúdo principal da Dashboard">
+            <header>
+
+            <h2>Dashboard</h2>
+            <p id="welcome-message">Bem vindo(a), <span data-field="profissional_nome">Leticia Martins Silva</span></p>
             
+            </header>
 
                 
-<div class="grid-stats">
-                <div class="card-fiel">
-                    <i data-lucide="users" style="color: #ff5e00; width: 20px;"></i>
-                    <span style="position: absolute; top: 20px; right: 20px; font-size: 0.6rem; font-weight: 800; color: #52525b;">ALUNOS</span>
-                    <strong>3</strong>
-                    <p style="font-size: 0.7rem; color: #52525b; margin: 0;">Total cadastrados</p>
-                </div>
-                <div class="card-fiel">
-                    <i data-lucide="calendar" style="color: #ff5e00; width: 20px;"></i>
-                    <span style="position: absolute; top: 20px; right: 20px; font-size: 0.6rem; font-weight: 800; color: #52525b;">SESSÕES</span>
-                    <strong>0</strong>
-                    <p style="font-size: 0.7rem; color: #52525b; margin: 0;">Aulas concluídas</p>
-                </div>
-                <div class="card-fiel">
-                    <i data-lucide="dollar-sign" style="color: #ff5e00; width: 20px;"></i>
-                    <span style="position: absolute; top: 20px; right: 20px; font-size: 0.6rem; font-weight: 800; color: #52525b;">RECEITA</span>
-                    <strong>R$ 0,00</strong>
-                    <p style="font-size: 0.7rem; color: #52525b; margin: 0;">Total recebido</p>
-                </div>
-                <div class="card-fiel">
-                    <i data-lucide="activity" style="color: #ff5e00; width: 20px;"></i>
-                    <span style="position: absolute; top: 20px; right: 20px; font-size: 0.6rem; font-weight: 800; color: #52525b;">ATIVIDADE</span>
-                    <div style="display: flex; align-items: baseline; gap: 5px;">
-                        <strong>10</strong>
-                        <span style="color: #22c55e; font-weight: bold; font-size: 0.8rem;">(33%)</span>
-                    </div>
-                    <p style="font-size: 0.7rem; color: #52525b; margin: 0;">Check-ins recentes</p>
-                </div>
-            </div>
-            
-     
-            
-            <div class="grid-acoes">
-                <button class="btn-dash">
-                    <i data-lucide="user-plus"></i>
-                    <span style="margin-top: 10px;">Adicionar Aluno</span>
-                </button>
+        <section aria-label="Indicadores principais">
+                
+            <article data-card="alunos">
+                <h3>Alunos</h3> 
+                    <strong id="total-alunos" data-field="total_alunos">3</strong>
+                    <small>Total cadastrados</small>
+            </article>
 
-                <div class="btn-vazado">
-                    <i data-lucide="activity"></i>
-                    <span style="font-weight: bold; font-size: 0.8rem; margin-top: 10px;">CRIAR TREINO</span>
-                </div>
+            <article data-card="sessões">
+                  <h3>Sess</h3>
+                    <strong id="total-sessoes" data-field="total_sessoes">0</strong>
+                    <small>Aulas concluídas</small>
+            </article>
+                
+            <article data-card="receita">
+                  <h3>Receita</h3>
+                    <strong id="total-receita" data-field="total_receita">R$ 0,00</strong>
+                    <small>Total recebido</small>
+            </article>
 
-                <div class="btn-vazado">
-                    <i data-lucide="calendar"></i>
-                    <span style="font-weight: bold; font-size: 0.8rem; margin-top: 10px;">AGENDAR AULA</span>
-                </div>
-        </div>
+            <article data-card="atividade">
+                  <h3>Atividade</h3>
+                    <strong id="total-checkins" data-field="total_checkins">10</strong>
+                    <span id="variacao-checkins" data-field="variacao_checkins">(33%)</span>
+                    <small>Check-ins recentes</small>
+            </article>
+
+        </section>
+            
+        <section aria-label="Ações rápidas">
+            
+            <h3>Ações Rápidas</h3>
+
+                <button type="button" data-action="adicionar-aluno">Adicionar Aluno</button>
+                <button type="button" data-action="criar-treino">Criar Treino</button>
+                <button type="button" data-action="enviar-mensagem">Agendar Aula</button>
+                
+                
        
     </section>
     </main>
