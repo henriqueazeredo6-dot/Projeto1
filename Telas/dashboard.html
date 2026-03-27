@@ -17,7 +17,7 @@
             </header>
 
             <nav aria-label="Menu principal"> aria-current="page">
-                <a href="/dashboard" data-route="dashboard" aria-current="page">Dashboard</a>                    
+                <a href="/dashboard" data-route="dashboard">Dashboard</a>                    
                 <a href="/alunos" data-route="alunos">Alunos</a>
                 <a href="/exercicios" data-route="exercicios">Exercícios</a>
                 <a href="/treinos" data-route="treinos">Treinos</a>
@@ -75,16 +75,20 @@
                 <button type="button" data-action="adicionar-aluno">Adicionar Aluno</button>
                 <button type="button" data-action="criar-treino">Criar Treino</button>
                 <button type="button" data-action="enviar-mensagem">Agendar Aula</button>
-                
-                
-       
-    </section>
-    </main>
-    
-<script>
-    lucide.createIcons();
-</script>
+        </section>
 
-</body>
+        <section aria-label="Dados para integração" hidden>
+            <form id="dashboard-filters">
+
+                <input type="hidden" name="profissional_id" value="" data-field="profissional_id">
+                <input type="hidden" name="empresa_id" value="" data-field="empresa_id">
+                <input type="hidden" name="periodo_inicio" value="" data-field="periodo">
+                <input type="hidden" name="periodo_fim" value="" data-field="periodo">
+
+            </form>
+        </section>
+     </section>
+    </main>
+ </body>
 
 </html>
