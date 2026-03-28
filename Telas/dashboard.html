@@ -13,10 +13,10 @@
         <section aria-label="Resumo e Menu">
             <header>
                  <h1 id="brand-name" data-field="empresa_nome">CONFIE</h1>
-                 <p id="professional-name" data-fiels="profissional_nome">Leticia Martins Silva</p>
+                 <p id="professional-name" data-field="profissional_nome">Leticia Martins Silva</p>
             </header>
 
-            <nav aria-label="Menu principal"> aria-current="page">
+            <nav aria-label="Menu principal" aria-current="page">
                 <a href="/dashboard" data-route="dashboard">Dashboard</a>                    
                 <a href="/alunos" data-route="alunos">Alunos</a>
                 <a href="/exercicios" data-route="exercicios">Exercícios</a>
@@ -47,8 +47,8 @@
                     <small>Total cadastrados</small>
             </article>
 
-            <article data-card="sessões">
-                  <h3>Sess</h3>
+            <article data-card="sessoes">
+                  <h3>Sessões</h3>
                     <strong id="total-sessoes" data-field="total_sessoes">0</strong>
                     <small>Aulas concluídas</small>
             </article>
@@ -74,7 +74,7 @@
 
                 <button type="button" data-action="adicionar-aluno">Adicionar Aluno</button>
                 <button type="button" data-action="criar-treino">Criar Treino</button>
-                <button type="button" data-action="enviar-mensagem">Agendar Aula</button>
+                <button type="button" data-action="agendar-aula">Agendar Aula</button>
         </section>
 
         <section aria-label="Dados para integração" hidden>
@@ -82,8 +82,8 @@
 
                 <input type="hidden" name="profissional_id" value="" data-field="profissional_id">
                 <input type="hidden" name="empresa_id" value="" data-field="empresa_id">
-                <input type="hidden" name="periodo_inicio" value="" data-field="periodo">
-                <input type="hidden" name="periodo_fim" value="" data-field="periodo">
+                <input type="hidden" name="periodo_inicio" value="" data-field="periodo_inicio">
+                <input type="hidden" name="periodo_fim" value="" data-field="periodo_fim">
 
             </form>
         </section>
