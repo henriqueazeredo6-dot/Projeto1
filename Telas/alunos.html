@@ -11,12 +11,12 @@
         <aside class="dashboard-sidebar">
             <div class="sidebar-brand">
                 <a class="sidebar-logo" href="index.html">CONFIE Personal</a>
-                <p class="sidebar-user">{{ nome_usuario }}</p>
+                <p class="sidebar-user">{{ nome_usuario|default('Personal Trainer', true) }}</p>
             </div>
 
             <nav class="sidebar-nav" aria-label="Menu principal">
-                <a class="sidebar-link" href="#">Dashboard</a>
-                <a class="sidebar-link is-active" href="alunos.html">Alunos</a>
+                <a class="sidebar-link" href="{{ dashboard_url|default('/dashboard', true) }}">Dashboard</a>
+                <a class="sidebar-link is-active" href="{{ alunos_url|default('/alunos', true) }}">Alunos</a>
                 <a class="sidebar-link" href="#">Exercicios</a>
                 <a class="sidebar-link" href="#">Treinos</a>
                 <a class="sidebar-link" href="#">Agenda</a>
@@ -30,15 +30,41 @@
             <header class="dashboard-header">
                 <div>
                     <h1 class="dashboard-title">Alunos</h1>
-                    <p class="dashboard-subtitle">{{ alunos|length }} alunos cadastrados</p>
+                    <p class="dashboard-subtitle">
+                        {{ total_alunos|default(alunos|length, true) }} alunos cadastrados
+                        {% if total_ativos is defined %}
+                        . {{ total_ativos }} ativos
+                        {% endif %}
+                    </p>
                 </div>
 
                 <a class="button dashboard-add-button" href="#novo-aluno">Adicionar aluno</a>
             </header>
 
+            {% if sucesso %}
+            <section class="student-feedback student-feedback-success" aria-label="Mensagem de sucesso">
+                <p>{{ sucesso }}</p>
+            </section>
+            {% endif %}
+
+            {% if erro %}
+            <section class="student-feedback student-feedback-error" aria-label="Mensagem de erro">
+                <p>{{ erro }}</p>
+            </section>
+            {% endif %}
+
             <section class="student-toolbar" aria-label="Busca de alunos">
-                <form class="student-search-form" action="/alunos" method="get">
-                    <input type="search" name="busca" value="{{ busca|default('', true) }}" placeholder="Buscar alunos...">
+                <form class="student-search-form" action="{{ alunos_url|default('/alunos', true) }}" method="get">
+                    <div class="student-filter-grid">
+                        <input type="search" name="busca" value="{{ filtros.busca if filtros is defined else busca|default('', true) }}" placeholder="Buscar alunos...">
+                        <select name="status">
+                            <option value="">Todos os status</option>
+                            <option value="ativo" {% if filtros is defined and filtros.status == 'ativo' %}selected{% endif %}>Ativos</option>
+                            <option value="inativo" {% if filtros is defined and filtros.status == 'inativo' %}selected{% endif %}>Inativos</option>
+                            <option value="avaliacao" {% if filtros is defined and filtros.status == 'avaliacao' %}selected{% endif %}>Avaliacao pendente</option>
+                        </select>
+                        <button class="button button-secondary" type="submit">Filtrar</button>
+                    </div>
                 </form>
             </section>
 
@@ -46,16 +72,23 @@
                 {% for aluno in alunos %}
                 <article class="student-card">
                     <div class="student-card-header">
-                        <div class="student-avatar">{{ aluno.nome[0]|upper }}</div>
+                        <div class="student-avatar">{{ aluno.nome[0]|upper if aluno.nome else '?' }}</div>
                         <div class="student-meta">
                             <h2>{{ aluno.nome }}</h2>
                             <p>{{ aluno.email }}</p>
                         </div>
                     </div>
 
+                    <div class="student-card-body">
+                        <p><strong>Objetivo:</strong> {{ aluno.objetivo|default('Nao informado', true) }}</p>
+                        <p><strong>Status:</strong> {{ aluno.status|default('Ativo', true) }}</p>
+                        <p><strong>Plano:</strong> {{ aluno.plano|default('Nao definido', true) }}</p>
+                    </div>
+
                     <div class="student-card-actions">
-                        <a class="student-action" href="/alunos/{{ aluno.id }}/editar">Editar</a>
-                        <form action="/alunos/{{ aluno.id }}/excluir" method="post">
+                        <a class="student-action" href="{{ editar_aluno_base_url|default('/alunos', true) }}/{{ aluno.id }}/editar">Editar</a>
+                        <a class="student-action" href="{{ detalhes_aluno_base_url|default('/alunos', true) }}/{{ aluno.id }}">Perfil</a>
+                        <form action="{{ excluir_aluno_base_url|default('/alunos', true) }}/{{ aluno.id }}/excluir" method="post">
                             <button class="student-icon-button" type="submit">Excluir</button>
                         </form>
                     </div>
@@ -78,15 +111,43 @@
                         <a class="student-modal-close" href="alunos.html" aria-label="Fechar modal">x</a>
                     </div>
 
-                    <form class="student-form" action="/alunos" method="post">
+                    <form class="student-form" action="{{ criar_aluno_url|default('/alunos', true) }}" method="post">
                         <div class="field">
                             <label for="nome">Nome</label>
-                            <input id="nome" name="nome" type="text" placeholder="Nome do aluno" required>
+                            <input id="nome" name="nome" type="text" placeholder="Nome do aluno" value="{{ form.nome if form is defined else '' }}" required>
                         </div>
 
                         <div class="field">
                             <label for="email">Email</label>
-                            <input id="email" name="email" type="email" placeholder="email@exemplo.com" required>
+                            <input id="email" name="email" type="email" placeholder="email@exemplo.com" value="{{ form.email if form is defined else '' }}" required>
+                        </div>
+
+                        <div class="field">
+                            <label for="telefone">Telefone</label>
+                            <input id="telefone" name="telefone" type="tel" placeholder="(00) 00000-0000" value="{{ form.telefone if form is defined else '' }}">
+                        </div>
+
+                        <div class="field">
+                            <label for="objetivo">Objetivo principal</label>
+                            <input id="objetivo" name="objetivo" type="text" placeholder="Hipertrofia, emagrecimento, corrida..." value="{{ form.objetivo if form is defined else '' }}">
+                        </div>
+
+                        <div class="field">
+                            <label for="status">Status</label>
+                            <select id="status" name="status">
+                                <option value="ativo" {% if form is not defined or form.status == 'ativo' %}selected{% endif %}>Ativo</option>
+                                <option value="inativo" {% if form is defined and form.status == 'inativo' %}selected{% endif %}>Inativo</option>
+                                <option value="avaliacao" {% if form is defined and form.status == 'avaliacao' %}selected{% endif %}>Avaliacao pendente</option>
+                            </select>
+                        </div>
+
+                        <div class="field">
+                            <label for="plano">Plano</label>
+                            <select id="plano" name="plano">
+                                <option value="starter" {% if form is defined and form.plano == 'starter' %}selected{% endif %}>Starter</option>
+                                <option value="premium" {% if form is not defined or form.plano == 'premium' %}selected{% endif %}>Premium</option>
+                                <option value="online" {% if form is defined and form.plano == 'online' %}selected{% endif %}>Consultoria online</option>
+                            </select>
                         </div>
 
                         <div class="field">

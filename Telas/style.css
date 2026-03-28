@@ -531,9 +531,36 @@ select:focus {
     margin: 0;
 }
 
+.student-filter-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(220px, 0.9fr) auto;
+    gap: 0.85rem;
+}
+
 .student-toolbar input {
     height: 3rem;
     padding: 0 1rem;
+}
+
+.student-toolbar select {
+    height: 3rem;
+}
+
+.student-feedback {
+    margin-top: 1.5rem;
+    padding: 0.95rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.student-feedback-success {
+    border-color: rgba(61, 202, 122, 0.35);
+    background: rgba(61, 202, 122, 0.08);
+}
+
+.student-feedback-error {
+    border-color: rgba(255, 101, 101, 0.35);
+    background: rgba(255, 101, 101, 0.08);
 }
 
 .student-grid {
@@ -580,9 +607,24 @@ select:focus {
     font-size: 0.9rem;
 }
 
+.student-card-body {
+    margin-top: 0.9rem;
+    display: grid;
+    gap: 0.35rem;
+}
+
+.student-card-body p {
+    color: #b2b7c1;
+    font-size: 0.9rem;
+}
+
+.student-card-body strong {
+    color: var(--text);
+}
+
 .student-card-actions {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 1fr 1fr auto;
     gap: 0.5rem;
     margin-top: 0.95rem;
 }
@@ -611,6 +653,13 @@ select:focus {
 .student-icon-button {
     padding: 0 0.8rem;
     cursor: pointer;
+}
+
+.student-card-empty {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-style: dashed;
 }
 
 .student-modal-wrap {
@@ -750,7 +799,15 @@ select:focus {
         align-items: stretch;
     }
 
+    .student-filter-grid {
+        grid-template-columns: 1fr;
+    }
+
     .student-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .student-card-actions {
         grid-template-columns: 1fr;
     }
 }
