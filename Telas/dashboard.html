@@ -7,144 +7,246 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <main>
-        <section aria-label="Resumo e Menu">
-            <header>
-                <h1 id="brand-name">CONFIE</h1>
-                <p id="professional-name">{{ profissional_nome|default('Personal Trainer', true) }}</p>
-            </header>
+    <div class="dashboard-layout">
+        <aside class="dashboard-sidebar">
+            <div class="sidebar-brand">
+                <a class="sidebar-logo" href="{{ dashboard_url|default('/dashboard', true) }}">CONFIE</a>
+                <p class="sidebar-user">{{ profissional_nome|default('Personal Trainer', true) }}</p>
+            </div>
 
-            <nav aria-label="Menu principal">
-                <p>
-                    <a href="{{ dashboard_url|default('/dashboard', true) }}"
-                       {% if pagina_ativa == 'dashboard' %}aria-current="page"{% endif %}>
-                        Dashboard
-                    </a>
-                </p>
+            <nav class="sidebar-nav" aria-label="Menu principal">
+                <a class="sidebar-link {% if pagina_ativa == 'dashboard' %}is-active{% endif %}" href="{{ dashboard_url|default('/dashboard', true) }}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M3 10.5L12 3L21 10.5V20A1 1 0 0 1 20 21H4A1 1 0 0 1 3 20V10.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                        <path d="M9 21V12H15V21" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                    </svg>
+                    Dashboard
+                </a>
 
-                <p>
-                    <a href="{{ alunos_url|default('/alunos', true) }}"
-                       {% if pagina_ativa == 'alunos' %}aria-current="page"{% endif %}>
-                        Alunos
-                    </a>
-                </p>
+                <a class="sidebar-link {% if pagina_ativa == 'alunos' %}is-active{% endif %}" href="{{ alunos_url|default('/alunos', true) }}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M16 21V19A4 4 0 0 0 12 15H8A4 4 0 0 0 4 19V21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <circle cx="10" cy="7" r="4" stroke="currentColor" stroke-width="1.8"/>
+                        <path d="M20 8V14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M23 11H17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    </svg>
+                    Alunos
+                </a>
 
-                <p>
-                    <a href="{{ exercicios_url|default('/exercicios', true) }}"
-                       {% if pagina_ativa == 'exercicios' %}aria-current="page"{% endif %}>
-                        Exercícios
-                    </a>
-                </p>
+                <a class="sidebar-link {% if pagina_ativa == 'exercicios' %}is-active{% endif %}" href="{{ exercicios_url|default('/exercicios', true) }}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M6 9L9 6M15 18L18 15M8 4L20 16M4 8L16 20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    </svg>
+                    Exercícios
+                </a>
 
-                <p>
-                    <a href="{{ treinos_url|default('/treinos', true) }}"
-                       {% if pagina_ativa == 'treinos' %}aria-current="page"{% endif %}>
-                        Treinos
-                    </a>
-                </p>
+                <a class="sidebar-link {% if pagina_ativa == 'treinos' %}is-active{% endif %}" href="{{ treinos_url|default('/treinos', true) }}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M4 14L10 8L14 12L20 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M20 10V6H16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Treinos
+                </a>
 
-                <p>
-                    <a href="{{ agenda_url|default('/agenda', true) }}"
-                       {% if pagina_ativa == 'agenda' %}aria-current="page"{% endif %}>
-                        Agenda
-                    </a>
-                </p>
+                <a class="sidebar-link {% if pagina_ativa == 'agenda' %}is-active{% endif %}" href="{{ agenda_url|default('/agenda', true) }}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.8"/>
+                        <path d="M16 3V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M8 3V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M3 10H21" stroke="currentColor" stroke-width="1.8"/>
+                    </svg>
+                    Agenda
+                </a>
 
-                <p>
-                    <a href="{{ mensagens_url|default('/mensagens', true) }}"
-                       {% if pagina_ativa == 'mensagens' %}aria-current="page"{% endif %}>
-                        Mensagens
-                    </a>
-                </p>
+                <a class="sidebar-link {% if pagina_ativa == 'mensagens' %}is-active{% endif %}" href="{{ mensagens_url|default('/mensagens', true) }}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M21 11.5A8.5 8.5 0 0 1 8.4 18.9L3 21L5.1 15.6A8.5 8.5 0 1 1 21 11.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                    </svg>
+                    Mensagens
+                </a>
 
-                <p>
-                    <a href="{{ anamnese_url|default('/anamnese', true) }}"
-                       {% if pagina_ativa == 'anamnese' %}aria-current="page"{% endif %}>
-                        Anamnese
-                    </a>
-                </p>
+                <a class="sidebar-link {% if pagina_ativa == 'anamnese' %}is-active{% endif %}" href="{{ anamnese_url|default('/anamnese', true) }}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M5 19V10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M10 19V5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M15 19V13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M20 19V8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    </svg>
+                    Anamnese
+                </a>
 
-                <p>
-                    <a href="{{ financeiro_url|default('/financeiro', true) }}"
-                       {% if pagina_ativa == 'financeiro' %}aria-current="page"{% endif %}>
-                        Financeiro
-                    </a>
-                </p>
+                <a class="sidebar-link {% if pagina_ativa == 'financeiro' %}is-active{% endif %}" href="{{ financeiro_url|default('/financeiro', true) }}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <rect x="3" y="6" width="18" height="12" rx="2" stroke="currentColor" stroke-width="1.8"/>
+                        <path d="M3 10H21" stroke="currentColor" stroke-width="1.8"/>
+                        <circle cx="16" cy="14" r="1.2" fill="currentColor"/>
+                    </svg>
+                    Financeiro
+                </a>
             </nav>
-        </section>
+        </aside>
 
-        <section aria-label="Conteúdo principal da Dashboard">
-            <header>
-                <h2>Dashboard</h2>
-                <p id="welcome-message">
-                    Bem-vindo(a), <span>{{ profissional_nome|default('Personal Trainer', true) }}</span>
-                </p>
+        <main class="dashboard-main">
+            <header class="dashboard-header">
+                <div>
+                    <h1 class="dashboard-title">Dashboard</h1>
+                    <p class="dashboard-subtitle">
+                        Bem-vindo(a), {{ profissional_nome|default('Personal Trainer', true) }}
+                    </p>
+                </div>
             </header>
 
             {% if sucesso %}
-            <section aria-label="Mensagem de sucesso">
+            <section class="student-feedback student-feedback-success" aria-label="Mensagem de sucesso">
                 <p>{{ sucesso }}</p>
             </section>
             {% endif %}
 
             {% if erro %}
-            <section aria-label="Mensagem de erro">
+            <section class="student-feedback student-feedback-error" aria-label="Mensagem de erro">
                 <p>{{ erro }}</p>
             </section>
             {% endif %}
 
-            <section aria-label="Indicadores principais">
-                <article data-card="alunos">
-                    <h3>Alunos</h3>
-                    <strong id="total-alunos" data-field="total_alunos">{{ total_alunos|default(0, true) }}</strong>
-                    <small>Total cadastrados</small>
+            <section class="student-grid" aria-label="Indicadores principais">
+                <article class="student-card">
+                    <div class="student-card-body">
+                        <p>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="M16 21V19A4 4 0 0 0 12 15H8A4 4 0 0 0 4 19V21" stroke="#ff5a0a" stroke-width="1.8" stroke-linecap="round"/>
+                                <circle cx="10" cy="7" r="4" stroke="#ff5a0a" stroke-width="1.8"/>
+                                <path d="M20 8V14" stroke="#ff5a0a" stroke-width="1.8" stroke-linecap="round"/>
+                                <path d="M23 11H17" stroke="#ff5a0a" stroke-width="1.8" stroke-linecap="round"/>
+                            </svg>
+                        </p>
+                        <p>ALUNOS</p>
+                        <p><strong>{{ total_alunos|default(0, true) }}</strong></p>
+                        <p>Total cadastrados</p>
+                    </div>
                 </article>
 
-                <article data-card="sessoes">
-                    <h3>Sessões</h3>
-                    <strong id="total-sessoes" data-field="total_sessoes">{{ total_sessoes|default(0, true) }}</strong>
-                    <small>Aulas concluídas</small>
+                <article class="student-card">
+                    <div class="student-card-body">
+                        <p>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <rect x="3" y="5" width="18" height="16" rx="2" stroke="#ff5a0a" stroke-width="1.8"/>
+                                <path d="M16 3V7" stroke="#ff5a0a" stroke-width="1.8" stroke-linecap="round"/>
+                                <path d="M8 3V7" stroke="#ff5a0a" stroke-width="1.8" stroke-linecap="round"/>
+                                <path d="M3 10H21" stroke="#ff5a0a" stroke-width="1.8"/>
+                            </svg>
+                        </p>
+                        <p>SESSÕES</p>
+                        <p><strong>{{ total_sessoes|default(0, true) }}</strong></p>
+                        <p>Aulas concluídas</p>
+                    </div>
                 </article>
 
-                <article data-card="receita">
-                    <h3>Receita</h3>
-                    <strong id="total-receita" data-field="total_receita">{{ total_receita|default('R$ 0,00', true) }}</strong>
-                    <small>Total recebido</small>
-                </article>
-
-                <article data-card="atividade">
-                    <h3>Atividade</h3>
-                    <strong id="total-checkins" data-field="total_checkins">{{ total_checkins|default(0, true) }}</strong>
-                    <span id="variacao-checkins" data-field="variacao_checkins">{{ variacao_checkins|default('(0%)', true) }}</span>
-                    <small>Check-ins recentes</small>
+                <article class="student-card">
+                    <div class="student-card-body">
+                        <p>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="M12 3V21" stroke="#ff5a0a" stroke-width="1.8" stroke-linecap="round"/>
+                                <path d="M16 7.5C16 6.11929 14.2091 5 12 5C9.79086 5 8 6.11929 8 7.5C8 8.88071 9.79086 10 12 10C14.2091 10 16 11.1193 16 12.5C16 13.8807 14.2091 15 12 15C9.79086 15 8 16.1193 8 17.5C8 18.8807 9.79086 20 12 20C14.2091 20 16 18.8807 16 17.5" stroke="#ff5a0a" stroke-width="1.8" stroke-linecap="round"/>
+                            </svg>
+                        </p>
+                        <p>RECEITA</p>
+                        <p><strong>{{ total_receita|default('R$ 0,00', true) }}</strong></p>
+                        <p>Total recebido</p>
+                    </div>
                 </article>
             </section>
 
-            <section aria-label="Ações rápidas">
-                <h3>Ações Rápidas</h3>
+            <section class="student-grid" aria-label="Indicadores complementares">
+                <article class="student-card">
+                    <div class="student-card-body">
+                        <p>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="M3 12H7L10 5L14 19L17 12H21" stroke="#ff5a0a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </p>
+                        <p>ATIVIDADE</p>
+                        <p><strong>{{ total_checkins|default(0, true) }}</strong></p>
+                        <p>Variação: {{ variacao_checkins|default('(0%)', true) }}</p>
+                        <p>Check-ins recentes</p>
+                    </div>
+                </article>
 
-                <p>
-                    <a href="{{ adicionar_aluno_url|default('/alunos#novo-aluno', true) }}">Adicionar Aluno</a>
-                </p>
+                <article class="student-card">
+                    <div class="student-card-body">
+                        <p>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <rect x="3" y="5" width="18" height="16" rx="2" stroke="#ff5a0a" stroke-width="1.8"/>
+                                <path d="M16 3V7" stroke="#ff5a0a" stroke-width="1.8" stroke-linecap="round"/>
+                                <path d="M8 3V7" stroke="#ff5a0a" stroke-width="1.8" stroke-linecap="round"/>
+                                <path d="M3 10H21" stroke="#ff5a0a" stroke-width="1.8"/>
+                            </svg>
+                        </p>
+                        <p>PERÍODO</p>
+                        <p><strong>Início:</strong> {{ periodo_inicio|default('Não definido', true) }}</p>
+                        <p><strong>Fim:</strong> {{ periodo_fim|default('Não definido', true) }}</p>
+                        <p>Dados da integração</p>
+                    </div>
+                </article>
 
-                <p>
-                    <a href="{{ criar_treino_url|default('/treinos/novo', true) }}">Criar Treino</a>
-                </p>
+                <article class="student-card student-card-empty">
+                    <div class="student-card-body">
+                        <p>RESUMO</p>
+                        <p>Painel preparado para integração</p>
+                    </div>
+                </article>
+            </section>
 
-                <p>
-                    <a href="{{ agendar_aula_url|default('/agenda/nova', true) }}">Agendar Aula</a>
-                </p>
+            <section class="student-card" aria-label="Ações rápidas">
+                <div class="student-meta">
+                    <h2>Ações Rápidas</h2>
+                    <p>Acesso direto</p>
+                </div>
+
+                <section class="student-grid" aria-label="Links rápidos">
+                    <article class="student-card">
+                        <a class="button button-block" href="{{ adicionar_aluno_url|default('/alunos#novo-aluno', true) }}">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="M16 21V19A4 4 0 0 0 12 15H8A4 4 0 0 0 4 19V21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                <circle cx="10" cy="7" r="4" stroke="currentColor" stroke-width="1.8"/>
+                                <path d="M20 8V14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                <path d="M23 11H17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                            </svg>
+                            Adicionar Aluno
+                        </a>
+                    </article>
+
+                    <article class="student-card">
+                        <a class="button button-secondary button-block" href="{{ criar_treino_url|default('/treinos/novo', true) }}">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="M3 12H7L10 5L14 19L17 12H21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Criar Treino
+                        </a>
+                    </article>
+
+                    <article class="student-card">
+                        <a class="button button-secondary button-block" href="{{ agendar_aula_url|default('/agenda/nova', true) }}">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.8"/>
+                                <path d="M16 3V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                <path d="M8 3V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                <path d="M3 10H21" stroke="currentColor" stroke-width="1.8"/>
+                            </svg>
+                            Agendar Aula
+                        </a>
+                    </article>
+                </section>
             </section>
 
             <section aria-label="Dados para integração" hidden>
                 <form id="dashboard-filters">
-                    <input type="hidden" name="profissional_id" value="{{ profissional_id|default('', true) }}" data-field="profissional_id">
-                    <input type="hidden" name="empresa_id" value="{{ empresa_id|default('', true) }}" data-field="empresa_id">
-                    <input type="hidden" name="periodo_inicio" value="{{ periodo_inicio|default('', true) }}" data-field="periodo_inicio">
-                    <input type="hidden" name="periodo_fim" value="{{ periodo_fim|default('', true) }}" data-field="periodo_fim">
+                    <input type="hidden" name="profissional_id" value="{{ profissional_id|default('', true) }}">
+                    <input type="hidden" name="empresa_id" value="{{ empresa_id|default('', true) }}">
+                    <input type="hidden" name="periodo_inicio" value="{{ periodo_inicio|default('', true) }}">
+                    <input type="hidden" name="periodo_fim" value="{{ periodo_fim|default('', true) }}">
                 </form>
             </section>
-        </section>
-    </main>
+        </main>
+    </div>
 </body>
 </html>
