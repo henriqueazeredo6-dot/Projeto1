@@ -4,91 +4,147 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - CONFIE</title>
-     <link rel="stylesheet" href="style.css"> 
-     
-    
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <main>
         <section aria-label="Resumo e Menu">
             <header>
-                 <h1 id="brand-name" data-field="empresa_nome">CONFIE</h1>
-                 <p id="professional-name" data-field="profissional_nome">Leticia Martins Silva</p>
+                <h1 id="brand-name">CONFIE</h1>
+                <p id="professional-name">{{ profissional_nome|default('Personal Trainer', true) }}</p>
             </header>
 
-            <nav aria-label="Menu principal" aria-current="page">
-                <a href="/dashboard" data-route="dashboard">Dashboard</a>                    
-                <a href="/alunos" data-route="alunos">Alunos</a>
-                <a href="/exercicios" data-route="exercicios">Exercícios</a>
-                <a href="/treinos" data-route="treinos">Treinos</a>
-                <a href="/agenda" data-route="agenda">Agenda</a>
-                <a href="/mensagens" data-route="mensagens">Mensagens</a>
-                <a href="/anamnese" data-route="anamnese">Anamnese</a>
-                <a href="/financeiro" data-route="financeiro">Financeiro</a>  
+            <nav aria-label="Menu principal">
+                <p>
+                    <a href="{{ dashboard_url|default('/dashboard', true) }}"
+                       {% if pagina_ativa == 'dashboard' %}aria-current="page"{% endif %}>
+                        Dashboard
+                    </a>
+                </p>
+
+                <p>
+                    <a href="{{ alunos_url|default('/alunos', true) }}"
+                       {% if pagina_ativa == 'alunos' %}aria-current="page"{% endif %}>
+                        Alunos
+                    </a>
+                </p>
+
+                <p>
+                    <a href="{{ exercicios_url|default('/exercicios', true) }}"
+                       {% if pagina_ativa == 'exercicios' %}aria-current="page"{% endif %}>
+                        Exercícios
+                    </a>
+                </p>
+
+                <p>
+                    <a href="{{ treinos_url|default('/treinos', true) }}"
+                       {% if pagina_ativa == 'treinos' %}aria-current="page"{% endif %}>
+                        Treinos
+                    </a>
+                </p>
+
+                <p>
+                    <a href="{{ agenda_url|default('/agenda', true) }}"
+                       {% if pagina_ativa == 'agenda' %}aria-current="page"{% endif %}>
+                        Agenda
+                    </a>
+                </p>
+
+                <p>
+                    <a href="{{ mensagens_url|default('/mensagens', true) }}"
+                       {% if pagina_ativa == 'mensagens' %}aria-current="page"{% endif %}>
+                        Mensagens
+                    </a>
+                </p>
+
+                <p>
+                    <a href="{{ anamnese_url|default('/anamnese', true) }}"
+                       {% if pagina_ativa == 'anamnese' %}aria-current="page"{% endif %}>
+                        Anamnese
+                    </a>
+                </p>
+
+                <p>
+                    <a href="{{ financeiro_url|default('/financeiro', true) }}"
+                       {% if pagina_ativa == 'financeiro' %}aria-current="page"{% endif %}>
+                        Financeiro
+                    </a>
+                </p>
             </nav>
-                
         </section>
-   
-    
+
         <section aria-label="Conteúdo principal da Dashboard">
             <header>
-
-            <h2>Dashboard</h2>
-            <p id="welcome-message">Bem vindo(a), <span data-field="profissional_nome">Leticia Martins Silva</span></p>
-            
+                <h2>Dashboard</h2>
+                <p id="welcome-message">
+                    Bem-vindo(a), <span>{{ profissional_nome|default('Personal Trainer', true) }}</span>
+                </p>
             </header>
 
-                
-        <section aria-label="Indicadores principais">
-                
-            <article data-card="alunos">
-                <h3>Alunos</h3> 
-                    <strong id="total-alunos" data-field="total_alunos">3</strong>
+            {% if sucesso %}
+            <section aria-label="Mensagem de sucesso">
+                <p>{{ sucesso }}</p>
+            </section>
+            {% endif %}
+
+            {% if erro %}
+            <section aria-label="Mensagem de erro">
+                <p>{{ erro }}</p>
+            </section>
+            {% endif %}
+
+            <section aria-label="Indicadores principais">
+                <article data-card="alunos">
+                    <h3>Alunos</h3>
+                    <strong id="total-alunos" data-field="total_alunos">{{ total_alunos|default(0, true) }}</strong>
                     <small>Total cadastrados</small>
-            </article>
+                </article>
 
-            <article data-card="sessoes">
-                  <h3>Sessões</h3>
-                    <strong id="total-sessoes" data-field="total_sessoes">0</strong>
+                <article data-card="sessoes">
+                    <h3>Sessões</h3>
+                    <strong id="total-sessoes" data-field="total_sessoes">{{ total_sessoes|default(0, true) }}</strong>
                     <small>Aulas concluídas</small>
-            </article>
-                
-            <article data-card="receita">
-                  <h3>Receita</h3>
-                    <strong id="total-receita" data-field="total_receita">R$ 0,00</strong>
+                </article>
+
+                <article data-card="receita">
+                    <h3>Receita</h3>
+                    <strong id="total-receita" data-field="total_receita">{{ total_receita|default('R$ 0,00', true) }}</strong>
                     <small>Total recebido</small>
-            </article>
+                </article>
 
-            <article data-card="atividade">
-                  <h3>Atividade</h3>
-                    <strong id="total-checkins" data-field="total_checkins">10</strong>
-                    <span id="variacao-checkins" data-field="variacao_checkins">(33%)</span>
+                <article data-card="atividade">
+                    <h3>Atividade</h3>
+                    <strong id="total-checkins" data-field="total_checkins">{{ total_checkins|default(0, true) }}</strong>
+                    <span id="variacao-checkins" data-field="variacao_checkins">{{ variacao_checkins|default('(0%)', true) }}</span>
                     <small>Check-ins recentes</small>
-            </article>
+                </article>
+            </section>
 
+            <section aria-label="Ações rápidas">
+                <h3>Ações Rápidas</h3>
+
+                <p>
+                    <a href="{{ adicionar_aluno_url|default('/alunos#novo-aluno', true) }}">Adicionar Aluno</a>
+                </p>
+
+                <p>
+                    <a href="{{ criar_treino_url|default('/treinos/novo', true) }}">Criar Treino</a>
+                </p>
+
+                <p>
+                    <a href="{{ agendar_aula_url|default('/agenda/nova', true) }}">Agendar Aula</a>
+                </p>
+            </section>
+
+            <section aria-label="Dados para integração" hidden>
+                <form id="dashboard-filters">
+                    <input type="hidden" name="profissional_id" value="{{ profissional_id|default('', true) }}" data-field="profissional_id">
+                    <input type="hidden" name="empresa_id" value="{{ empresa_id|default('', true) }}" data-field="empresa_id">
+                    <input type="hidden" name="periodo_inicio" value="{{ periodo_inicio|default('', true) }}" data-field="periodo_inicio">
+                    <input type="hidden" name="periodo_fim" value="{{ periodo_fim|default('', true) }}" data-field="periodo_fim">
+                </form>
+            </section>
         </section>
-            
-        <section aria-label="Ações rápidas">
-            
-            <h3>Ações Rápidas</h3>
-
-                <button type="button" data-action="adicionar-aluno">Adicionar Aluno</button>
-                <button type="button" data-action="criar-treino">Criar Treino</button>
-                <button type="button" data-action="agendar-aula">Agendar Aula</button>
-        </section>
-
-        <section aria-label="Dados para integração" hidden>
-            <form id="dashboard-filters">
-
-                <input type="hidden" name="profissional_id" value="" data-field="profissional_id">
-                <input type="hidden" name="empresa_id" value="" data-field="empresa_id">
-                <input type="hidden" name="periodo_inicio" value="" data-field="periodo_inicio">
-                <input type="hidden" name="periodo_fim" value="" data-field="periodo_fim">
-
-            </form>
-        </section>
-     </section>
     </main>
- </body>
-
+</body>
 </html>
