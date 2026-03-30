@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Exercícios</title>
+
+<style>
+body {
+  margin: 0;
+  display: flex;
+  background: #000;
+  color: white;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: 250px;
+  background: #000;
+  padding: 20px;
+  border-right: 1px solid #1f1f1f;
+}
+
+.aluno {
+  margin-bottom: 30px;
+  color: #aaa;
+}
+
+.menu a {
+  display: block;
+  padding: 10px;
+  margin-bottom: 10px;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+}
+
+.menu a:hover {
+  background: #1a1a1a;
+}
+
+/* CONTEÚDO */
+.main {
+  flex: 1;
+  padding: 30px;
+}
+
+/* BOTÃO */
+.btn-add {
+  background: #f97316;
+  padding: 10px 15px;
+  border-radius: 10px;
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+/* BUSCA */
+.busca input {
+  width: 300px;
+  padding: 10px;
+  background: #f97316;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  margin-top: 20px;
+}
+
+/* CARD */
+.card {
+  background: #f97316;
+  padding: 15px;
+  border-radius: 10px;
+  margin-top: 20px;
+}
+
+/* MODAL FUNDO */
+#modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.95);
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ABRIR MODAL */
+#modal:target {
+  display: flex;
+}
+
+/* CAIXA */
+.modal-box {
+  background: #000;
+  padding: 25px;
+  border-radius: 12px;
+  width: 420px;
+  border: 1px solid #1f1f1f;
+  position: relative;
+}
+
+/* FECHAR */
+.fechar {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  color: white;
+  text-decoration: none;
+}
+
+/* INPUTS */
+.modal-box input,
+.modal-box select,
+.modal-box textarea {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  border: none;
+  background: #1a1a1a;
+  color: white;
+}
+
+/* LINHAS */
+.linha {
+  display: flex;
+  gap: 10px;
+}
+
+/* BOTÃO SALVAR */
+.modal-box button {
+  width: 100%;
+  padding: 14px;
+  background: #f97316;
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-weight: bold;
+}
+</style>
+
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <h2>CONFIE PERSONAL</h2>
+  <div class="aluno">Aluno: Henrique Azeredo</div>
+
+  <div class="menu">
+    <a href="#">🏠 Dashboard</a>
+    <a href="#">👥 Alunos</a>
+    <a href="#">🏋️ Exercícios</a>
+    <a href="#">📋 Treinos</a>
+    <a href="#">📅 Agenda</a>
+    <a href="#">💬 Mensagens</a>
+    <a href="#">📝 Anamnese</a>
+    <a href="#">💰 Financeiro</a>
+  </div>
+</div>
+
+<!-- CONTEÚDO -->
+<div class="main">
+
+  <h1>EXERCÍCIOS</h1>
+  <p>Exercícios no banco</p>
+
+  <!-- BOTÃO -->
+  <a href="#modal" class="btn-add">+ Adicionar Exercício</a>
+
+  <!-- BUSCA -->
+  <div class="busca">
+    <input type="text" placeholder="Buscar exercícios...">
+  </div>
+
+  <!-- CARD -->
+  <div class="card">
+    <strong>Supino reto</strong>
+    <p>Peito</p>
+  </div>
+
+</div>
+
+<!-- MODAL -->
+<div id="modal">
+  <div class="modal-box">
+
+    <a href="#" class="fechar">✖</a>
+
+    <h2>Novo Exercício</h2>
+
+    <input type="text" placeholder="Nome do exercício">
+
+    <div class="linha">
+      <select>
+        <option>Grupo muscular</option>
+        <option>Peito</option>
+        <option>Costas</option>
+      </select>
+
+      <select>
+        <option>Dificuldade</option>
+        <option>Iniciante</option>
+        <option>Intermediário</option>
+      </select>
+    </div>
+
+    <textarea placeholder="Descrição"></textarea>
+
+    <div class="linha">
+      <input type="text" placeholder="URL do vídeo">
+      <input type="text" placeholder="URL da imagem">
+    </div>
+
+    <button>Salvar Exercício</button>
+
+  </div>
+</div>
+
+</body>
+</html>
