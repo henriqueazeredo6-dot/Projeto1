@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Treinos - CONFIE</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <aside class="dashboard-sidebar">
+            <div class="sidebar-brand">
+                <a class="sidebar-logo" href="{{ dashboard_url|default('/dashboard', true) }}">CONFIE</a>
+                <p class="sidebar-user">{{ profissional_nome|default('Personal Trainer', true) }}</p>
+            </div>
+
+            <nav class="sidebar-nav" aria-label="Menu principal">
+                <a class="sidebar-link {% if pagina_ativa == 'dashboard' %}is-active{% endif %}" href="{{ dashboard_url|default('/dashboard', true) }}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M3 10.5L12 3L21 10.5V20A1 1 0 0 1 20 21H4A1 1 0 0 1 3 20V10.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                        <path d="M9 21V12H15V21" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                    </svg>
+                    Dashboard
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'alunos' %}is-active{% endif %}" href="{{ alunos_url|default('/alunos', true) }}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M16 21V19A4 4 0 0 0 12 15H8A4 4 0 0 0 4 19V21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <circle cx="10" cy="7" r="4" stroke="currentColor" stroke-width="1.8"/>
+                        <path d="M20 8V14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M23 11H17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    </svg>
+                    Alunos
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'exercicios' %}is-active{% endif %}" href="{{ exercicios_url|default('/exercicios', true) }}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M6 9L9 6M15 18L18 15M8 4L20 16M4 8L16 20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    </svg>
+                    Exercicios
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'treinos' %}is-active{% endif %}" href="{{ treinos_url|default('/treinos', true) }}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M4 14L10 8L14 12L20 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M20 10V6H16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Treinos
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'agenda' %}is-active{% endif %}" href="{{ agenda_url|default('/agenda', true) }}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.8"/>
+                        <path d="M16 3V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M8 3V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M3 10H21" stroke="currentColor" stroke-width="1.8"/>
+                    </svg>
+                    Agenda
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'mensagens' %}is-active{% endif %}" href="{{ mensagens_url|default('/mensagens', true) }}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M21 11.5A8.5 8.5 0 0 1 8.4 18.9L3 21L5.1 15.6A8.5 8.5 0 1 1 21 11.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                    </svg>
+                    Mensagens
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'anamnese' %}is-active{% endif %}" href="{{ anamnese_url|default('/anamnese', true) }}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M5 19V10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M10 19V5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M15 19V13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M20 19V8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    </svg>
+                    Anamnese
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'financeiro' %}is-active{% endif %}" href="{{ financeiro_url|default('/financeiro', true) }}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <rect x="3" y="6" width="18" height="12" rx="2" stroke="currentColor" stroke-width="1.8"/>
+                        <path d="M3 10H21" stroke="currentColor" stroke-width="1.8"/>
+                        <circle cx="16" cy="14" r="1.2" fill="currentColor"/>
+                    </svg>
+                    Financeiro
+                </a>
+            </nav>
+
+            <div>
+                <a class="sidebar-link" href="{{ logout_url|default('/logout', true) }}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M15 17L20 12L15 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M20 12H9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M9 21H5A2 2 0 0 1 3 19V5A2 2 0 0 1 5 3H9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    </svg>
+                    Sair
+                </a>
+            </div>
+        </aside>
+
+        <main class="dashboard-main">
+            <header class="dashboard-header">
+                <div>
+                    <h1 class="dashboard-title">Treinos</h1>
+                    <p class="dashboard-subtitle">Gerencie planilhas de treino dos alunos</p>
+                </div>
+
+                <a class="button dashboard-add-button" href="{{ criar_treino_url|default('/treinos/novo', true) }}">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M12 5V19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M5 12H19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    </svg>
+                    Criar Treino
+                </a>
+            </header>
+
+            {% if sucesso %}
+            <section class="student-feedback student-feedback-success" aria-label="Mensagem de sucesso">
+                <p>{{ sucesso }}</p>
+            </section>
+            {% endif %}
+
+            {% if erro %}
+            <section class="student-feedback student-feedback-error" aria-label="Mensagem de erro">
+                <p>{{ erro }}</p>
+            </section>
+            {% endif %}
+
+            <section class="student-grid" aria-label="Gerenciamento de treinos">
+                <article class="student-card">
+                    <div class="student-meta">
+                        <h2>Alunos</h2>
+                        <p>Selecione um aluno</p>
+                    </div>
+
+                    <div class="student-card-body">
+                        {% if alunos and alunos|length > 0 %}
+                            {% for aluno in alunos %}
+                            {% set aluno_id = aluno.id|default(loop.index, true) %}
+                            <a class="student-action" href="{{ treinos_url|default('/treinos', true) }}?aluno_id={{ aluno_id }}">
+                                {{ aluno.nome|default('Aluno sem nome', true) }}
+                            </a>
+                            {% endfor %}
+                        {% else %}
+                            <p>Nenhum aluno disponivel para vincular treinos.</p>
+                        {% endif %}
+                    </div>
+                </article>
+
+                <article class="student-card">
+                    {% if aluno_selecionado %}
+                    <div class="student-meta">
+                        <h2>{{ aluno_selecionado.nome|default('Aluno selecionado', true) }}</h2>
+                        <p>{{ aluno_selecionado.objetivo|default('Objetivo principal nao informado', true) }}</p>
+                    </div>
+
+                    <div class="student-card-body">
+                        <p><strong>Status:</strong> {{ aluno_selecionado.status|default('Ativo', true) }}</p>
+                        <p><strong>Total de treinos:</strong> {{ total_treinos_aluno|default(treinos_aluno|length if treinos_aluno is defined else 0, true) }}</p>
+                        <p><strong>Ultima atualizacao:</strong> {{ ultima_atualizacao_treino|default('--/--/----', true) }}</p>
+                        <p><strong>Proxima revisao:</strong> {{ proxima_revisao_treino|default('--/--/----', true) }}</p>
+                    </div>
+                    {% else %}
+                    <div class="student-card-body">
+                        <p>Selecione um aluno</p>
+                        <p>Escolha um aluno para ver o resumo dos treinos.</p>
+                    </div>
+                    {% endif %}
+                </article>
+
+                <article class="student-card">
+                    {% if aluno_selecionado %}
+                    <div class="student-meta">
+                        <h2>Resumo</h2>
+                        <p>Informacoes do aluno</p>
+                    </div>
+
+                    <div class="student-card-body">
+                        <p><strong>Nome:</strong> {{ aluno_selecionado.nome|default('Nao informado', true) }}</p>
+                        <p><strong>Objetivo:</strong> {{ aluno_selecionado.objetivo|default('Nao informado', true) }}</p>
+                        <p><strong>Status:</strong> {{ aluno_selecionado.status|default('Ativo', true) }}</p>
+                    </div>
+                    {% else %}
+                    <div class="student-card-body">
+                        <p>Sem aluno selecionado</p>
+                        <p>Os detalhes aparecerao aqui.</p>
+                    </div>
+                    {% endif %}
+                </article>
+            </section>
+
+            <section class="student-grid" aria-label="Lista de treinos">
+                {% if aluno_selecionado and treinos_aluno and treinos_aluno|length > 0 %}
+                    {% for treino in treinos_aluno %}
+                    <article class="student-card">
+                        <div class="student-meta">
+                            <h2>{{ treino.nome|default('Treino sem nome', true) }}</h2>
+                            <p>{{ treino.foco|default('Foco nao informado', true) }}</p>
+                        </div>
+
+                        <div class="student-card-body">
+                            <p><strong>Frequencia:</strong> {{ treino.frequencia|default('Nao informada', true) }}</p>
+                            <p><strong>Exercicios:</strong> {{ treino.total_exercicios|default(0, true) }}</p>
+                            <p><strong>Duracao media:</strong> {{ treino.duracao_media|default('Nao informada', true) }}</p>
+                            <p><strong>Observacoes:</strong> {{ treino.observacoes|default('Nenhuma observacao cadastrada.', true) }}</p>
+                            <p><strong>Ultima edicao:</strong> {{ treino.atualizado_em|default('--/--/----', true) }}</p>
+                        </div>
+
+                        <div class="student-card-actions">
+                            <a class="student-action" href="{{ ver_treino_base_url|default('/treinos', true) }}/{{ treino.id|default('', true) }}">Ver treino</a>
+                            <a class="student-action" href="{{ editar_treino_base_url|default('/treinos', true) }}/{{ treino.id|default('', true) }}/editar">Editar</a>
+                        </div>
+                    </article>
+                    {% endfor %}
+                {% elif aluno_selecionado %}
+                    <article class="student-card student-card-empty">
+                        <div class="student-card-body">
+                            <p>Nenhum treino encontrado</p>
+                            <p>Esse aluno ainda nao possui treinos cadastrados.</p>
+                        </div>
+                    </article>
+                {% else %}
+                    <article class="student-card student-card-empty">
+                        <div class="student-card-body">
+                            <p>Selecione um aluno</p>
+                            <p>Escolha um aluno para ver seus treinos.</p>
+                        </div>
+                    </article>
+                {% endif %}
+            </section>
+
+            <section aria-label="Dados para integracao" hidden>
+                <form id="treinos-filtros">
+                    <input type="hidden" name="profissional_id" value="{{ profissional_id|default('', true) }}">
+                    <input type="hidden" name="empresa_id" value="{{ empresa_id|default('', true) }}">
+                    <input type="hidden" name="aluno_id" value="{{ aluno_selecionado.id if aluno_selecionado else '' }}">
+                    <input type="hidden" name="periodo_inicio" value="{{ periodo_inicio|default('', true) }}">
+                    <input type="hidden" name="periodo_fim" value="{{ periodo_fim|default('', true) }}">
+                </form>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
