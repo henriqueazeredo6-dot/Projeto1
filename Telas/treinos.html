@@ -5,123 +5,363 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CONFIE - Treinos</title>
     <link rel="stylesheet" href="style.css">
+
+    <style>
+        .dashboard-sidebar {
+            background: rgba(4, 5, 8, 0.96);
+        }
+
+        .sidebar-brand {
+            padding: 0.7rem 0.55rem 1.1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .sidebar-logo {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: flex-start;
+            line-height: 0.9;
+        }
+
+        .sidebar-logo span {
+            display: block;
+            font-family: var(--title-font);
+            font-size: 1.95rem;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.01em;
+        }
+
+        .sidebar-user {
+            margin-top: 0.7rem;
+            color: #737884;
+            font-size: 0.78rem;
+        }
+
+        .sidebar-nav {
+            gap: 0.15rem;
+            padding: 1rem 0.2rem;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 0.95rem;
+            min-height: 2.7rem;
+            padding: 0 0.75rem;
+        }
+
+        .sidebar-link svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+
+        .dashboard-main {
+            padding: 1.5rem 1.9rem 2rem;
+        }
+
+        .dashboard-add-button svg {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+        }
+
+        .treinos-shell {
+            margin-top: 1.8rem;
+        }
+
+        .treinos-section-title {
+            margin-bottom: 0.85rem;
+            font-family: var(--title-font);
+            font-size: 1.8rem;
+            text-transform: uppercase;
+            line-height: 1;
+        }
+
+        .treinos-content {
+            display: grid;
+            grid-template-columns: minmax(280px, 530px) minmax(0, 1fr);
+            gap: 1rem;
+            align-items: start;
+        }
+
+        .treinos-list {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: #111116;
+        }
+
+        .treinos-list-item {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            min-height: 2.75rem;
+            padding: 0 0.9rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+            transition: background-color 0.2s ease;
+        }
+
+        .treinos-list-item:last-child {
+            border-bottom: 0;
+        }
+
+        .treinos-list-item:hover,
+        .treinos-list-item.is-active {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .treinos-list-item svg {
+            width: 16px;
+            height: 16px;
+            color: #d7dbe3;
+            flex-shrink: 0;
+        }
+
+        .treinos-list-item span {
+            font-size: 0.98rem;
+            color: #fff;
+        }
+
+        .treinos-panel {
+            min-height: 148px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: #111116;
+            padding: 1.3rem;
+        }
+
+        .treinos-empty-state {
+            min-height: 148px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: var(--muted);
+        }
+
+        .treinos-empty-state svg {
+            width: 42px;
+            height: 42px;
+            color: #4e525d;
+        }
+
+        .treinos-empty-state h3 {
+            margin-top: 0.8rem;
+            font-family: var(--title-font);
+            font-size: 1.3rem;
+            text-transform: uppercase;
+            color: #b8bcc6;
+            line-height: 1;
+        }
+
+        .treinos-empty-state p {
+            margin-top: 0.55rem;
+            font-size: 0.95rem;
+            color: #8f95a1;
+        }
+
+        .treino-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.85rem;
+        }
+
+        .treino-card {
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.02);
+            padding: 1rem;
+        }
+
+        .treino-card-top {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .treino-avatar {
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            background: rgba(255, 90, 10, 0.22);
+            color: var(--primary);
+            font-family: var(--title-font);
+            font-size: 0.95rem;
+            flex-shrink: 0;
+        }
+
+        .treino-card-top h3 {
+            font-family: var(--title-font);
+            font-size: 1.05rem;
+            text-transform: uppercase;
+            line-height: 1;
+        }
+
+        .treino-card-top p {
+            margin-top: 0.2rem;
+            color: #7f8591;
+            font-size: 0.88rem;
+        }
+
+        .treino-meta {
+            margin-top: 0.9rem;
+            display: grid;
+            gap: 0.28rem;
+        }
+
+        .treino-meta p {
+            color: #b7bcc6;
+            font-size: 0.9rem;
+        }
+
+        .treino-meta strong {
+            color: #fff;
+        }
+
+        .treino-actions {
+            margin-top: 1rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.55rem;
+        }
+
+        .treino-action {
+            min-height: 2.15rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #d0d5de;
+            font-size: 0.84rem;
+            text-transform: uppercase;
+        }
+
+        @media (max-width: 1100px) {
+            .treinos-content {
+                grid-template-columns: 1fr;
+            }
+
+            .treino-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
-    <!-- usa: dashboard-layout -->
-    <!-- resolve: estrutura geral da tela com sidebar à esquerda e conteúdo à direita -->
     <div class="dashboard-layout">
-
-        <!-- usa: dashboard-sidebar -->
-        <!-- resolve: barra lateral escura -->
         <aside class="dashboard-sidebar">
-
-            <!-- usa: sidebar-brand, sidebar-logo, sidebar-user -->
-            <!-- resolve: bloco da logo e nome do profissional -->
             <div class="sidebar-brand">
-                <a class="sidebar-logo" href="{{ dashboard_url|default('/dashboard', true) }}">CONFIE</a>
-                <p class="sidebar-user">{{ profissional_nome|default('Personal Trainer', true) }}</p>
+                <a class="sidebar-logo" href="{{ dashboard_url|default('/dashboard', true) }}">
+                    <span>CONFIE</span>
+                    <span>Personal</span>
+                </a>
+                <p class="sidebar-user">{{ profissional_nome|default('Henrique Gucciardo', true) }}</p>
             </div>
 
-            <!-- usa: sidebar-nav -->
-            <!-- resolve: empilhamento vertical da navegação -->
             <nav class="sidebar-nav" aria-label="Menu principal">
-
-                <!-- usa: sidebar-link, is-active -->
                 <a class="sidebar-link {% if pagina_ativa == 'dashboard' %}is-active{% endif %}" href="{{ dashboard_url|default('/dashboard', true) }}">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M3 10.5L12 3L21 10.5V20A1 1 0 0 1 20 21H4A1 1 0 0 1 3 20V10.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-                        <path d="M9 21V12H15V21" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M4 10.5L12 4L20 10.5V19A1 1 0 0 1 19 20H5A1 1 0 0 1 4 19V10.5Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                        <path d="M9 20V13H15V20" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
                     </svg>
-                    Dashboard
+                    <span>Dashboard</span>
                 </a>
 
-                <!-- usa: sidebar-link, is-active -->
                 <a class="sidebar-link {% if pagina_ativa == 'alunos' %}is-active{% endif %}" href="{{ alunos_url|default('/alunos', true) }}">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M16 21V19A4 4 0 0 0 12 15H8A4 4 0 0 0 4 19V21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                        <circle cx="10" cy="7" r="4" stroke="currentColor" stroke-width="1.8"/>
-                        <path d="M20 8V14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                        <path d="M23 11H17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <circle cx="9" cy="8" r="3" stroke="currentColor" stroke-width="1.9"/>
+                        <path d="M3.5 19C4.2 16.6 6.3 15 9 15C11.7 15 13.8 16.6 14.5 19" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <circle cx="17" cy="9" r="2" stroke="currentColor" stroke-width="1.9"/>
                     </svg>
-                    Alunos
+                    <span>Alunos</span>
                 </a>
 
-                <!-- usa: sidebar-link, is-active -->
                 <a class="sidebar-link {% if pagina_ativa == 'exercicios' %}is-active{% endif %}" href="{{ exercicios_url|default('/exercicios', true) }}">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M6 9L9 6M15 18L18 15M8 4L20 16M4 8L16 20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M7 8L9 6L12 9L10 11L7 8Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                        <path d="M14 15L16 13L19 16L17 18L14 15Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                        <path d="M10 11L14 15" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M5 10L10 5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M14 19L19 14" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
                     </svg>
-                    Exercicios
+                    <span>Exercícios</span>
                 </a>
 
-                <!-- usa: sidebar-link, is-active -->
                 <a class="sidebar-link {% if pagina_ativa == 'treinos' %}is-active{% endif %}" href="{{ treinos_url|default('/treinos', true) }}">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M4 14L10 8L14 12L20 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M20 10V6H16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M3 13H7L10 6L14 19L17 13H21" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
-                    Treinos
+                    <span>Treinos</span>
                 </a>
 
-                <!-- usa: sidebar-link, is-active -->
                 <a class="sidebar-link {% if pagina_ativa == 'agenda' %}is-active{% endif %}" href="{{ agenda_url|default('/agenda', true) }}">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.8"/>
-                        <path d="M16 3V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                        <path d="M8 3V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                        <path d="M3 10H21" stroke="currentColor" stroke-width="1.8"/>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <rect x="4" y="5" width="16" height="15" rx="2" stroke="currentColor" stroke-width="1.9"/>
+                        <path d="M8 3V7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M16 3V7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M4 10H20" stroke="currentColor" stroke-width="1.9"/>
                     </svg>
-                    Agenda
+                    <span>Agenda</span>
                 </a>
 
-                <!-- usa: sidebar-link, is-active -->
                 <a class="sidebar-link {% if pagina_ativa == 'mensagens' %}is-active{% endif %}" href="{{ mensagens_url|default('/mensagens', true) }}">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M21 11.5A8.5 8.5 0 0 1 8.4 18.9L3 21L5.1 15.6A8.5 8.5 0 1 1 21 11.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M20 11.5C20 16.2 16 20 11 20C9.7 20 8.5 19.8 7.4 19.3L4 20L4.8 16.9C4.3 15.9 4 14.7 4 13.5C4 8.8 8 5 13 5C17 5 20 7.9 20 11.5Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
                     </svg>
-                    Mensagens
+                    <span>Mensagens</span>
                 </a>
 
-                <!-- usa: sidebar-link, is-active -->
                 <a class="sidebar-link {% if pagina_ativa == 'anamnese' %}is-active{% endif %}" href="{{ anamnese_url|default('/anamnese', true) }}">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M5 19V10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                        <path d="M10 19V5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                        <path d="M15 19V13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                        <path d="M20 19V8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M5 19V11" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M10 19V7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M15 19V13" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M20 19V4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
                     </svg>
-                    Anamnese
+                    <span>Anamnese</span>
                 </a>
 
-                <!-- usa: sidebar-link, is-active -->
-                <a class="sidebar-link {% if pagina_ativa == 'financeiro' %}is-active{% endif %}" href="{{ financeiro_url|default('/financeiro', true) }}">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <rect x="3" y="6" width="18" height="12" rx="2" stroke="currentColor" stroke-width="1.8"/>
-                        <path d="M3 10H21" stroke="currentColor" stroke-width="1.8"/>
-                        <circle cx="16" cy="14" r="1.2" fill="currentColor"/>
+                <a class="sidebar-link {% if pagina_ativa == 'avaliacoes' %}is-active{% endif %}" href="{{ avaliacoes_url|default('/avaliacoes', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M6 4H14L18 8V20H6V4Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                        <path d="M14 4V8H18" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                        <path d="M9 12H15" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M9 16H13" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
                     </svg>
-                    Financeiro
+                    <span>Avaliações</span>
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'evolucao' %}is-active{% endif %}" href="{{ evolucao_url|default('/evolucao', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M4 16L9 11L13 15L20 8" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M20 12V8H16" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Evolução</span>
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'financeiro' %}is-active{% endif %}" href="{{ financeiro_url|default('/financeiro', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M12 3V21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M15 7.2C15 6 13.7 5.2 12 5.2C10.3 5.2 9 6 9 7.2C9 8.4 10.3 9.2 12 9.2C13.7 9.2 15 10 15 11.2C15 12.4 13.7 13.2 12 13.2C10.3 13.2 9 14 9 15.2C9 16.4 10.3 17.2 12 17.2C13.7 17.2 15 16.4 15 15.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    </svg>
+                    <span>Financeiro</span>
+                </a>
+
+                <a class="sidebar-link" href="{{ logout_url|default('/logout', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M15 17L20 12L15 7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M20 12H9" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M9 21H5A2 2 0 0 1 3 19V5A2 2 0 0 1 5 3H9" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                    </svg>
+                    <span>Sair</span>
                 </a>
             </nav>
-
-            <!-- usa: sidebar-link -->
-            <div>
-                <a class="sidebar-link" href="{{ logout_url|default('/logout', true) }}">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M15 17L20 12L15 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M20 12H9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                        <path d="M9 21H5A2 2 0 0 1 3 19V5A2 2 0 0 1 5 3H9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                    </svg>
-                    Sair
-                </a>
-            </div>
         </aside>
 
-        <!-- usa: dashboard-main -->
         <main class="dashboard-main">
-
-            <!-- usa: dashboard-header, dashboard-title, dashboard-subtitle, button, dashboard-add-button -->
-            <!-- resolve: topo muito próximo da imagem modelo -->
             <header class="dashboard-header">
                 <div>
                     <h1 class="dashboard-title">Treinos</h1>
@@ -129,165 +369,101 @@
                 </div>
 
                 <a class="button dashboard-add-button" href="{{ criar_treino_url|default('/treinos/novo', true) }}">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M12 5V19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                        <path d="M5 12H19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M12 5V19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                     </svg>
-                    Criar Treino
+                    Criar treino
                 </a>
             </header>
 
-            <!-- usa: student-feedback, student-feedback-success -->
             {% if sucesso %}
             <section class="student-feedback student-feedback-success" aria-label="Mensagem de sucesso">
                 <p>{{ sucesso }}</p>
             </section>
             {% endif %}
 
-            <!-- usa: student-feedback, student-feedback-error -->
             {% if erro %}
             <section class="student-feedback student-feedback-error" aria-label="Mensagem de erro">
                 <p>{{ erro }}</p>
             </section>
             {% endif %}
 
-            <!-- usa: student-grid -->
-            <!-- resolve: aqui está o ajuste mínimo mais útil -->
-            <!-- sinalização: fica mais perto da imagem modelo, porque teremos só dois grandes blocos -->
-            <section class="student-grid" aria-label="Gerenciamento de treinos">
+            <section class="treinos-shell" aria-label="Treinos">
+                <h2 class="treinos-section-title">Alunos</h2>
 
-                <!-- usa: student-card -->
-                <!-- resolve: bloco esquerdo de alunos -->
-                <!-- sinalização: ainda não vira lista idêntica ao mockup, mas fica mais próximo -->
-                <article class="student-card">
-                    <div class="student-meta">
-                        <h2>Alunos</h2>
-                        <p>Selecione um aluno</p>
-                    </div>
-
-                    <div class="student-card-body">
-                        {% if alunos and alunos|length > 0 %}
+                <div class="treinos-content">
+                    <div class="treinos-list">
+                        {% if alunos %}
                             {% for aluno in alunos %}
-                            {% set aluno_id = aluno.id|default(loop.index, true) %}
-
-                            <!-- usa: student-action -->
-                            <!-- resolve: ação clicável para selecionar aluno -->
-                            <!-- sinalização: sem CSS novo, parece botão/ação e não linha de lista perfeita -->
-                            <a class="student-action" href="{{ treinos_url|default('/treinos', true) }}?aluno_id={{ aluno_id }}">
-                                {{ aluno.nome|default('Aluno sem nome', true) }}
+                            <a class="treinos-list-item {% if aluno_selecionado and aluno.id == aluno_selecionado.id %}is-active{% endif %}"
+                               href="{{ url_treinos_aluno_base|default('/treinos/aluno', true) }}/{{ aluno.id }}">
+                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <circle cx="9" cy="8" r="3" stroke="currentColor" stroke-width="1.9"/>
+                                    <path d="M3.5 19C4.2 16.6 6.3 15 9 15" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                                </svg>
+                                <span>{{ aluno.nome }}</span>
                             </a>
                             {% endfor %}
                         {% else %}
-                            <p>Nenhum aluno disponivel para vincular treinos.</p>
+                            <div class="treinos-list-item">
+                                <span>Nenhum aluno disponível</span>
+                            </div>
                         {% endif %}
                     </div>
-                </article>
 
-                <!-- usa: student-card -->
-                <!-- resolve: painel principal da direita -->
-                <!-- sinalização: este bloco é o que mais aproxima a estrutura da imagem modelo  -->
-                <article class="student-card">
-
-                    {% if aluno_selecionado %}
-
-                        <!-- usa: student-meta -->
-                        <!-- resolve: cabeçalho do aluno selecionado -->
-                        <div class="student-meta">
-                            <h2>{{ aluno_selecionado.nome|default('Aluno selecionado', true) }}</h2>
-                            <p>{{ aluno_selecionado.objetivo|default('Objetivo principal nao informado', true) }}</p>
-                        </div>
-
-                        <!-- usa: student-card-body -->
-                        <!-- resolve: resumo superior do aluno -->
-                        <div class="student-card-body">
-                            <p><strong>Status:</strong> {{ aluno_selecionado.status|default('Ativo', true) }}</p>
-                            <p><strong>Total de treinos:</strong> {{ total_treinos_aluno|default(treinos_aluno|length if treinos_aluno is defined else 0, true) }}</p>
-                            <p><strong>Ultima atualizacao:</strong> {{ ultima_atualizacao_treino|default('--/--/----', true) }}</p>
-                            <p><strong>Proxima revisao:</strong> {{ proxima_revisao_treino|default('--/--/----', true) }}</p>
-                        </div>
-
-                        {% if treinos_aluno and treinos_aluno|length > 0 %}
-
-                            <!-- usa: student-grid -->
-                            <!-- resolve: lista interna dos treinos -->
-                            <!-- sinalização: continua usando o grid base para organizar cards -->
-                            <section class="student-grid" aria-label="Lista de treinos do aluno">
-                                {% for treino in treinos_aluno %}
-                                <article class="student-card">
-                                    <div class="student-meta">
-                                        <h2>{{ treino.nome|default('Treino sem nome', true) }}</h2>
-                                        <p>{{ treino.foco|default('Foco nao informado', true) }}</p>
+                    <div class="treinos-panel">
+                        {% if aluno_selecionado %}
+                            {% if treinos %}
+                            <div class="treino-grid">
+                                {% for treino in treinos %}
+                                <article class="treino-card">
+                                    <div class="treino-card-top">
+                                        <div class="treino-avatar">T</div>
+                                        <div>
+                                            <h3>{{ treino.nome }}</h3>
+                                            <p>{{ treino.status|default('Ativo', true) }}</p>
+                                        </div>
                                     </div>
 
-                                    <div class="student-card-body">
-                                        <p><strong>Frequencia:</strong> {{ treino.frequencia|default('Nao informada', true) }}</p>
-                                        <p><strong>Exercicios:</strong> {{ treino.total_exercicios|default(0, true) }}</p>
-                                        <p><strong>Duracao media:</strong> {{ treino.duracao_media|default('Nao informada', true) }}</p>
-                                        <p><strong>Observacoes:</strong> {{ treino.observacoes|default('Nenhuma observacao cadastrada.', true) }}</p>
-                                        <p><strong>Ultima edicao:</strong> {{ treino.atualizado_em|default('--/--/----', true) }}</p>
+                                    <div class="treino-meta">
+                                        <p><strong>Status:</strong> {{ treino.status|default('Nao informado', true) }}</p>
+                                        <p><strong>Exercícios:</strong> {{ treino.total_exercicios|default(0, true) }}</p>
+                                        <p><strong>Atualização:</strong> {{ treino.atualizado_em|default('Nao informada', true) }}</p>
                                     </div>
 
-                                    <div class="student-card-actions">
-                                        <a class="student-action" href="{{ ver_treino_base_url|default('/treinos', true) }}/{{ treino.id|default('', true) }}">
-                                            Ver treino
-                                        </a>
-                                        <a class="student-action" href="{{ editar_treino_base_url|default('/treinos', true) }}/{{ treino.id|default('', true) }}/editar">
-                                            Editar
-                                        </a>
+                                    <div class="treino-actions">
+                                        <a class="treino-action" href="{{ editar_treino_url_base|default('/treinos/editar', true) }}/{{ treino.id }}">Editar</a>
+                                        <a class="treino-action" href="{{ visualizar_treino_url_base|default('/treinos', true) }}/{{ treino.id }}">Ver treino</a>
                                     </div>
                                 </article>
                                 {% endfor %}
-                            </section>
-                        {% else %}
-
-                            <!-- usa: student-card-empty -->
-                            <!-- resolve: estado vazio quando aluno existe mas não possui treinos -->
-                            <!-- sinalização: funcionalmente correto, mas sem ícone central do mockup -->
-                            <article class="student-card student-card-empty">
-                                <div class="student-card-body">
-                                    <p>Nenhum treino encontrado</p>
-                                    <p>Esse aluno ainda nao possui treinos cadastrados.</p>
-                                </div>
-                            </article>
-                        {% endif %}
-
-                    {% else %}
-
-                        <!-- usa: student-card-empty -->
-                        <!-- resolve: estado vazio principal -->
-                        <!-- sinalização: é a aproximação mínima mais segura com o CSS base -->
-                        <!-- sem CSS novo não fica centralizado/bonito como o mockup, mas a estrutura está correta -->
-                        <article class="student-card student-card-empty">
-                            <div class="student-card-body">
-                                <p>Selecione um aluno</p>
-                                <p>Escolha um aluno para ver seus treinos.</p>
                             </div>
-                        </article>
-                    {% endif %}
-                </article>
-
-                <!-- usa: student-card student-card-empty -->
-                <!-- resolve: terceiro card "fantasma" para empurrar visualmente o bloco direito em grades de 3 colunas -->
-                <!-- sinalização: esse é o ajuste mínimo mais útil só com HTML -->
-                <!-- ele ajuda o painel da direita a não parecer tão estreito em relação ao mockup -->
-                <article class="student-card student-card-empty" aria-hidden="true">
-                    <div class="student-card-body">
-                        <p></p>
+                            {% else %}
+                            <div class="treinos-empty-state">
+                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M5 20V18C5 15.8 6.8 14 9 14H15C17.2 14 19 15.8 19 18V20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                                <h3>Nenhum treino</h3>
+                                <p>Este aluno ainda não possui treinos cadastrados.</p>
+                            </div>
+                            {% endif %}
+                        {% else %}
+                        <div class="treinos-empty-state">
+                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
+                                <path d="M5 20V18C5 15.8 6.8 14 9 14H15C17.2 14 19 15.8 19 18V20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            <h3>Selecione um aluno</h3>
+                            <p>Escolha um aluno para ver seus treinos</p>
+                        </div>
+                        {% endif %}
                     </div>
-                </article>
-            </section>
-
-            <!-- não depende de estilo visual -->
-            <section aria-label="Dados para integracao" hidden>
-                <form id="treinos-filtros">
-                    <input type="hidden" name="profissional_id" value="{{ profissional_id|default('', true) }}">
-                    <input type="hidden" name="empresa_id" value="{{ empresa_id|default('', true) }}">
-                    <input type="hidden" name="aluno_id" value="{{ aluno_selecionado.id if aluno_selecionado else '' }}">
-                    <input type="hidden" name="periodo_inicio" value="{{ periodo_inicio|default('', true) }}">
-                    <input type="hidden" name="periodo_fim" value="{{ periodo_fim|default('', true) }}">
-                </form>
+                </div>
             </section>
         </main>
     </div>
 </body>
 </html>
+
