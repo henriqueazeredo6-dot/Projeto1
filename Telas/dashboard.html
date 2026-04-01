@@ -5,90 +5,269 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CONFIE - Dashboard</title>
     <link rel="stylesheet" href="style.css">
+
+    <style>
+        .dashboard-stats {
+        margin-top: 1.45rem;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.8rem;
+    }
+
+    .dashboard-stat-card {
+        height: 120px;
+        min-height: 120px;
+        padding: 1rem 1.15rem 0.95rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: #111116;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        overflow: hidden;
+    }
+
+    .dashboard-stat-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 0.9rem;
+    }
+
+    .dashboard-stat-icon {
+        color: var(--primary);
+        line-height: 1;
+        flex-shrink: 0;
+    }
+
+    .dashboard-stat-icon svg {
+        width: 17px;
+        height: 17px;
+    }
+
+    .dashboard-stat-label {
+        color: #747b8b;
+        font-size: 0.66rem;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    .dashboard-stat-value {
+        display: flex;
+        align-items: baseline;
+        gap: 0.32rem;
+        margin-top: 0.7rem;
+        font-family: var(--title-font);
+        font-size: clamp(1.45rem, 2vw, 2rem);
+        line-height: 0.9;
+        color: #ffffff;
+        text-transform: uppercase;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .dashboard-stat-growth {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 0.78rem;
+        color: #43c96b;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .dashboard-stat-note {
+        margin-top: 0.28rem;
+        color: #99a0ad;
+        font-size: 0.78rem;
+        line-height: 1.15;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .dashboard-quick-section {
+        margin-top: 1.2rem;
+    }
+
+    .dashboard-panel {
+        padding: 1.45rem 1.45rem 1.4rem;
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        background: #111116;
+    }
+
+    .dashboard-panel-title {
+        margin-bottom: 1.15rem;
+        font-family: var(--title-font);
+        font-size: 1.9rem;
+        line-height: 1;
+        text-transform: uppercase;
+    }
+
+    .dashboard-quick-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 0.75rem;
+    }
+
+    .dashboard-quick-card {
+        min-height: 66px;
+        padding: 0.95rem 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: transparent;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 0.55rem;
+    }
+
+    .dashboard-quick-card-primary {
+        background: var(--primary);
+        border-color: var(--primary);
+    }
+
+    .dashboard-quick-icon {
+        color: currentColor;
+        line-height: 1;
+        flex-shrink: 0;
+    }
+
+    .dashboard-quick-icon svg {
+        width: 17px;
+        height: 17px;
+    }
+
+    .dashboard-quick-text {
+        font-size: 0.96rem;
+        line-height: 1.15;
+    }
+
+    .sidebar-link {
+        gap: 0.9rem;
+}
+
+    .sidebar-link svg {
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+}
+        
+    </style>
 </head>
 <body>
     <div class="dashboard-layout">
         <aside class="dashboard-sidebar">
             <div class="sidebar-brand">
-                <a class="sidebar-logo" href="{{ dashboard_url|default('/dashboard', true) }}">CONFIE</a>
-                <p class="sidebar-user">{{ profissional_nome|default('Henrique Gucciardo', true) }}</p>
+                <a class="sidebar-logo" href="{{ dashboard_url|default('/dashboard', true) }}">
+                    <span>CONFIE PERSONAL</span>
+                </a>
+                <p class="sidebar-user">{{ profissional_nome|default('henrique', true) }}</p>
             </div>
 
             <nav class="sidebar-nav" aria-label="Menu principal">
                 <a class="sidebar-link {% if pagina_ativa == 'dashboard' %}is-active{% endif %}" href="{{ dashboard_url|default('/dashboard', true) }}">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M4 10.5L12 4L20 10.5V19A1 1 0 0 1 19 20H5A1 1 0 0 1 4 19V10.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-                        <path d="M9 20V13H15V20" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M4 10.5L12 4L20 10.5V19A1 1 0 0 1 19 20H5A1 1 0 0 1 4 19V10.5Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                        <path d="M9 20V13H15V20" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
                     </svg>
                     <span>Dashboard</span>
                 </a>
 
                 <a class="sidebar-link {% if pagina_ativa == 'alunos' %}is-active{% endif %}" href="{{ alunos_url|default('/alunos', true) }}">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <circle cx="9" cy="8" r="3" stroke="currentColor" stroke-width="1.8"/>
-                        <path d="M3.5 19C4.2 16.6 6.3 15 9 15C11.7 15 13.8 16.6 14.5 19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                        <circle cx="17" cy="9" r="2" stroke="currentColor" stroke-width="1.8"/>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <circle cx="9" cy="8" r="3" stroke="currentColor" stroke-width="1.9"/>
+                        <path d="M3.5 19C4.2 16.6 6.3 15 9 15C11.7 15 13.8 16.6 14.5 19" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <circle cx="17" cy="9" r="2" stroke="currentColor" stroke-width="1.9"/>
+                        <path d="M17 14V18" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M15 16H19" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
                     </svg>
                     <span>Alunos</span>
                 </a>
 
                 <a class="sidebar-link {% if pagina_ativa == 'exercicios' %}is-active{% endif %}" href="{{ exercicios_url|default('/exercicios', true) }}">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M7 8L9 6L12 9L10 11L7 8Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-                        <path d="M14 15L16 13L19 16L17 18L14 15Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-                        <path d="M10 11L14 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                        <path d="M5 10L10 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                        <path d="M14 19L19 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M7 8L9 6L12 9L10 11L7 8Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                        <path d="M14 15L16 13L19 16L17 18L14 15Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                        <path d="M10 11L14 15" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M5 10L10 5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M14 19L19 14" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
                     </svg>
                     <span>Exercícios</span>
                 </a>
 
                 <a class="sidebar-link {% if pagina_ativa == 'treinos' %}is-active{% endif %}" href="{{ treinos_url|default('/treinos', true) }}">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M3 13H7L10 6L14 19L17 13H21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M3 13H7L10 6L14 19L17 13H21" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                     <span>Treinos</span>
                 </a>
 
                 <a class="sidebar-link {% if pagina_ativa == 'agenda' %}is-active{% endif %}" href="{{ agenda_url|default('/agenda', true) }}">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <rect x="4" y="5" width="16" height="15" rx="2" stroke="currentColor" stroke-width="1.8"/>
-                        <path d="M8 3V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                        <path d="M16 3V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                        <path d="M4 10H20" stroke="currentColor" stroke-width="1.8"/>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <rect x="4" y="5" width="16" height="15" rx="2" stroke="currentColor" stroke-width="1.9"/>
+                        <path d="M8 3V7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M16 3V7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M4 10H20" stroke="currentColor" stroke-width="1.9"/>
                     </svg>
                     <span>Agenda</span>
                 </a>
 
                 <a class="sidebar-link {% if pagina_ativa == 'mensagens' %}is-active{% endif %}" href="{{ mensagens_url|default('/mensagens', true) }}">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M20 11.5C20 16.2 16 20 11 20C9.7 20 8.5 19.8 7.4 19.3L4 20L4.8 16.9C4.3 15.9 4 14.7 4 13.5C4 8.8 8 5 13 5C17 5 20 7.9 20 11.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M20 11.5C20 16.2 16 20 11 20C9.7 20 8.5 19.8 7.4 19.3L4 20L4.8 16.9C4.3 15.9 4 14.7 4 13.5C4 8.8 8 5 13 5C17 5 20 7.9 20 11.5Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
                     </svg>
                     <span>Mensagens</span>
                 </a>
 
                 <a class="sidebar-link {% if pagina_ativa == 'anamnese' %}is-active{% endif %}" href="{{ anamnese_url|default('/anamnese', true) }}">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M5 19V11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                        <path d="M10 19V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                        <path d="M15 19V13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                        <path d="M20 19V4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M5 19V11" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M10 19V7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M15 19V13" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M20 19V4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
                     </svg>
                     <span>Anamnese</span>
                 </a>
 
+                <a class="sidebar-link {% if pagina_ativa == 'avaliacoes' %}is-active{% endif %}" href="{{ avaliacoes_url|default('/avaliacoes', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M6 4H14L18 8V20H6V4Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                        <path d="M14 4V8H18" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                        <path d="M9 12H15" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M9 16H13" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                    </svg>
+                    <span>Avaliações</span>
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'evolucao' %}is-active{% endif %}" href="{{ evolucao_url|default('/evolucao', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M4 16L9 11L13 15L20 8" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M20 12V8H16" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Evolução</span>
+                </a>
+
                 <a class="sidebar-link {% if pagina_ativa == 'financeiro' %}is-active{% endif %}" href="{{ financeiro_url|default('/financeiro', true) }}">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M12 3V21" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-                        <path d="M15 7.2C15 6 13.7 5.2 12 5.2C10.3 5.2 9 6 9 7.2C9 8.4 10.3 9.2 12 9.2C13.7 9.2 15 10 15 11.2C15 12.4 13.7 13.2 12 13.2C10.3 13.2 9 14 9 15.2C9 16.4 10.3 17.2 12 17.2C13.7 17.2 15 16.4 15 15.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M12 3V21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M15 7.2C15 6 13.7 5.2 12 5.2C10.3 5.2 9 6 9 7.2C9 8.4 10.3 9.2 12 9.2C13.7 9.2 15 10 15 11.2C15 12.4 13.7 13.2 12 13.2C10.3 13.2 9 14 9 15.2C9 16.4 10.3 17.2 12 17.2C13.7 17.2 15 16.4 15 15.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                     </svg>
                     <span>Financeiro</span>
+                </a>
+
+                <a class="sidebar-link" href="{{ logout_url|default('/logout', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M15 17L20 12L15 7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M20 12H9" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M9 21H5A2 2 0 0 1 3 19V5A2 2 0 0 1 5 3H9" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                    </svg>
+                    <span>Sair</span>
                 </a>
             </nav>
         </aside>
 
-        <main class="dashboard-main dashboard-main-home">
-            <header class="dashboard-header dashboard-header-home">
+        <main class="dashboard-main">
+            <header class="dashboard-header">
                 <div>
                     <h1 class="dashboard-title">Dashboard</h1>
                     <p class="dashboard-subtitle">Bem-vindo, {{ profissional_nome|default('Henrique Gucciardo', true) }}</p>
@@ -111,7 +290,7 @@
                 <article class="dashboard-stat-card">
                     <div class="dashboard-stat-top">
                         <div class="dashboard-stat-icon">
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                 <path d="M16 21V19A4 4 0 0 0 12 15H8A4 4 0 0 0 4 19V21" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
                                 <circle cx="10" cy="7" r="4" stroke="currentColor" stroke-width="1.9"/>
                                 <path d="M20 8V14" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
@@ -127,7 +306,7 @@
                 <article class="dashboard-stat-card">
                     <div class="dashboard-stat-top">
                         <div class="dashboard-stat-icon">
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                 <rect x="4" y="5" width="16" height="15" rx="2" stroke="currentColor" stroke-width="1.9"/>
                                 <path d="M8 3V7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
                                 <path d="M16 3V7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
@@ -143,7 +322,7 @@
                 <article class="dashboard-stat-card">
                     <div class="dashboard-stat-top">
                         <div class="dashboard-stat-icon">
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                 <path d="M12 3V21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                                 <path d="M15 7.2C15 6 13.7 5.2 12 5.2C10.3 5.2 9 6 9 7.2C9 8.4 10.3 9.2 12 9.2C13.7 9.2 15 10 15 11.2C15 12.4 13.7 13.2 12 13.2C10.3 13.2 9 14 9 15.2C9 16.4 10.3 17.2 12 17.2C13.7 17.2 15 16.4 15 15.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                             </svg>
@@ -157,7 +336,7 @@
                 <article class="dashboard-stat-card">
                     <div class="dashboard-stat-top">
                         <div class="dashboard-stat-icon">
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                 <path d="M3 13H7L10 6L14 19L17 13H21" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
                         </div>
@@ -182,7 +361,7 @@
                     <div class="dashboard-quick-grid">
                         <a class="dashboard-quick-card dashboard-quick-card-primary" href="{{ adicionar_aluno_url|default('/alunos#novo-aluno', true) }}">
                             <div class="dashboard-quick-icon">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                     <path d="M16 21V19A4 4 0 0 0 12 15H8A4 4 0 0 0 4 19V21" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
                                     <circle cx="10" cy="7" r="4" stroke="currentColor" stroke-width="1.9"/>
                                     <path d="M20 8V14" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
@@ -194,7 +373,7 @@
 
                         <a class="dashboard-quick-card" href="{{ criar_treino_url|default('/treinos/novo', true) }}">
                             <div class="dashboard-quick-icon">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                     <path d="M3 13H7L10 6L14 19L17 13H21" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
                             </div>
@@ -203,7 +382,7 @@
 
                         <a class="dashboard-quick-card" href="{{ agendar_aula_url|default('/agenda/nova', true) }}">
                             <div class="dashboard-quick-icon">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                     <rect x="4" y="5" width="16" height="15" rx="2" stroke="currentColor" stroke-width="1.9"/>
                                     <path d="M8 3V7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
                                     <path d="M16 3V7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
