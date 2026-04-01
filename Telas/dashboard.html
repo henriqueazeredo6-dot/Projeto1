@@ -3,17 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CONFIE-Dashboard </title>
+    <title>CONFIE - Dashboard</title>
     <link rel="stylesheet" href="style.css">
-
 </head>
 <body>
-   
     <div class="dashboard-layout">
         <aside class="dashboard-sidebar">
             <div class="sidebar-brand">
-                <a class="sidebar-logo" href="{{ dashboard_url|default('/dashboard', true) }}">CONFIE Personal</a>
-                <p class="sidebar-user">{{ profissional_nome|default('Personal Trainer', true) }}</p>
+                <a class="sidebar-logo" href="{{ dashboard_url|default('/dashboard', true) }}">CONFIE</a>
+                <p class="sidebar-user">{{ profissional_nome|default('Henrique Gucciardo', true) }}</p>
             </div>
 
             <nav class="sidebar-nav" aria-label="Menu principal">
@@ -22,7 +20,7 @@
                         <path d="M4 10.5L12 4L20 10.5V19A1 1 0 0 1 19 20H5A1 1 0 0 1 4 19V10.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
                         <path d="M9 20V13H15V20" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
                     </svg>
-                    Dashboard
+                    <span>Dashboard</span>
                 </a>
 
                 <a class="sidebar-link {% if pagina_ativa == 'alunos' %}is-active{% endif %}" href="{{ alunos_url|default('/alunos', true) }}">
@@ -30,10 +28,8 @@
                         <circle cx="9" cy="8" r="3" stroke="currentColor" stroke-width="1.8"/>
                         <path d="M3.5 19C4.2 16.6 6.3 15 9 15C11.7 15 13.8 16.6 14.5 19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                         <circle cx="17" cy="9" r="2" stroke="currentColor" stroke-width="1.8"/>
-                        <path d="M17 14V18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                        <path d="M15 16H19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                     </svg>
-                    Alunos
+                    <span>Alunos</span>
                 </a>
 
                 <a class="sidebar-link {% if pagina_ativa == 'exercicios' %}is-active{% endif %}" href="{{ exercicios_url|default('/exercicios', true) }}">
@@ -44,14 +40,14 @@
                         <path d="M5 10L10 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                         <path d="M14 19L19 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                     </svg>
-                    Exercícios
+                    <span>Exercícios</span>
                 </a>
 
                 <a class="sidebar-link {% if pagina_ativa == 'treinos' %}is-active{% endif %}" href="{{ treinos_url|default('/treinos', true) }}">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                         <path d="M3 13H7L10 6L14 19L17 13H21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
-                    Treinos
+                    <span>Treinos</span>
                 </a>
 
                 <a class="sidebar-link {% if pagina_ativa == 'agenda' %}is-active{% endif %}" href="{{ agenda_url|default('/agenda', true) }}">
@@ -61,14 +57,14 @@
                         <path d="M16 3V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                         <path d="M4 10H20" stroke="currentColor" stroke-width="1.8"/>
                     </svg>
-                    Agenda
+                    <span>Agenda</span>
                 </a>
 
                 <a class="sidebar-link {% if pagina_ativa == 'mensagens' %}is-active{% endif %}" href="{{ mensagens_url|default('/mensagens', true) }}">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                         <path d="M20 11.5C20 16.2 16 20 11 20C9.7 20 8.5 19.8 7.4 19.3L4 20L4.8 16.9C4.3 15.9 4 14.7 4 13.5C4 8.8 8 5 13 5C17 5 20 7.9 20 11.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
                     </svg>
-                    Mensagens
+                    <span>Mensagens</span>
                 </a>
 
                 <a class="sidebar-link {% if pagina_ativa == 'anamnese' %}is-active{% endif %}" href="{{ anamnese_url|default('/anamnese', true) }}">
@@ -78,25 +74,7 @@
                         <path d="M15 19V13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                         <path d="M20 19V4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                     </svg>
-                    Anamnese
-                </a>
-
-                <a class="sidebar-link {% if pagina_ativa == 'avaliacoes' %}is-active{% endif %}" href="{{ avaliacoes_url|default('/avaliacoes', true) }}">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M6 4H14L18 8V20H6V4Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-                        <path d="M14 4V8H18" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-                        <path d="M9 12H15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                        <path d="M9 16H13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                    </svg>
-                    Avaliações
-                </a>
-
-                <a class="sidebar-link {% if pagina_ativa == 'evolucao' %}is-active{% endif %}" href="{{ evolucao_url|default('/evolucao', true) }}">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M4 16L9 11L13 15L20 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M20 12V8H16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    Evolução
+                    <span>Anamnese</span>
                 </a>
 
                 <a class="sidebar-link {% if pagina_ativa == 'financeiro' %}is-active{% endif %}" href="{{ financeiro_url|default('/financeiro', true) }}">
@@ -104,27 +82,16 @@
                         <path d="M12 3V21" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
                         <path d="M15 7.2C15 6 13.7 5.2 12 5.2C10.3 5.2 9 6 9 7.2C9 8.4 10.3 9.2 12 9.2C13.7 9.2 15 10 15 11.2C15 12.4 13.7 13.2 12 13.2C10.3 13.2 9 14 9 15.2C9 16.4 10.3 17.2 12 17.2C13.7 17.2 15 16.4 15 15.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
                     </svg>
-                    Financeiro
-                </a>
-
-                <a class="sidebar-link" href="{{ logout_url|default('/logout', true) }}">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M15 17L20 12L15 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M20 12H9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                        <path d="M9 21H5A2 2 0 0 1 3 19V5A2 2 0 0 1 5 3H9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                    </svg>
-                    Sair
+                    <span>Financeiro</span>
                 </a>
             </nav>
         </aside>
 
-        <main class="dashboard-main">
-            <header class="dashboard-header">
+        <main class="dashboard-main dashboard-main-home">
+            <header class="dashboard-header dashboard-header-home">
                 <div>
                     <h1 class="dashboard-title">Dashboard</h1>
-                    <p class="dashboard-subtitle">
-                        Bem-vindo(a), {{ profissional_nome|default('Personal Trainer', true) }}
-                    </p>
+                    <p class="dashboard-subtitle">Bem-vindo, {{ profissional_nome|default('Henrique Gucciardo', true) }}</p>
                 </div>
             </header>
 
@@ -140,92 +107,112 @@
             </section>
             {% endif %}
 
-            <section class="dashboard-stats-grid" aria-label="Indicadores principais">
+            <section class="dashboard-stats" aria-label="Indicadores principais">
                 <article class="dashboard-stat-card">
-                    <div class="dashboard-stat-head">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                            <path d="M16 21V19A4 4 0 0 0 12 15H8A4 4 0 0 0 4 19V21" stroke="#ff5a0a" stroke-width="1.8" stroke-linecap="round"/>
-                            <circle cx="10" cy="7" r="4" stroke="#ff5a0a" stroke-width="1.8"/>
-                            <path d="M20 8V14" stroke="#ff5a0a" stroke-width="1.8" stroke-linecap="round"/>
-                            <path d="M23 11H17" stroke="#ff5a0a" stroke-width="1.8" stroke-linecap="round"/>
-                        </svg>
-                        <p class="dashboard-stat-label">Alunos</p>
+                    <div class="dashboard-stat-top">
+                        <div class="dashboard-stat-icon">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="M16 21V19A4 4 0 0 0 12 15H8A4 4 0 0 0 4 19V21" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                                <circle cx="10" cy="7" r="4" stroke="currentColor" stroke-width="1.9"/>
+                                <path d="M20 8V14" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                                <path d="M23 11H17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <p class="dashboard-stat-label">ALUNOS</p>
                     </div>
-                    <p class="dashboard-stat-value">{{ total_alunos|default(0, true) }}</p>
-                    <p class="dashboard-stat-meta">Total cadastrados</p>
+                    <strong class="dashboard-stat-value">{{ total_alunos|default(3, true) }}</strong>
+                    <p class="dashboard-stat-note">Total cadastrados</p>
                 </article>
 
                 <article class="dashboard-stat-card">
-                    <div class="dashboard-stat-head">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                            <rect x="3" y="5" width="18" height="16" rx="2" stroke="#ff5a0a" stroke-width="1.8"/>
-                            <path d="M16 3V7" stroke="#ff5a0a" stroke-width="1.8" stroke-linecap="round"/>
-                            <path d="M8 3V7" stroke="#ff5a0a" stroke-width="1.8" stroke-linecap="round"/>
-                            <path d="M3 10H21" stroke="#ff5a0a" stroke-width="1.8"/>
-                        </svg>
-                        <p class="dashboard-stat-label">Sessões</p>
+                    <div class="dashboard-stat-top">
+                        <div class="dashboard-stat-icon">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <rect x="4" y="5" width="16" height="15" rx="2" stroke="currentColor" stroke-width="1.9"/>
+                                <path d="M8 3V7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                                <path d="M16 3V7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                                <path d="M4 10H20" stroke="currentColor" stroke-width="1.9"/>
+                            </svg>
+                        </div>
+                        <p class="dashboard-stat-label">SESSÕES</p>
                     </div>
-                    <p class="dashboard-stat-value">{{ total_sessoes|default(0, true) }}</p>
-                    <p class="dashboard-stat-meta">Aulas concluídas</p>
+                    <strong class="dashboard-stat-value">{{ total_sessoes|default(0, true) }}</strong>
+                    <p class="dashboard-stat-note">Aulas concluídas</p>
                 </article>
 
                 <article class="dashboard-stat-card">
-                    <div class="dashboard-stat-head">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                            <path d="M12 3V21" stroke="#ff5a0a" stroke-width="1.6" stroke-linecap="round"/>
-                            <path d="M15 7.2C15 6 13.7 5.2 12 5.2C10.3 5.2 9 6 9 7.2C9 8.4 10.3 9.2 12 9.2C13.7 9.2 15 10 15 11.2C15 12.4 13.7 13.2 12 13.2C10.3 13.2 9 14 9 15.2C9 16.4 10.3 17.2 12 17.2C13.7 17.2 15 16.4 15 15.2" stroke="#ff5a0a" stroke-width="1.6" stroke-linecap="round"/>
-                        </svg>
-                        <p class="dashboard-stat-label">Receita</p>
+                    <div class="dashboard-stat-top">
+                        <div class="dashboard-stat-icon">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="M12 3V21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                <path d="M15 7.2C15 6 13.7 5.2 12 5.2C10.3 5.2 9 6 9 7.2C9 8.4 10.3 9.2 12 9.2C13.7 9.2 15 10 15 11.2C15 12.4 13.7 13.2 12 13.2C10.3 13.2 9 14 9 15.2C9 16.4 10.3 17.2 12 17.2C13.7 17.2 15 16.4 15 15.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <p class="dashboard-stat-label">RECEITA</p>
                     </div>
-                    <p class="dashboard-stat-value">{{ total_receita|default('R$ 0,00', true) }}</p>
-                    <p class="dashboard-stat-meta">Total recebido</p>
+                    <strong class="dashboard-stat-value">{{ total_receita|default('R$ 0.00', true) }}</strong>
+                    <p class="dashboard-stat-note">Total recebido</p>
                 </article>
 
                 <article class="dashboard-stat-card">
-                    <div class="dashboard-stat-head">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                            <path d="M3 13H7L10 6L14 19L17 13H21" stroke="#ff5a0a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        <p class="dashboard-stat-label">Atividade</p>
+                    <div class="dashboard-stat-top">
+                        <div class="dashboard-stat-icon">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="M3 13H7L10 6L14 19L17 13H21" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <p class="dashboard-stat-label">ATIVIDADE</p>
                     </div>
-                    <div class="dashboard-stat-value-row">
-                        <p class="dashboard-stat-value">{{ total_checkins|default(0, true) }}</p>
-                        <p class="dashboard-stat-trend">{{ variacao_checkins|default('(0%)', true) }}</p>
-                    </div>
-                    <p class="dashboard-stat-meta">Check-ins recentes</p>
+                    <strong class="dashboard-stat-value">
+                        {{ total_checkins|default(10, true) }}
+                        {% if variacao_checkins %}
+                        <span class="dashboard-stat-growth">{{ variacao_checkins }}</span>
+                        {% else %}
+                        <span class="dashboard-stat-growth">(33%)</span>
+                        {% endif %}
+                    </strong>
+                    <p class="dashboard-stat-note">Check-ins recentes</p>
                 </article>
             </section>
 
-            <section class="dashboard-quick-actions-panel" aria-label="Ações rápidas">
-                <h2 class="dashboard-quick-actions-title">Ações Rápidas</h2>
+            <section class="dashboard-quick-section" aria-label="Ações rápidas">
+                <div class="dashboard-panel">
+                    <h2 class="dashboard-panel-title">Ações rápidas</h2>
 
-                <div class="dashboard-quick-actions-grid">
-                    <a class="dashboard-quick-action-card is-primary" href="{{ adicionar_aluno_url|default('/alunos#novo-aluno', true) }}">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                            <path d="M16 21V19A4 4 0 0 0 12 15H8A4 4 0 0 0 4 19V21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                            <circle cx="10" cy="7" r="4" stroke="currentColor" stroke-width="1.8"/>
-                            <path d="M20 8V14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                            <path d="M23 11H17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                        </svg>
-                        <span>Adicionar Aluno</span>
-                    </a>
+                    <div class="dashboard-quick-grid">
+                        <a class="dashboard-quick-card dashboard-quick-card-primary" href="{{ adicionar_aluno_url|default('/alunos#novo-aluno', true) }}">
+                            <div class="dashboard-quick-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path d="M16 21V19A4 4 0 0 0 12 15H8A4 4 0 0 0 4 19V21" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                                    <circle cx="10" cy="7" r="4" stroke="currentColor" stroke-width="1.9"/>
+                                    <path d="M20 8V14" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                                    <path d="M23 11H17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                            <span class="dashboard-quick-text">Adicionar aluno</span>
+                        </a>
 
-                    <a class="dashboard-quick-action-card" href="{{ criar_treino_url|default('/treinos/novo', true) }}">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                            <path d="M3 13H7L10 6L14 19L17 13H21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        <span>Criar Treino</span>
-                    </a>
+                        <a class="dashboard-quick-card" href="{{ criar_treino_url|default('/treinos/novo', true) }}">
+                            <div class="dashboard-quick-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path d="M3 13H7L10 6L14 19L17 13H21" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <span class="dashboard-quick-text">Criar Treino</span>
+                        </a>
 
-                    <a class="dashboard-quick-action-card" href="{{ agendar_aula_url|default('/agenda/nova', true) }}">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                            <rect x="4" y="5" width="16" height="15" rx="2" stroke="currentColor" stroke-width="1.8"/>
-                            <path d="M8 3V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                            <path d="M16 3V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                            <path d="M4 10H20" stroke="currentColor" stroke-width="1.8"/>
-                        </svg>
-                        <span>Agendar Aula</span>
-                    </a>
+                        <a class="dashboard-quick-card" href="{{ agendar_aula_url|default('/agenda/nova', true) }}">
+                            <div class="dashboard-quick-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <rect x="4" y="5" width="16" height="15" rx="2" stroke="currentColor" stroke-width="1.9"/>
+                                    <path d="M8 3V7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                                    <path d="M16 3V7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                                    <path d="M4 10H20" stroke="currentColor" stroke-width="1.9"/>
+                                </svg>
+                            </div>
+                            <span class="dashboard-quick-text">Agendar Aula</span>
+                        </a>
+                    </div>
                 </div>
             </section>
 
@@ -241,4 +228,3 @@
     </div>
 </body>
 </html>
-
