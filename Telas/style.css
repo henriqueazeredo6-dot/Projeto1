@@ -134,6 +134,84 @@ button:hover,
     line-height: 1.35;
 }
 
+.intro-section {
+    padding-top: 0;
+}
+
+.intro-card {
+    display: grid;
+    grid-template-columns: minmax(320px, 1fr) minmax(320px, 1.15fr);
+    border: 1px solid var(--line);
+    background: rgba(9, 8, 12, 0.92);
+}
+
+.intro-column {
+    padding: 1.5rem;
+}
+
+.intro-column-highlight {
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.intro-label {
+    color: var(--primary);
+    font-size: 0.75rem;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+}
+
+.intro-name {
+    margin-top: 0.95rem;
+    font-family: var(--title-font);
+    font-size: clamp(2rem, 4vw, 3rem);
+    text-transform: uppercase;
+    line-height: 0.95;
+}
+
+.intro-summary {
+    margin-top: 1.2rem;
+    color: #b1b5be;
+    font-size: 1rem;
+    line-height: 1.7;
+}
+
+.intro-tags {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.7rem;
+    margin-top: 1.45rem;
+}
+
+.intro-tag-card {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+    padding: 0.9rem 0.95rem;
+}
+
+.intro-tag-label {
+    color: #777d88;
+    font-size: 0.7rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+}
+
+.intro-tag-value {
+    margin-top: 0.65rem;
+    color: #f5f6f8;
+    font-size: 0.96rem;
+    line-height: 1.45;
+}
+
+.intro-bio {
+    color: #c5c8cf;
+    font-size: 1rem;
+    line-height: 1.85;
+}
+
+.intro-bio + .intro-bio {
+    margin-top: 1rem;
+}
+
 .actions {
     display: flex;
     justify-content: center;
@@ -288,6 +366,17 @@ button:hover,
 .cta-section .button {
     margin-top: 2.5rem;
     min-width: 290px;
+}
+
+.landing-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 1.4rem 1rem 2rem;
+    text-align: center;
+}
+
+.landing-footer p {
+    color: #7f8590;
+    font-size: 0.9rem;
 }
 
 .auth-layout {
@@ -751,6 +840,15 @@ select:focus {
         min-height: 38vh;
     }
 
+    .intro-card {
+        grid-template-columns: 1fr;
+    }
+
+    .intro-column-highlight {
+        border-right: 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
     .student-grid {
         grid-template-columns: 1fr 1fr;
     }
@@ -804,6 +902,10 @@ select:focus {
     }
 
     .student-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .intro-tags {
         grid-template-columns: 1fr;
     }
 
