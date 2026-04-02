@@ -827,6 +827,123 @@ select:focus {
     text-transform: none;
 }
 
+.agenda-date-heading {
+    margin-top: 0.35rem;
+    color: #ffffff;
+    font-family: var(--title-font);
+    font-size: 1.7rem;
+    text-transform: uppercase;
+}
+
+.agenda-list {
+    margin-top: 1.2rem;
+    display: grid;
+    gap: 0.9rem;
+}
+
+.agenda-card {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(17, 17, 22, 0.96);
+    padding: 1.15rem 1.15rem 1.2rem;
+}
+
+.agenda-card-empty h2 {
+    font-family: var(--title-font);
+    font-size: 1.3rem;
+    text-transform: uppercase;
+}
+
+.agenda-card-empty p {
+    margin-top: 0.5rem;
+    color: var(--muted);
+}
+
+.agenda-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.agenda-card-header h2 {
+    font-family: var(--title-font);
+    font-size: 1.4rem;
+    text-transform: uppercase;
+}
+
+.agenda-time {
+    margin-top: 0.45rem;
+    color: #8f95a1;
+    font-size: 0.92rem;
+}
+
+.agenda-student {
+    margin-top: 0.75rem;
+    color: #b7bcc6;
+    font-size: 0.95rem;
+}
+
+.agenda-status {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.agenda-status-concluido {
+    background: rgba(41, 147, 74, 0.18);
+    color: #6fe28b;
+    border-color: rgba(41, 147, 74, 0.28);
+}
+
+.agenda-status-pendente {
+    background: rgba(255, 90, 10, 0.14);
+    color: #ffc3a1;
+    border-color: rgba(255, 90, 10, 0.2);
+}
+
+.agenda-status-cancelado {
+    background: rgba(255, 89, 89, 0.14);
+    color: #ff9d9d;
+    border-color: rgba(255, 89, 89, 0.24);
+}
+
+.agenda-actions {
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(4, max-content);
+    gap: 0.45rem;
+}
+
+.agenda-actions form {
+    margin: 0;
+}
+
+.agenda-modal {
+    width: min(100%, 530px);
+}
+
+.agenda-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+}
+
+textarea {
+    width: 100%;
+    padding: 0.9rem;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    outline: none;
+    resize: vertical;
+}
+
+textarea:focus {
+    border-color: var(--line-strong);
+}
+
 @media (max-width: 1100px) {
     .feature-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -850,6 +967,10 @@ select:focus {
     }
 
     .student-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .agenda-actions {
         grid-template-columns: 1fr 1fr;
     }
 }
@@ -910,6 +1031,11 @@ select:focus {
     }
 
     .student-card-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .agenda-actions,
+    .agenda-form-row {
         grid-template-columns: 1fr;
     }
 }
