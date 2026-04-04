@@ -383,7 +383,7 @@
         <aside class="dashboard-sidebar">
             <div class="sidebar-brand">
                 <a class="sidebar-logo" href="{{ dashboard_url|default('/dashboard', true) }}">
-                    <span>TitanFit</span>
+                        <span>CONFIE</span>
                 </a>
                 <p class="sidebar-user">{{ profissional_nome|default('Henrique Gucciardo', true) }}</p>
             </div>
@@ -414,7 +414,7 @@
                         <path d="M5 10L10 5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
                         <path d="M14 19L19 14" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
                     </svg>
-                    <span>Exercicios</span>
+                    <span>Exercícios</span>
                 </a>
 
                 <a class="sidebar-link {% if pagina_ativa == 'treinos' %}is-active{% endif %}" href="{{ treinos_url|default('/treinos', true) }}">
@@ -458,7 +458,7 @@
                         <path d="M9 12H15" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
                         <path d="M9 16H13" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
                     </svg>
-                    <span>Avaliacoes</span>
+                    <span>Avaliações</span>
                 </a>
 
                 <a class="sidebar-link {% if pagina_ativa == 'evolucao' %}is-active{% endif %}" href="{{ evolucao_url|default('/evolucao', true) }}">
@@ -466,7 +466,7 @@
                         <path d="M4 16L9 11L13 15L20 8" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
                         <path d="M20 12V8H16" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
-                    <span>Evolucao</span>
+                    <span>Evolução</span>
                 </a>
 
                 <a class="sidebar-link {% if pagina_ativa == 'financeiro' %}is-active{% endif %}" href="{{ financeiro_url|default('/financeiro', true) }}">
@@ -534,7 +534,7 @@
                                 {% endfor %}
                             {% else %}
                                 <div class="treinos-list-item">
-                                    <span>Nenhum aluno disponivel</span>
+                                    <span>Nenhum aluno disponível</span>
                                 </div>
                             {% endif %}
                         </div>
@@ -582,7 +582,7 @@
                                             <path d="M5 20V18C5 15.8 6.8 14 9 14H15C17.2 14 19 15.8 19 18V20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                                         </svg>
                                         <h3>Nenhum treino</h3>
-                                        <p>Este aluno ainda nao possui treinos cadastrados.</p>
+                                        <p>Este aluno ainda não possui treinos cadastrados.</p>
                                     </div>
                                 {% endif %}
                             {% else %}
@@ -600,7 +600,7 @@
                 </div>
             </section>
 
-            <section aria-label="Dados para integracao" hidden>
+            <section aria-label="Dados para integração" hidden>
                 <form id="treinos-filtros">
                     <input type="hidden" name="profissional_id" value="{{ profissional_id|default('', true) }}">
                     <input type="hidden" name="empresa_id" value="{{ empresa_id|default('', true) }}">
@@ -623,7 +623,7 @@
                 <div class="treinos-modal-row">
                     <div class="field">
                         <label for="novo_treino_nome">Nome do treino</label>
-                        <input id="novo_treino_nome" name="nome" type="text" placeholder="Ex: Treino A - Peito e Triceps" value="{{ form.nome if form is defined else '' }}" required>
+                        <input id="novo_treino_nome" name="nome" type="text" placeholder="Ex: Treino A - Peito e Tríceps" value="{{ form.nome if form is defined else '' }}" required>
                     </div>
 
                     <div class="field">
@@ -638,13 +638,13 @@
                 </div>
 
                 <div class="field">
-                    <label for="novo_treino_exercicios">Adicionar exercicios</label>
+                    <label for="novo_treino_exercicios">Adicionar exercícios</label>
                     <input id="novo_treino_exercicios" name="exercicios_raw" type="text" placeholder="Ex: supino reto | 3x12 - 60s descanso" value="{{ form.exercicios_raw if form is defined else '' }}">
                 </div>
 
                 <div class="field">
-                    <label for="novo_treino_observacoes">Observacoes</label>
-                    <textarea id="novo_treino_observacoes" name="observacoes" placeholder="Observacoes sobre o treino...">{{ form.observacoes if form is defined else '' }}</textarea>
+                    <label for="novo_treino_observacoes">Observações</label>
+                    <textarea id="novo_treino_observacoes" name="observacoes" placeholder="Observações sobre o treino...">{{ form.observacoes if form is defined else '' }}</textarea>
                 </div>
 
                 <button class="button button-block" type="submit">Criar treino</button>
@@ -684,16 +684,16 @@
                 </div>
 
                 <div class="field">
-                    <label for="editar_treino_exercicios_{{ loop.index }}">Adicionar exercicios</label>
+                    <label for="editar_treino_exercicios_{{ loop.index }}">Adicionar exercícios</label>
                     <input id="editar_treino_exercicios_{{ loop.index }}" name="exercicios_raw" type="text" value="{{ treino.exercicios_raw|default('', true) }}" placeholder="Ex: supino reto | 3x12 - 60s descanso">
                 </div>
 
                 <div class="field">
-                    <label for="editar_treino_observacoes_{{ loop.index }}">Observacoes</label>
-                    <textarea id="editar_treino_observacoes_{{ loop.index }}" name="observacoes" placeholder="Observacoes sobre o treino...">{{ treino.observacoes|default('', true) }}</textarea>
+                    <label for="editar_treino_observacoes_{{ loop.index }}">Observações</label>
+                    <textarea id="editar_treino_observacoes_{{ loop.index }}" name="observacoes" placeholder="Observações sobre o treino...">{{ treino.observacoes|default('', true) }}</textarea>
                 </div>
 
-                <button class="button button-block" type="submit">Salvar alteracoes</button>
+                <button class="button button-block" type="submit">Salvar alterações</button>
             </form>
         </article>
     </section>
@@ -712,7 +712,7 @@
                 <input type="hidden" name="aluno_id" value="{{ aluno_selecionado.id if aluno_selecionado else '' }}">
 
                 <p class="treinos-confirm-copy">
-                    Voce tem certeza que deseja excluir o treino <strong>{{ treino.nome|default('sem nome', true) }}</strong>? Esta acao nao pode ser desfeita.
+                    Você tem certeza de que deseja excluir o treino <strong>{{ treino.nome|default('sem nome', true) }}</strong>? Esta ação não pode ser desfeita.
                 </p>
 
                 <div class="treinos-confirm-actions">
