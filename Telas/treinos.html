@@ -386,7 +386,7 @@
                 <a class="sidebar-logo" href="{{ dashboard_url|default('/dashboard', true) }}">
                         <span>CONFIE Personal</span>
                 </a>
-                <p class="sidebar-user">{{ profissional_nome|default('Henrique Gucciardo', true) }}</p>
+                <p class="sidebar-user">{{ profissional_nome|default('', true) }}</p>
             </div>
 
             <nav class="sidebar-nav" aria-label="Menu principal">
@@ -570,22 +570,15 @@
                                         {% endif %}
 
                                         <div class="treinos-workout-actions">
-                                            <a class="treinos-workout-action" href="{{ visualizar_treino_url_base|default('/treinos', true) }}/{{ treino.id|default('', true) }}">Ver treino</a>
-                                            <a
-                                                class="treinos-workout-action js-editar-treino"
-                                                href="#editar-treino-modal"
-                                                data-treino-id="{{ treino.id|default('', true) }}"
-                                                data-treino-nome="{{ treino.nome|default('', true)|e }}"
-                                                data-treino-aluno-id="{{ treino.aluno_id|default(aluno_selecionado.id if aluno_selecionado else '', true) }}"
-                                                data-treino-exercicios="{{ treino.exercicios_raw|default('', true)|e }}"
-                                                data-treino-observacoes="{{ treino.observacoes|default('', true)|e }}"
-                                            >Editar treino</a>
-                                            <a
-                                                class="treinos-workout-action treinos-workout-action-danger js-excluir-treino"
-                                                href="#excluir-treino-modal"
-                                                data-treino-id="{{ treino.id|default('', true) }}"
-                                                data-treino-nome="{{ treino.nome|default('sem nome', true)|e }}"
-                                            >Excluir treino</a>
+                                            {% if treino.id %}
+                                                <a class="treinos-workout-action" href="{{ visualizar_treino_url_base|default('/treinos', true) }}/{{ treino.id }}">Ver treino</a>
+                                                <a class="treinos-workout-action" href="{{ treinos_url|default('/treinos', true) }}?aluno_id={{ aluno_selecionado.id if aluno_selecionado else '' }}&editar_treino_id={{ treino.id }}#editar-treino-modal">Editar treino</a>
+                                                <a class="treinos-workout-action treinos-workout-action-danger" href="{{ treinos_url|default('/treinos', true) }}?aluno_id={{ aluno_selecionado.id if aluno_selecionado else '' }}&excluir_treino_id={{ treino.id }}#excluir-treino-modal">Excluir treino</a>
+                                            {% else %}
+                                                <span class="treinos-workout-action" aria-disabled="true">Ver treino</span>
+                                                <span class="treinos-workout-action" aria-disabled="true">Editar treino</span>
+                                                <span class="treinos-workout-action treinos-workout-action-danger" aria-disabled="true">Excluir treino</span>
+                                            {% endif %}
                                         </div>
                                     </article>
                                     {% endfor %}
@@ -666,6 +659,7 @@
         </article>
     </section>
 
+    {% if treino_edicao is defined and treino_edicao %}
     <section class="treinos-modal-wrap" id="editar-treino-modal" aria-label="Modal editar treino">
         <a class="treinos-modal-overlay" href="#" aria-label="Fechar modal"></a>
 
@@ -675,13 +669,13 @@
                 <a class="treinos-modal-close" href="#" aria-label="Fechar modal">&times;</a>
             </header>
 
-            <form class="treinos-modal-form" id="editar-treino-form" action="{{ editar_treino_url_base|default('/treinos/editar', true) }}" method="post">
-                <input type="hidden" id="editar_treino_id" name="treino_id" value="">
+            <form class="treinos-modal-form" action="{{ editar_treino_url_base|default('/treinos/editar', true) }}/{{ treino_edicao.id }}" method="post">
+                <input type="hidden" name="treino_id" value="{{ treino_edicao.id }}">
 
                 <div class="treinos-modal-row">
                     <div class="field">
                         <label for="editar_treino_nome">Nome do treino</label>
-                        <input id="editar_treino_nome" name="nome" type="text" value="" required>
+                        <input id="editar_treino_nome" name="nome" type="text" value="{{ treino_edicao.nome|default('', true) }}" required>
                     </div>
 
                     <div class="field">
@@ -689,7 +683,7 @@
                         <select id="editar_treino_aluno" name="aluno_id" required>
                             <option value="">Selecione um aluno</option>
                             {% for aluno in alunos if alunos is defined %}
-                            <option value="{{ aluno.id }}">{{ aluno.nome }}</option>
+                            <option value="{{ aluno.id }}" {% if (treino_edicao.aluno_id is defined and treino_edicao.aluno_id|string == aluno.id|string) or (aluno_selecionado and aluno_selecionado.id|string == aluno.id|string) %}selected{% endif %}>{{ aluno.nome }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -697,19 +691,21 @@
 
                 <div class="field">
                     <label for="editar_treino_exercicios">Adicionar exercícios</label>
-                    <input id="editar_treino_exercicios" name="exercicios_raw" type="text" value="" placeholder="Ex: supino reto | 3x12 - 60s descanso">
+                    <input id="editar_treino_exercicios" name="exercicios_raw" type="text" value="{{ treino_edicao.exercicios_raw|default('', true) }}" placeholder="Ex: supino reto | 3x12 - 60s descanso">
                 </div>
 
                 <div class="field">
                     <label for="editar_treino_observacoes">Observações</label>
-                    <textarea id="editar_treino_observacoes" name="observacoes" placeholder="Observações sobre o treino..."></textarea>
+                    <textarea id="editar_treino_observacoes" name="observacoes" placeholder="Observações sobre o treino...">{{ treino_edicao.observacoes|default('', true) }}</textarea>
                 </div>
 
                 <button class="button button-block" type="submit">Salvar alterações</button>
             </form>
         </article>
     </section>
+    {% endif %}
 
+    {% if treino_exclusao is defined and treino_exclusao %}
     <section class="treinos-modal-wrap" id="excluir-treino-modal" aria-label="Modal excluir treino">
         <a class="treinos-modal-overlay" href="#" aria-label="Fechar modal"></a>
 
@@ -719,12 +715,12 @@
                 <a class="treinos-modal-close" href="#" aria-label="Fechar modal">&times;</a>
             </header>
 
-            <form class="treinos-modal-form" id="excluir-treino-form" action="{{ excluir_treino_url_base|default('/treinos/excluir', true) }}" method="post">
-                <input type="hidden" id="excluir_treino_id" name="treino_id" value="">
+            <form class="treinos-modal-form" action="{{ excluir_treino_url_base|default('/treinos/excluir', true) }}/{{ treino_exclusao.id }}" method="post">
+                <input type="hidden" name="treino_id" value="{{ treino_exclusao.id }}">
                 <input type="hidden" name="aluno_id" value="{{ aluno_selecionado.id if aluno_selecionado else '' }}">
 
                 <p class="treinos-confirm-copy">
-                    Você tem certeza de que deseja excluir o treino <strong id="excluir_treino_nome">sem nome</strong>? Esta ação não pode ser desfeita.
+                    Você tem certeza de que deseja excluir o treino <strong>{{ treino_exclusao.nome|default('sem nome', true) }}</strong>? Esta ação não pode ser desfeita.
                 </p>
 
                 <div class="treinos-confirm-actions">
@@ -734,52 +730,6 @@
             </form>
         </article>
     </section>
-
-    <script>
-        (function () {
-            var editarBaseUrl = "{{ editar_treino_url_base|default('/treinos/editar', true) }}";
-            var excluirBaseUrl = "{{ excluir_treino_url_base|default('/treinos/excluir', true) }}";
-
-            var editarForm = document.getElementById("editar-treino-form");
-            var editarTreinoId = document.getElementById("editar_treino_id");
-            var editarTreinoNome = document.getElementById("editar_treino_nome");
-            var editarTreinoAluno = document.getElementById("editar_treino_aluno");
-            var editarTreinoExercicios = document.getElementById("editar_treino_exercicios");
-            var editarTreinoObservacoes = document.getElementById("editar_treino_observacoes");
-
-            var excluirForm = document.getElementById("excluir-treino-form");
-            var excluirTreinoId = document.getElementById("excluir_treino_id");
-            var excluirTreinoNome = document.getElementById("excluir_treino_nome");
-
-            document.querySelectorAll(".js-editar-treino").forEach(function (botao) {
-                botao.addEventListener("click", function () {
-                    var treinoId = botao.getAttribute("data-treino-id") || "";
-                    if (!treinoId) return;
-
-                    editarForm.action = editarBaseUrl + "/" + treinoId;
-                    editarTreinoId.value = treinoId;
-                    editarTreinoNome.value = botao.getAttribute("data-treino-nome") || "";
-                    editarTreinoExercicios.value = botao.getAttribute("data-treino-exercicios") || "";
-                    editarTreinoObservacoes.value = botao.getAttribute("data-treino-observacoes") || "";
-
-                    var alunoId = botao.getAttribute("data-treino-aluno-id") || "";
-                    Array.prototype.forEach.call(editarTreinoAluno.options, function (opcao) {
-                        opcao.selected = opcao.value === alunoId;
-                    });
-                });
-            });
-
-            document.querySelectorAll(".js-excluir-treino").forEach(function (botao) {
-                botao.addEventListener("click", function () {
-                    var treinoId = botao.getAttribute("data-treino-id") || "";
-                    if (!treinoId) return;
-
-                    excluirForm.action = excluirBaseUrl + "/" + treinoId;
-                    excluirTreinoId.value = treinoId;
-                    excluirTreinoNome.textContent = botao.getAttribute("data-treino-nome") || "sem nome";
-                });
-            });
-        })();
-    </script>
+    {% endif %}
 </body>
 </html>
