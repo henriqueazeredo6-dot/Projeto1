@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -61,6 +61,10 @@
             padding: 1.5rem 1.9rem 2rem;
         }
 
+        .dashboard-add-button {
+            min-width: 180px;
+        }
+
         .dashboard-add-button svg {
             width: 14px;
             height: 14px;
@@ -71,7 +75,15 @@
             margin-top: 1.8rem;
         }
 
-        .treinos-section-title {
+        .treinos-content {
+            display: grid;
+            grid-template-columns: minmax(280px, 530px) minmax(0, 1fr);
+            gap: 1rem;
+            align-items: start;
+        }
+
+        .treinos-column-title,
+        .treinos-panel-heading {
             margin-bottom: 0.85rem;
             font-family: var(--title-font);
             font-size: 1.8rem;
@@ -79,11 +91,8 @@
             line-height: 1;
         }
 
-        .treinos-content {
-            display: grid;
-            grid-template-columns: minmax(280px, 530px) minmax(0, 1fr);
-            gap: 1rem;
-            align-items: start;
+        .treinos-panel-heading {
+            font-size: 1.55rem;
         }
 
         .treinos-list {
@@ -106,28 +115,108 @@
             border-bottom: 0;
         }
 
-        .treinos-list-item:hover,
-        .treinos-list-item.is-active {
+        .treinos-list-item:hover {
             background: rgba(255, 255, 255, 0.03);
+        }
+
+        .treinos-list-item.is-active {
+            background: var(--primary);
+            color: #ffffff;
         }
 
         .treinos-list-item svg {
             width: 16px;
             height: 16px;
-            color: #d7dbe3;
+            color: currentColor;
             flex-shrink: 0;
         }
 
         .treinos-list-item span {
             font-size: 0.98rem;
-            color: #fff;
+            color: currentColor;
         }
 
         .treinos-panel {
             min-height: 148px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             background: #111116;
-            padding: 1.3rem;
+            padding: 1.1rem;
+        }
+
+        .treinos-workout-block {
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.01);
+            padding: 0.95rem;
+        }
+
+        .treinos-workout-block + .treinos-workout-block {
+            margin-top: 0.75rem;
+        }
+
+        .treinos-workout-title {
+            margin-bottom: 0.65rem;
+            font-family: var(--title-font);
+            font-size: 1.15rem;
+            text-transform: uppercase;
+        }
+
+        .treinos-workout-line {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            min-height: 2.05rem;
+            padding: 0 0.6rem;
+            background: rgba(0, 0, 0, 0.3);
+            color: #d5dae3;
+            font-size: 0.93rem;
+        }
+
+        .treinos-workout-line + .treinos-workout-line {
+            margin-top: 0.5rem;
+        }
+
+        .treinos-workout-line strong {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .treinos-workout-line span:last-child {
+            color: #a8aebb;
+            white-space: nowrap;
+            font-size: 0.9rem;
+        }
+
+        .treinos-workout-actions {
+            margin-top: 0.75rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 0.55rem;
+        }
+
+        .treinos-workout-action {
+            min-height: 2.15rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #d0d5de;
+            font-size: 0.84rem;
+            text-transform: uppercase;
+            transition: background-color 0.2s ease;
+        }
+
+        .treinos-workout-action:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .treinos-workout-action-danger {
+            border-color: rgba(226, 90, 90, 0.38);
+            color: #f2a6a6;
+        }
+
+        .treinos-workout-action-danger:hover {
+            background: rgba(226, 90, 90, 0.14);
         }
 
         .treinos-empty-state {
@@ -161,91 +250,131 @@
             color: #8f95a1;
         }
 
-        .treino-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 0.85rem;
-        }
-
-        .treino-card {
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            background: rgba(255, 255, 255, 0.02);
-            padding: 1rem;
-        }
-
-        .treino-card-top {
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-        }
-
-        .treino-avatar {
-            width: 2rem;
-            height: 2rem;
-            display: flex;
+        .treinos-modal-wrap {
+            position: fixed;
+            inset: 0;
+            display: none;
             align-items: center;
             justify-content: center;
-            border-radius: 999px;
-            background: rgba(255, 90, 10, 0.22);
-            color: var(--primary);
-            font-family: var(--title-font);
-            font-size: 0.95rem;
-            flex-shrink: 0;
+            padding: 1.5rem;
+            z-index: 40;
         }
 
-        .treino-card-top h3 {
+        .treinos-modal-wrap:target {
+            display: flex;
+        }
+
+        .treinos-modal-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.68);
+            -webkit-backdrop-filter: blur(1.5px);
+            backdrop-filter: blur(1.5px);
+        }
+
+        .treinos-modal {
+            position: relative;
+            z-index: 1;
+            width: min(100%, 670px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: #17181f;
+            padding: 1.1rem;
+        }
+
+        .treinos-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .treinos-modal-header h2 {
             font-family: var(--title-font);
-            font-size: 1.05rem;
+            font-size: 1.55rem;
             text-transform: uppercase;
+        }
+
+        .treinos-modal-close {
+            color: #8d93a0;
+            font-size: 1.1rem;
             line-height: 1;
         }
 
-        .treino-card-top p {
-            margin-top: 0.2rem;
-            color: #7f8591;
-            font-size: 0.88rem;
-        }
-
-        .treino-meta {
+        .treinos-modal-form {
             margin-top: 0.9rem;
+        }
+
+        .treinos-modal-row {
             display: grid;
-            gap: 0.28rem;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.8rem;
         }
 
-        .treino-meta p {
-            color: #b7bcc6;
-            font-size: 0.9rem;
+        .treinos-modal .field {
+            margin-top: 0.9rem;
         }
 
-        .treino-meta strong {
-            color: #fff;
+        .treinos-modal textarea {
+            width: 100%;
+            min-height: 74px;
+            resize: vertical;
+            padding: 0.7rem 0.9rem;
+            border: 1px solid var(--line);
+            background: transparent;
+            color: var(--text);
+            font: inherit;
+            outline: none;
         }
 
-        .treino-actions {
+        .treinos-modal textarea:focus {
+            border-color: var(--line-strong);
+        }
+
+        .treinos-confirm-copy {
+            margin-top: 0.95rem;
+            color: #b9bfca;
+            font-size: 0.95rem;
+            line-height: 1.45;
+        }
+
+        .treinos-confirm-actions {
             margin-top: 1rem;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 0.55rem;
+            gap: 0.65rem;
         }
 
-        .treino-action {
-            min-height: 2.15rem;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            color: #d0d5de;
-            font-size: 0.84rem;
-            text-transform: uppercase;
+        .treinos-confirm-actions .button,
+        .treinos-modal .button-block {
+            min-height: 2.95rem;
+        }
+
+        .button-danger {
+            background: #ba3e31;
+            border-color: #ba3e31;
+        }
+
+        .button-danger:hover {
+            background: #c74b3d;
+            border-color: #c74b3d;
         }
 
         @media (max-width: 1100px) {
             .treinos-content {
                 grid-template-columns: 1fr;
             }
+        }
 
-            .treino-grid {
+        @media (max-width: 760px) {
+            .treinos-modal-row,
+            .treinos-workout-actions,
+            .treinos-confirm-actions {
                 grid-template-columns: 1fr;
+            }
+
+            .treinos-panel-heading,
+            .treinos-column-title {
+                font-size: 1.35rem;
             }
         }
     </style>
@@ -255,10 +384,9 @@
         <aside class="dashboard-sidebar">
             <div class="sidebar-brand">
                 <a class="sidebar-logo" href="{{ dashboard_url|default('/dashboard', true) }}">
-                    <span>CONFIE</span>
-                    <span>Personal</span>
+                        <span>CONFIE Personal</span>
                 </a>
-                <p class="sidebar-user">{{ profissional_nome|default('Henrique Gucciardo', true) }}</p>
+                <p class="sidebar-user">{{ profissional_nome|default('', true) }}</p>
             </div>
 
             <nav class="sidebar-nav" aria-label="Menu principal">
@@ -368,7 +496,7 @@
                     <p class="dashboard-subtitle">Gerencie planilhas de treino dos alunos</p>
                 </div>
 
-                <a class="button dashboard-add-button" href="{{ criar_treino_url|default('/treinos/novo', true) }}">
+                <a class="button dashboard-add-button" href="#novo-treino-modal">
                     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                         <path d="M12 5V19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                         <path d="M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -389,81 +517,219 @@
             </section>
             {% endif %}
 
-            <section class="treinos-shell" aria-label="Treinos">
-                <h2 class="treinos-section-title">Alunos</h2>
-
+            <section class="treinos-shell" aria-label="Treinos por aluno">
                 <div class="treinos-content">
-                    <div class="treinos-list">
-                        {% if alunos %}
-                            {% for aluno in alunos %}
-                            <a class="treinos-list-item {% if aluno_selecionado and aluno.id == aluno_selecionado.id %}is-active{% endif %}"
-                               href="{{ url_treinos_aluno_base|default('/treinos/aluno', true) }}/{{ aluno.id }}">
-                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                    <circle cx="9" cy="8" r="3" stroke="currentColor" stroke-width="1.9"/>
-                                    <path d="M3.5 19C4.2 16.6 6.3 15 9 15" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
-                                </svg>
-                                <span>{{ aluno.nome }}</span>
-                            </a>
-                            {% endfor %}
-                        {% else %}
-                            <div class="treinos-list-item">
-                                <span>Nenhum aluno disponível</span>
-                            </div>
-                        {% endif %}
-                    </div>
+                    <section>
+                        <h2 class="treinos-column-title">Alunos</h2>
 
-                    <div class="treinos-panel">
-                        {% if aluno_selecionado %}
-                            {% if treinos %}
-                            <div class="treino-grid">
-                                {% for treino in treinos %}
-                                <article class="treino-card">
-                                    <div class="treino-card-top">
-                                        <div class="treino-avatar">T</div>
-                                        <div>
-                                            <h3>{{ treino.nome }}</h3>
-                                            <p>{{ treino.status|default('Ativo', true) }}</p>
-                                        </div>
-                                    </div>
-
-                                    <div class="treino-meta">
-                                        <p><strong>Status:</strong> {{ treino.status|default('Nao informado', true) }}</p>
-                                        <p><strong>Exercícios:</strong> {{ treino.total_exercicios|default(0, true) }}</p>
-                                        <p><strong>Atualização:</strong> {{ treino.atualizado_em|default('Nao informada', true) }}</p>
-                                    </div>
-
-                                    <div class="treino-actions">
-                                        <a class="treino-action" href="{{ editar_treino_url_base|default('/treinos/editar', true) }}/{{ treino.id }}">Editar</a>
-                                        <a class="treino-action" href="{{ visualizar_treino_url_base|default('/treinos', true) }}/{{ treino.id }}">Ver treino</a>
-                                    </div>
-                                </article>
+                        <div class="treinos-list">
+                            {% if alunos %}
+                                {% for aluno in alunos %}
+                                <a class="treinos-list-item {% if aluno_selecionado and aluno.id == aluno_selecionado.id %}is-active{% endif %}" href="{{ url_treinos_aluno_base|default('/treinos/aluno', true) }}/{{ aluno.id }}">
+                                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                        <circle cx="9" cy="8" r="3" stroke="currentColor" stroke-width="1.9"/>
+                                        <path d="M3.5 19C4.2 16.6 6.3 15 9 15" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                                    </svg>
+                                    <span>{{ aluno.nome }}</span>
+                                </a>
                                 {% endfor %}
-                            </div>
                             {% else %}
-                            <div class="treinos-empty-state">
-                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                    <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
-                                    <path d="M5 20V18C5 15.8 6.8 14 9 14H15C17.2 14 19 15.8 19 18V20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                </svg>
-                                <h3>Nenhum treino</h3>
-                                <p>Este aluno ainda não possui treinos cadastrados.</p>
-                            </div>
+                                <div class="treinos-list-item">
+                                    <span>Nenhum aluno disponível</span>
+                                </div>
                             {% endif %}
-                        {% else %}
-                        <div class="treinos-empty-state">
-                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
-                                <path d="M5 20V18C5 15.8 6.8 14 9 14H15C17.2 14 19 15.8 19 18V20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                            </svg>
-                            <h3>Selecione um aluno</h3>
-                            <p>Escolha um aluno para ver seus treinos</p>
                         </div>
+                    </section>
+
+                    <section>
+                        {% if aluno_selecionado %}
+                        <h2 class="treinos-panel-heading">Treinos de {{ aluno_selecionado.nome }}</h2>
+                        {% else %}
+                        <h2 class="treinos-panel-heading">Treinos</h2>
                         {% endif %}
-                    </div>
+
+                        <div class="treinos-panel">
+                            {% if aluno_selecionado %}
+                                {% if treinos %}
+                                    {% for treino in treinos %}
+                                    <article class="treinos-workout-block">
+                                        <h3 class="treinos-workout-title">{{ treino.nome|default('Treino', true) }}</h3>
+
+                                        {% if treino.exercicios and treino.exercicios|length > 0 %}
+                                            {% for exercicio in treino.exercicios %}
+                                            <div class="treinos-workout-line">
+                                                <strong>{{ exercicio.nome|default('Exercício', true) }}</strong>
+                                                <span>{{ exercicio.prescricao|default('3x12 - 60s descanso', true) }}</span>
+                                            </div>
+                                            {% endfor %}
+                                        {% else %}
+                                            <div class="treinos-workout-line">
+                                                <strong>{{ treino.exercicio_nome|default('Sem exercícios cadastrados', true) }}</strong>
+                                                <span>{{ treino.prescricao|default('--', true) }}</span>
+                                            </div>
+                                        {% endif %}
+
+                                        <div class="treinos-workout-actions">
+                                            {% if treino.id %}
+                                                <a class="treinos-workout-action" href="{{ visualizar_treino_url_base|default('/treinos', true) }}/{{ treino.id }}">Ver treino</a>
+                                                <a class="treinos-workout-action" href="{{ treinos_url|default('/treinos', true) }}?aluno_id={{ aluno_selecionado.id if aluno_selecionado else '' }}&editar_treino_id={{ treino.id }}#editar-treino-modal">Editar treino</a>
+                                                <a class="treinos-workout-action treinos-workout-action-danger" href="{{ treinos_url|default('/treinos', true) }}?aluno_id={{ aluno_selecionado.id if aluno_selecionado else '' }}&excluir_treino_id={{ treino.id }}#excluir-treino-modal">Excluir treino</a>
+                                            {% else %}
+                                                <span class="treinos-workout-action" aria-disabled="true">Ver treino</span>
+                                                <span class="treinos-workout-action" aria-disabled="true">Editar treino</span>
+                                                <span class="treinos-workout-action treinos-workout-action-danger" aria-disabled="true">Excluir treino</span>
+                                            {% endif %}
+                                        </div>
+                                    </article>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="treinos-empty-state">
+                                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                            <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
+                                            <path d="M5 20V18C5 15.8 6.8 14 9 14H15C17.2 14 19 15.8 19 18V20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        </svg>
+                                        <h3>Nenhum treino</h3>
+                                        <p>Este aluno ainda não possui treinos cadastrados.</p>
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <div class="treinos-empty-state">
+                                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                        <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
+                                        <path d="M5 20V18C5 15.8 6.8 14 9 14H15C17.2 14 19 15.8 19 18V20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                    <h3>Selecione um aluno</h3>
+                                    <p>Escolha um aluno para ver seus treinos</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </section>
                 </div>
+            </section>
+
+            <section aria-label="Dados para integração" hidden>
+                <form id="treinos-filtros">
+                    <input type="hidden" name="profissional_id" value="{{ profissional_id|default('', true) }}">
+                    <input type="hidden" name="empresa_id" value="{{ empresa_id|default('', true) }}">
+                    <input type="hidden" name="aluno_id" value="{{ aluno_selecionado.id if aluno_selecionado else '' }}">
+                </form>
             </section>
         </main>
     </div>
+
+    <section class="treinos-modal-wrap" id="novo-treino-modal" aria-label="Modal novo treino">
+        <a class="treinos-modal-overlay" href="#" aria-label="Fechar modal"></a>
+
+        <article class="treinos-modal">
+            <header class="treinos-modal-header">
+                <h2>Novo treino</h2>
+                <a class="treinos-modal-close" href="#" aria-label="Fechar modal">&times;</a>
+            </header>
+
+            <form class="treinos-modal-form" action="{{ criar_treino_url|default('/treinos/novo', true) }}" method="post">
+                <div class="treinos-modal-row">
+                    <div class="field">
+                        <label for="novo_treino_nome">Nome do treino</label>
+                        <input id="novo_treino_nome" name="nome" type="text" placeholder="Ex: Treino A - Peito e Tríceps" value="{{ form.nome if form is defined else '' }}" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="novo_treino_aluno">Aluno</label>
+                        <select id="novo_treino_aluno" name="aluno_id" required>
+                            <option value="">Selecione um aluno</option>
+                            {% for aluno in alunos if alunos is defined %}
+                            <option value="{{ aluno.id }}" {% if (form is defined and form.aluno_id == aluno.id) or (aluno_selecionado and aluno.id == aluno_selecionado.id) %}selected{% endif %}>{{ aluno.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="novo_treino_exercicios">Adicionar exercícios</label>
+                    <input id="novo_treino_exercicios" name="exercicios_raw" type="text" placeholder="Ex: supino reto | 3x12 - 60s descanso" value="{{ form.exercicios_raw if form is defined else '' }}">
+                </div>
+
+                <div class="field">
+                    <label for="novo_treino_observacoes">Observações</label>
+                    <textarea id="novo_treino_observacoes" name="observacoes" placeholder="Observações sobre o treino...">{{ form.observacoes if form is defined else '' }}</textarea>
+                </div>
+
+                <button class="button button-block" type="submit">Criar treino</button>
+            </form>
+        </article>
+    </section>
+
+    {% if treino_edicao is defined and treino_edicao %}
+    <section class="treinos-modal-wrap" id="editar-treino-modal" aria-label="Modal editar treino">
+        <a class="treinos-modal-overlay" href="#" aria-label="Fechar modal"></a>
+
+        <article class="treinos-modal">
+            <header class="treinos-modal-header">
+                <h2>Editar treino</h2>
+                <a class="treinos-modal-close" href="#" aria-label="Fechar modal">&times;</a>
+            </header>
+
+            <form class="treinos-modal-form" action="{{ editar_treino_url_base|default('/treinos/editar', true) }}/{{ treino_edicao.id }}" method="post">
+                <input type="hidden" name="treino_id" value="{{ treino_edicao.id }}">
+
+                <div class="treinos-modal-row">
+                    <div class="field">
+                        <label for="editar_treino_nome">Nome do treino</label>
+                        <input id="editar_treino_nome" name="nome" type="text" value="{{ treino_edicao.nome|default('', true) }}" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="editar_treino_aluno">Aluno</label>
+                        <select id="editar_treino_aluno" name="aluno_id" required>
+                            <option value="">Selecione um aluno</option>
+                            {% for aluno in alunos if alunos is defined %}
+                            <option value="{{ aluno.id }}" {% if (treino_edicao.aluno_id is defined and treino_edicao.aluno_id|string == aluno.id|string) or (aluno_selecionado and aluno_selecionado.id|string == aluno.id|string) %}selected{% endif %}>{{ aluno.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="editar_treino_exercicios">Adicionar exercícios</label>
+                    <input id="editar_treino_exercicios" name="exercicios_raw" type="text" value="{{ treino_edicao.exercicios_raw|default('', true) }}" placeholder="Ex: supino reto | 3x12 - 60s descanso">
+                </div>
+
+                <div class="field">
+                    <label for="editar_treino_observacoes">Observações</label>
+                    <textarea id="editar_treino_observacoes" name="observacoes" placeholder="Observações sobre o treino...">{{ treino_edicao.observacoes|default('', true) }}</textarea>
+                </div>
+
+                <button class="button button-block" type="submit">Salvar alterações</button>
+            </form>
+        </article>
+    </section>
+    {% endif %}
+
+    {% if treino_exclusao is defined and treino_exclusao %}
+    <section class="treinos-modal-wrap" id="excluir-treino-modal" aria-label="Modal excluir treino">
+        <a class="treinos-modal-overlay" href="#" aria-label="Fechar modal"></a>
+
+        <article class="treinos-modal">
+            <header class="treinos-modal-header">
+                <h2>Excluir treino</h2>
+                <a class="treinos-modal-close" href="#" aria-label="Fechar modal">&times;</a>
+            </header>
+
+            <form class="treinos-modal-form" action="{{ excluir_treino_url_base|default('/treinos/excluir', true) }}/{{ treino_exclusao.id }}" method="post">
+                <input type="hidden" name="treino_id" value="{{ treino_exclusao.id }}">
+                <input type="hidden" name="aluno_id" value="{{ aluno_selecionado.id if aluno_selecionado else '' }}">
+
+                <p class="treinos-confirm-copy">
+                    Você tem certeza de que deseja excluir o treino <strong>{{ treino_exclusao.nome|default('sem nome', true) }}</strong>? Esta ação não pode ser desfeita.
+                </p>
+
+                <div class="treinos-confirm-actions">
+                    <a class="button button-secondary" href="#">Cancelar</a>
+                    <button class="button button-danger" type="submit">Excluir treino</button>
+                </div>
+            </form>
+        </article>
+    </section>
+    {% endif %}
 </body>
 </html>
-
