@@ -569,11 +569,18 @@ select:focus {
 .sidebar-link {
     display: flex;
     align-items: center;
+    gap: 0.9rem;
     min-height: 2.6rem;
     padding: 0 0.85rem;
     color: #a2a6b1;
     font-size: 0.98rem;
     transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.sidebar-link svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
 }
 
 .sidebar-link:hover,
@@ -610,6 +617,494 @@ select:focus {
     min-height: 3rem;
     padding: 0 1.4rem;
     margin-top: 0.2rem;
+}
+
+.dashboard-stats {
+    margin-top: 1.45rem;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.8rem;
+}
+
+.dashboard-stat-card {
+    min-height: 120px;
+    padding: 1rem 1.15rem 0.95rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #111116;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+}
+
+.dashboard-stat-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.9rem;
+}
+
+.dashboard-stat-icon {
+    color: var(--primary);
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.dashboard-stat-icon svg {
+    width: 17px;
+    height: 17px;
+}
+
+.dashboard-stat-label {
+    color: #747b8b;
+    font-size: 0.66rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.dashboard-stat-value {
+    display: flex;
+    align-items: baseline;
+    gap: 0.32rem;
+    margin-top: 0.7rem;
+    font-family: var(--title-font);
+    font-size: clamp(1.45rem, 2vw, 2rem);
+    line-height: 0.9;
+    color: #ffffff;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dashboard-stat-growth {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 0.78rem;
+    color: #43c96b;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.dashboard-stat-note {
+    margin-top: 0.28rem;
+    color: #99a0ad;
+    font-size: 0.78rem;
+    line-height: 1.15;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dashboard-quick-section {
+    margin-top: 1.2rem;
+}
+
+.dashboard-panel {
+    padding: 1.45rem 1.45rem 1.4rem;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    background: #111116;
+}
+
+.dashboard-panel-title {
+    margin-bottom: 1.15rem;
+    font-family: var(--title-font);
+    font-size: 1.9rem;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.dashboard-quick-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.dashboard-quick-card {
+    min-height: 68px;
+    padding: 0.95rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: transparent;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.dashboard-quick-card-primary {
+    background: var(--primary);
+    border-color: var(--primary);
+}
+
+.dashboard-quick-icon {
+    color: currentColor;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.dashboard-quick-icon svg {
+    width: 17px;
+    height: 17px;
+}
+
+.dashboard-quick-text {
+    font-size: 0.92rem;
+    line-height: 1.1;
+}
+
+.treinos-page .dashboard-sidebar {
+    background: rgba(4, 5, 8, 0.96);
+}
+
+.treinos-page .sidebar-brand {
+    padding: 0.7rem 0.55rem 1.1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.treinos-page .sidebar-logo {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    line-height: 0.9;
+}
+
+.treinos-page .sidebar-logo span {
+    display: block;
+    font-family: var(--title-font);
+    font-size: 1.95rem;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+}
+
+.treinos-page .sidebar-user {
+    margin-top: 0.7rem;
+    color: #737884;
+    font-size: 0.78rem;
+}
+
+.treinos-page .sidebar-nav {
+    gap: 0.15rem;
+    padding: 1rem 0.2rem;
+}
+
+.treinos-page .sidebar-link {
+    min-height: 2.7rem;
+    padding: 0 0.75rem;
+}
+
+.treinos-page .sidebar-link svg {
+    width: 18px;
+    height: 18px;
+}
+
+.treinos-page .dashboard-main {
+    padding: 1.5rem 1.9rem 2rem;
+}
+
+.treinos-page .dashboard-add-button {
+    min-width: 180px;
+}
+
+.treinos-page .dashboard-add-button svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+}
+
+.treinos-shell {
+    margin-top: 1.8rem;
+}
+
+.treinos-content {
+    display: grid;
+    grid-template-columns: minmax(280px, 530px) minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
+}
+
+.treinos-column-title,
+.treinos-panel-heading {
+    margin-bottom: 0.85rem;
+    font-family: var(--title-font);
+    font-size: 1.8rem;
+    text-transform: uppercase;
+    line-height: 1;
+}
+
+.treinos-panel-heading {
+    font-size: 1.55rem;
+}
+
+.treinos-list {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #111116;
+}
+
+.treinos-list-item {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    min-height: 2.75rem;
+    padding: 0 0.9rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+    transition: background-color 0.2s ease;
+}
+
+.treinos-list-item:last-child {
+    border-bottom: 0;
+}
+
+.treinos-list-item:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.treinos-list-item.is-active {
+    background: var(--primary);
+    color: #ffffff;
+}
+
+.treinos-list-item svg {
+    width: 16px;
+    height: 16px;
+    color: currentColor;
+    flex-shrink: 0;
+}
+
+.treinos-list-item span {
+    font-size: 0.98rem;
+    color: currentColor;
+}
+
+.treinos-panel {
+    min-height: 148px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #111116;
+    padding: 1.1rem;
+}
+
+.treinos-workout-block {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.01);
+    padding: 0.95rem;
+}
+
+.treinos-workout-block + .treinos-workout-block {
+    margin-top: 0.75rem;
+}
+
+.treinos-workout-title {
+    margin-bottom: 0.65rem;
+    font-family: var(--title-font);
+    font-size: 1.15rem;
+    text-transform: uppercase;
+}
+
+.treinos-workout-line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 2.05rem;
+    padding: 0 0.6rem;
+    background: rgba(0, 0, 0, 0.3);
+    color: #d5dae3;
+    font-size: 0.93rem;
+}
+
+.treinos-workout-line + .treinos-workout-line {
+    margin-top: 0.5rem;
+}
+
+.treinos-workout-line strong {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.treinos-workout-line span:last-child {
+    color: #a8aebb;
+    white-space: nowrap;
+    font-size: 0.9rem;
+}
+
+.treinos-workout-actions {
+    margin-top: 0.75rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.55rem;
+}
+
+.treinos-workout-action {
+    min-height: 2.15rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #d0d5de;
+    font-size: 0.84rem;
+    text-transform: uppercase;
+    transition: background-color 0.2s ease;
+}
+
+.treinos-workout-action:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.treinos-workout-action-danger {
+    border-color: rgba(226, 90, 90, 0.38);
+    color: #f2a6a6;
+}
+
+.treinos-workout-action-danger:hover {
+    background: rgba(226, 90, 90, 0.14);
+}
+
+.treinos-empty-state {
+    min-height: 148px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--muted);
+}
+
+.treinos-empty-state svg {
+    width: 42px;
+    height: 42px;
+    color: #4e525d;
+}
+
+.treinos-empty-state h3 {
+    margin-top: 0.8rem;
+    font-family: var(--title-font);
+    font-size: 1.3rem;
+    text-transform: uppercase;
+    color: #b8bcc6;
+    line-height: 1;
+}
+
+.treinos-empty-state p {
+    margin-top: 0.55rem;
+    font-size: 0.95rem;
+    color: #8f95a1;
+}
+
+.treinos-modal-wrap {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    z-index: 40;
+}
+
+.treinos-modal-wrap:target {
+    display: flex;
+}
+
+.treinos-modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.68);
+    backdrop-filter: blur(1.5px);
+}
+
+.treinos-modal {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 670px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: #17181f;
+    padding: 1.1rem;
+}
+
+.treinos-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.treinos-modal-header h2 {
+    font-family: var(--title-font);
+    font-size: 1.55rem;
+    text-transform: uppercase;
+}
+
+.treinos-modal-close {
+    color: #8d93a0;
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.treinos-modal-form {
+    margin-top: 0.9rem;
+}
+
+.treinos-modal-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+}
+
+.treinos-modal .field {
+    margin-top: 0.9rem;
+}
+
+.treinos-modal textarea {
+    width: 100%;
+    min-height: 74px;
+    resize: vertical;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    outline: none;
+}
+
+.treinos-modal textarea:focus {
+    border-color: var(--line-strong);
+}
+
+.treinos-helper-text {
+    margin-top: 0.5rem;
+    color: #8f95a1;
+    font-size: 0.85rem;
+}
+
+.treinos-confirm-copy {
+    margin-top: 0.95rem;
+    color: #b9bfca;
+    font-size: 0.95rem;
+    line-height: 1.45;
+}
+
+.treinos-confirm-actions {
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.65rem;
+}
+
+.treinos-confirm-actions .button,
+.treinos-modal .button-block {
+    min-height: 2.95rem;
+}
+
+.button-danger {
+    background: #ba3e31;
+    border-color: #ba3e31;
+}
+
+.button-danger:hover {
+    background: #c74b3d;
+    border-color: #c74b3d;
 }
 
 .student-toolbar {
@@ -1702,6 +2197,18 @@ textarea:focus {
         grid-template-columns: 1fr 1fr;
     }
 
+    .dashboard-stats {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .dashboard-quick-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .treinos-content {
+        grid-template-columns: 1fr;
+    }
+
     .avaliacoes-layout,
     .avaliacao-detail-grid,
     .evolucao-layout,
@@ -1791,6 +2298,22 @@ textarea:focus {
     .evolucao-top-stats,
     .financeiro-stats {
         grid-template-columns: 1fr;
+    }
+
+    .dashboard-stats,
+    .dashboard-quick-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .treinos-modal-row,
+    .treinos-workout-actions,
+    .treinos-confirm-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .treinos-panel-heading,
+    .treinos-column-title {
+        font-size: 1.35rem;
     }
 
     .financeiro-table th,

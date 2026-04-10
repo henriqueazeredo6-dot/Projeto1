@@ -5,386 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CONFIE - Treinos</title>
     <link rel="stylesheet" href="style.css">
-
-    <style>
-        .dashboard-sidebar {
-            background: rgba(4, 5, 8, 0.96);
-        }
-
-        .sidebar-brand {
-            padding: 0.7rem 0.55rem 1.1rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-        }
-
-        .sidebar-logo {
-            display: inline-flex;
-            flex-direction: column;
-            align-items: flex-start;
-            line-height: 0.9;
-        }
-
-        .sidebar-logo span {
-            display: block;
-            font-family: var(--title-font);
-            font-size: 1.95rem;
-            color: var(--primary);
-            text-transform: uppercase;
-            letter-spacing: 0.01em;
-        }
-
-        .sidebar-user {
-            margin-top: 0.7rem;
-            color: #737884;
-            font-size: 0.78rem;
-        }
-
-        .sidebar-nav {
-            gap: 0.15rem;
-            padding: 1rem 0.2rem;
-        }
-
-        .sidebar-link {
-            display: flex;
-            align-items: center;
-            gap: 0.95rem;
-            min-height: 2.7rem;
-            padding: 0 0.75rem;
-        }
-
-        .sidebar-link svg {
-            width: 18px;
-            height: 18px;
-            flex-shrink: 0;
-        }
-
-        .dashboard-main {
-            padding: 1.5rem 1.9rem 2rem;
-        }
-
-        .dashboard-add-button {
-            min-width: 180px;
-        }
-
-        .dashboard-add-button svg {
-            width: 14px;
-            height: 14px;
-            flex-shrink: 0;
-        }
-
-        .treinos-shell {
-            margin-top: 1.8rem;
-        }
-
-        .treinos-content {
-            display: grid;
-            grid-template-columns: minmax(280px, 530px) minmax(0, 1fr);
-            gap: 1rem;
-            align-items: start;
-        }
-
-        .treinos-column-title,
-        .treinos-panel-heading {
-            margin-bottom: 0.85rem;
-            font-family: var(--title-font);
-            font-size: 1.8rem;
-            text-transform: uppercase;
-            line-height: 1;
-        }
-
-        .treinos-panel-heading {
-            font-size: 1.55rem;
-        }
-
-        .treinos-list {
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background: #111116;
-        }
-
-        .treinos-list-item {
-            display: flex;
-            align-items: center;
-            gap: 0.85rem;
-            min-height: 2.75rem;
-            padding: 0 0.9rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            color: #ffffff;
-            transition: background-color 0.2s ease;
-        }
-
-        .treinos-list-item:last-child {
-            border-bottom: 0;
-        }
-
-        .treinos-list-item:hover {
-            background: rgba(255, 255, 255, 0.03);
-        }
-
-        .treinos-list-item.is-active {
-            background: var(--primary);
-            color: #ffffff;
-        }
-
-        .treinos-list-item svg {
-            width: 16px;
-            height: 16px;
-            color: currentColor;
-            flex-shrink: 0;
-        }
-
-        .treinos-list-item span {
-            font-size: 0.98rem;
-            color: currentColor;
-        }
-
-        .treinos-panel {
-            min-height: 148px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background: #111116;
-            padding: 1.1rem;
-        }
-
-        .treinos-workout-block {
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            background: rgba(255, 255, 255, 0.01);
-            padding: 0.95rem;
-        }
-
-        .treinos-workout-block + .treinos-workout-block {
-            margin-top: 0.75rem;
-        }
-
-        .treinos-workout-title {
-            margin-bottom: 0.65rem;
-            font-family: var(--title-font);
-            font-size: 1.15rem;
-            text-transform: uppercase;
-        }
-
-        .treinos-workout-line {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-            min-height: 2.05rem;
-            padding: 0 0.6rem;
-            background: rgba(0, 0, 0, 0.3);
-            color: #d5dae3;
-            font-size: 0.93rem;
-        }
-
-        .treinos-workout-line + .treinos-workout-line {
-            margin-top: 0.5rem;
-        }
-
-        .treinos-workout-line strong {
-            color: #ffffff;
-            font-weight: 600;
-        }
-
-        .treinos-workout-line span:last-child {
-            color: #a8aebb;
-            white-space: nowrap;
-            font-size: 0.9rem;
-        }
-
-        .treinos-workout-actions {
-            margin-top: 0.75rem;
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 0.55rem;
-        }
-
-        .treinos-workout-action {
-            min-height: 2.15rem;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            color: #d0d5de;
-            font-size: 0.84rem;
-            text-transform: uppercase;
-            transition: background-color 0.2s ease;
-        }
-
-        .treinos-workout-action:hover {
-            background: rgba(255, 255, 255, 0.04);
-        }
-
-        .treinos-workout-action-danger {
-            border-color: rgba(226, 90, 90, 0.38);
-            color: #f2a6a6;
-        }
-
-        .treinos-workout-action-danger:hover {
-            background: rgba(226, 90, 90, 0.14);
-        }
-
-        .treinos-empty-state {
-            min-height: 148px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            color: var(--muted);
-        }
-
-        .treinos-empty-state svg {
-            width: 42px;
-            height: 42px;
-            color: #4e525d;
-        }
-
-        .treinos-empty-state h3 {
-            margin-top: 0.8rem;
-            font-family: var(--title-font);
-            font-size: 1.3rem;
-            text-transform: uppercase;
-            color: #b8bcc6;
-            line-height: 1;
-        }
-
-        .treinos-empty-state p {
-            margin-top: 0.55rem;
-            font-size: 0.95rem;
-            color: #8f95a1;
-        }
-
-        .treinos-modal-wrap {
-            position: fixed;
-            inset: 0;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 1.5rem;
-            z-index: 40;
-        }
-
-        .treinos-modal-wrap:target {
-            display: flex;
-        }
-
-        .treinos-modal-overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.68);
-            -webkit-backdrop-filter: blur(1.5px);
-            backdrop-filter: blur(1.5px);
-        }
-
-        .treinos-modal {
-            position: relative;
-            z-index: 1;
-            width: min(100%, 670px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            background: #17181f;
-            padding: 1.1rem;
-        }
-
-        .treinos-modal-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-        }
-
-        .treinos-modal-header h2 {
-            font-family: var(--title-font);
-            font-size: 1.55rem;
-            text-transform: uppercase;
-        }
-
-        .treinos-modal-close {
-            color: #8d93a0;
-            font-size: 1.1rem;
-            line-height: 1;
-        }
-
-        .treinos-modal-form {
-            margin-top: 0.9rem;
-        }
-
-        .treinos-modal-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.8rem;
-        }
-
-        .treinos-modal .field {
-            margin-top: 0.9rem;
-        }
-
-        .treinos-modal textarea {
-            width: 100%;
-            min-height: 74px;
-            resize: vertical;
-            padding: 0.7rem 0.9rem;
-            border: 1px solid var(--line);
-            background: transparent;
-            color: var(--text);
-            font: inherit;
-            outline: none;
-        }
-
-        .treinos-modal textarea:focus {
-            border-color: var(--line-strong);
-        }
-
-        .treinos-confirm-copy {
-            margin-top: 0.95rem;
-            color: #b9bfca;
-            font-size: 0.95rem;
-            line-height: 1.45;
-        }
-
-        .treinos-confirm-actions {
-            margin-top: 1rem;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.65rem;
-        }
-
-        .treinos-confirm-actions .button,
-        .treinos-modal .button-block {
-            min-height: 2.95rem;
-        }
-
-        .button-danger {
-            background: #ba3e31;
-            border-color: #ba3e31;
-        }
-
-        .button-danger:hover {
-            background: #c74b3d;
-            border-color: #c74b3d;
-        }
-
-        @media (max-width: 1100px) {
-            .treinos-content {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 760px) {
-            .treinos-modal-row,
-            .treinos-workout-actions,
-            .treinos-confirm-actions {
-                grid-template-columns: 1fr;
-            }
-
-            .treinos-panel-heading,
-            .treinos-column-title {
-                font-size: 1.35rem;
-            }
-        }
-    </style>
 </head>
-<body>
+<body class="treinos-page">
     <div class="dashboard-layout">
         <aside class="dashboard-sidebar">
             <div class="sidebar-brand">
                 <a class="sidebar-logo" href="{{ dashboard_url|default('/dashboard', true) }}">
-                        <span>CONFIE Personal</span>
+                        <span>CONFIE PERSONAL</span>
                 </a>
                 <p class="sidebar-user">{{ profissional_nome|default('', true) }}</p>
             </div>
@@ -618,15 +245,16 @@
     </div>
 
     <section class="treinos-modal-wrap" id="novo-treino-modal" aria-label="Modal novo treino">
-        <a class="treinos-modal-overlay" href="#" aria-label="Fechar modal"></a>
+        <a class="treinos-modal-overlay" href="{{ treinos_url|default('/treinos', true) }}{% if aluno_selecionado %}?aluno_id={{ aluno_selecionado.id }}{% endif %}" aria-label="Fechar modal"></a>
 
         <article class="treinos-modal">
             <header class="treinos-modal-header">
                 <h2>Novo treino</h2>
-                <a class="treinos-modal-close" href="#" aria-label="Fechar modal">&times;</a>
+                <a class="treinos-modal-close" href="{{ treinos_url|default('/treinos', true) }}{% if aluno_selecionado %}?aluno_id={{ aluno_selecionado.id }}{% endif %}" aria-label="Fechar modal">&times;</a>
             </header>
 
-            <form class="treinos-modal-form" action="{{ criar_treino_url|default('/treinos/novo', true) }}" method="post">
+            <form id="form-criar-treino" class="treinos-modal-form" action="{{ criar_treino_url|default('/treinos/novo', true) }}" method="post">
+                <input type="hidden" name="origem_url" value="{{ treinos_url|default('/treinos', true) }}{% if aluno_selecionado %}?aluno_id={{ aluno_selecionado.id }}{% endif %}">
                 <div class="treinos-modal-row">
                     <div class="field">
                         <label for="novo_treino_nome">Nome do treino</label>
@@ -646,7 +274,8 @@
 
                 <div class="field">
                     <label for="novo_treino_exercicios">Adicionar exercícios</label>
-                    <input id="novo_treino_exercicios" name="exercicios_raw" type="text" placeholder="Ex: supino reto | 3x12 - 60s descanso" value="{{ form.exercicios_raw if form is defined else '' }}">
+                    <input id="novo_treino_exercicios" name="exercicios_raw" type="text" placeholder="Ex: supino reto | 3x12 - 60s descanso" value="{{ form.exercicios_raw if form is defined else '' }}" required>
+                    <p class="treinos-helper-text">Dica: use "nome do exercício | série/repetição/descanso".</p>
                 </div>
 
                 <div class="field">
@@ -661,12 +290,12 @@
 
     {% if treino_edicao is defined and treino_edicao %}
     <section class="treinos-modal-wrap" id="editar-treino-modal" aria-label="Modal editar treino">
-        <a class="treinos-modal-overlay" href="#" aria-label="Fechar modal"></a>
+        <a class="treinos-modal-overlay" href="{{ treinos_url|default('/treinos', true) }}{% if aluno_selecionado %}?aluno_id={{ aluno_selecionado.id }}{% endif %}" aria-label="Fechar modal"></a>
 
         <article class="treinos-modal">
             <header class="treinos-modal-header">
                 <h2>Editar treino</h2>
-                <a class="treinos-modal-close" href="#" aria-label="Fechar modal">&times;</a>
+                <a class="treinos-modal-close" href="{{ treinos_url|default('/treinos', true) }}{% if aluno_selecionado %}?aluno_id={{ aluno_selecionado.id }}{% endif %}" aria-label="Fechar modal">&times;</a>
             </header>
 
             <form class="treinos-modal-form" action="{{ editar_treino_url_base|default('/treinos/editar', true) }}/{{ treino_edicao.id }}" method="post">
@@ -707,12 +336,12 @@
 
     {% if treino_exclusao is defined and treino_exclusao %}
     <section class="treinos-modal-wrap" id="excluir-treino-modal" aria-label="Modal excluir treino">
-        <a class="treinos-modal-overlay" href="#" aria-label="Fechar modal"></a>
+        <a class="treinos-modal-overlay" href="{{ treinos_url|default('/treinos', true) }}{% if aluno_selecionado %}?aluno_id={{ aluno_selecionado.id }}{% endif %}" aria-label="Fechar modal"></a>
 
         <article class="treinos-modal">
             <header class="treinos-modal-header">
                 <h2>Excluir treino</h2>
-                <a class="treinos-modal-close" href="#" aria-label="Fechar modal">&times;</a>
+                <a class="treinos-modal-close" href="{{ treinos_url|default('/treinos', true) }}{% if aluno_selecionado %}?aluno_id={{ aluno_selecionado.id }}{% endif %}" aria-label="Fechar modal">&times;</a>
             </header>
 
             <form class="treinos-modal-form" action="{{ excluir_treino_url_base|default('/treinos/excluir', true) }}/{{ treino_exclusao.id }}" method="post">
@@ -724,12 +353,106 @@
                 </p>
 
                 <div class="treinos-confirm-actions">
-                    <a class="button button-secondary" href="#">Cancelar</a>
+                    <a class="button button-secondary" href="{{ treinos_url|default('/treinos', true) }}{% if aluno_selecionado %}?aluno_id={{ aluno_selecionado.id }}{% endif %}">Cancelar</a>
                     <button class="button button-danger" type="submit">Excluir treino</button>
                 </div>
             </form>
         </article>
     </section>
     {% endif %}
+    <script>
+        (function () {
+            const form = document.getElementById("form-criar-treino");
+            const panel = document.querySelector(".treinos-panel");
+            const selectedAlunoHeading = document.querySelector(".treinos-panel-heading");
+
+            if (!form || !panel || !selectedAlunoHeading) {
+                return;
+            }
+
+            const isStaticPreview =
+                window.location.protocol === "file:" ||
+                window.location.pathname.endsWith(".html");
+
+            if (!isStaticPreview) {
+                return;
+            }
+
+            form.addEventListener("submit", function (event) {
+                event.preventDefault();
+
+                const nome = (document.getElementById("novo_treino_nome").value || "").trim();
+                const exerciciosRaw = (document.getElementById("novo_treino_exercicios").value || "").trim();
+                const alunoSelect = document.getElementById("novo_treino_aluno");
+                const alunoNome = alunoSelect && alunoSelect.selectedIndex > 0
+                    ? alunoSelect.options[alunoSelect.selectedIndex].text
+                    : "";
+
+                if (!nome || !exerciciosRaw || !alunoNome) {
+                    return;
+                }
+
+                if (!selectedAlunoHeading.textContent.toLowerCase().includes(alunoNome.toLowerCase())) {
+                    selectedAlunoHeading.textContent = "Treinos de " + alunoNome;
+                }
+
+                const lines = exerciciosRaw
+                    .split(";")
+                    .map(function (item) { return item.trim(); })
+                    .filter(Boolean);
+
+                const block = document.createElement("article");
+                block.className = "treinos-workout-block";
+
+                const title = document.createElement("h3");
+                title.className = "treinos-workout-title";
+                title.textContent = nome;
+                block.appendChild(title);
+
+                lines.forEach(function (line) {
+                    const parts = line.split("|");
+                    const exercicioNome = (parts[0] || "").trim() || "Exercicio";
+                    const prescricao = (parts[1] || "").trim() || "3x12 - 60s descanso";
+
+                    const row = document.createElement("div");
+                    row.className = "treinos-workout-line";
+                    const nomeStrong = document.createElement("strong");
+                    nomeStrong.textContent = exercicioNome;
+                    const prescricaoSpan = document.createElement("span");
+                    prescricaoSpan.textContent = prescricao;
+                    row.appendChild(nomeStrong);
+                    row.appendChild(prescricaoSpan);
+                    block.appendChild(row);
+                });
+
+                const actions = document.createElement("div");
+                actions.className = "treinos-workout-actions";
+
+                const actionLabels = [
+                    { label: "Ver treino", extraClass: "" },
+                    { label: "Editar treino", extraClass: "" },
+                    { label: "Excluir treino", extraClass: " treinos-workout-action-danger" }
+                ];
+
+                actionLabels.forEach(function (item) {
+                    const action = document.createElement("span");
+                    action.className = "treinos-workout-action" + item.extraClass;
+                    action.setAttribute("aria-disabled", "true");
+                    action.textContent = item.label;
+                    actions.appendChild(action);
+                });
+                block.appendChild(actions);
+
+                const emptyState = panel.querySelector(".treinos-empty-state");
+                if (emptyState) {
+                    emptyState.remove();
+                }
+
+                panel.appendChild(block);
+                window.location.hash = "";
+                form.reset();
+            });
+        })();
+    </script>
 </body>
 </html>

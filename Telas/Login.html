@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -11,7 +11,7 @@
         <section class="auth-brand">
             <div class="brand-block">
                 <h1 class="brand-title">CONFIE Personal</h1>
-                <p class="brand-copy">Gestão Profissional de Personal Training</p>
+                <p class="brand-copy">Gestao profissional de personal training</p>
             </div>
         </section>
 
@@ -20,22 +20,41 @@
                 <h2>Entrar</h2>
                 <p class="auth-subtitle">Acesse sua conta</p>
 
-                <form>
+                {% if sucesso %}
+                <section class="student-feedback student-feedback-success" aria-label="Mensagem de sucesso">
+                    <p>{{ sucesso }}</p>
+                </section>
+                {% endif %}
+
+                {% if erro %}
+                <section class="student-feedback student-feedback-error" aria-label="Mensagem de erro">
+                    <p>{{ erro }}</p>
+                </section>
+                {% endif %}
+
+                <form action="{{ login_url|default('/login', true) }}" method="post">
+                    <input type="hidden" name="next" value="{{ next_url|default('', true) }}">
+
                     <div class="field">
                         <label for="email">Email</label>
-                        <input id="email" name="email" type="email" placeholder="seu@email.com" required>
+                        <input id="email" name="email" type="email" placeholder="seu@email.com" value="{{ form.email if form is defined else '' }}" required>
                     </div>
 
                     <div class="field">
                         <label for="senha">Senha</label>
-                        <input id="senha" name="senha" type="password" placeholder="••••••••" required>
+                        <input id="senha" name="senha" type="password" placeholder="********" required>
                     </div>
 
-                    <button class="button-block" type="submit">→ Entrar</button>
+                    <div class="checkbox-row">
+                        <input type="checkbox" id="lembrar" name="lembrar" value="1" {% if form is defined and form.lembrar %}checked{% endif %}>
+                        <label for="lembrar">Manter conectado neste dispositivo</label>
+                    </div>
+
+                    <button class="button-block" type="submit">Entrar</button>
                 </form>
 
-                <p class="link-row">Não tem uma conta? <a href="Cadastro.html">Cadastre-se</a></p>
-                <a class="back-link" href="index.html">← Voltar para home</a>
+                <p class="link-row">Nao tem uma conta? <a href="{{ cadastro_url|default('/cadastro', true) }}">Cadastre-se</a></p>
+                <a class="back-link" href="{{ home_url|default('/', true) }}">Voltar para home</a>
             </div>
         </section>
     </main>

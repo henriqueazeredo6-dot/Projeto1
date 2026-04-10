@@ -5,155 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CONFIE - Dashboard</title>
     <link rel="stylesheet" href="style.css">
-
-    <style>
-        .dashboard-stats {
-        margin-top: 1.45rem;
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 0.8rem;
-    }
-
-    .dashboard-stat-card {
-        height: 120px;
-        min-height: 120px;
-        padding: 1rem 1.15rem 0.95rem;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        background: #111116;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        overflow: hidden;
-    }
-
-    .dashboard-stat-top {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 0.9rem;
-    }
-
-    .dashboard-stat-icon {
-        color: var(--primary);
-        line-height: 1;
-        flex-shrink: 0;
-    }
-
-    .dashboard-stat-icon svg {
-        width: 17px;
-        height: 17px;
-    }
-
-    .dashboard-stat-label {
-        color: #747b8b;
-        font-size: 0.66rem;
-        letter-spacing: 0.03em;
-        text-transform: uppercase;
-        text-align: right;
-        white-space: nowrap;
-    }
-
-    .dashboard-stat-value {
-        display: flex;
-        align-items: baseline;
-        gap: 0.32rem;
-        margin-top: 0.7rem;
-        font-family: var(--title-font);
-        font-size: clamp(1.45rem, 2vw, 2rem);
-        line-height: 0.9;
-        color: #ffffff;
-        text-transform: uppercase;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .dashboard-stat-growth {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        font-size: 0.78rem;
-        color: #43c96b;
-        font-weight: 700;
-        white-space: nowrap;
-    }
-
-    .dashboard-stat-note {
-        margin-top: 0.28rem;
-        color: #99a0ad;
-        font-size: 0.78rem;
-        line-height: 1.15;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .dashboard-quick-section {
-        margin-top: 1.2rem;
-    }
-
-    .dashboard-panel {
-        padding: 1.45rem 1.45rem 1.4rem;
-        border: 1px solid rgba(255, 255, 255, 0.09);
-        background: #111116;
-    }
-
-    .dashboard-panel-title {
-        margin-bottom: 1.15rem;
-        font-family: var(--title-font);
-        font-size: 1.9rem;
-        line-height: 1;
-        text-transform: uppercase;
-    }
-
-    .dashboard-quick-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 0.75rem;
-    }
-
-    .dashboard-quick-card {
-        min-height: 68px;
-        padding: 0.95rem 1rem;
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        background: transparent;
-        display: flex;
-        align-items: flex-start;
-        justify-content: center;
-        flex-direction: column;
-        gap: 0.45rem;
-    }
-
-    .dashboard-quick-card-primary {
-        background: var(--primary);
-        border-color: var(--primary);
-    }
-
-    .dashboard-quick-icon {
-        color: currentColor;
-        line-height: 1;
-        flex-shrink: 0;
-    }
-
-    .dashboard-quick-icon svg {
-        width: 17px;
-        height: 17px;
-    }
-
-    .dashboard-quick-text {
-        font-size: 0.92rem;
-        line-height: 1.1;
-    }
-
-    .sidebar-link {
-        gap: 0.9rem;
-}
-
-    .sidebar-link svg {
-        width: 20px;
-        height: 20px;
-        flex-shrink: 0;
-}
-        
-    </style>
 </head>
 <body>
     <div class="dashboard-layout">
@@ -162,7 +13,7 @@
                 <a class="sidebar-logo" href="{{ dashboard_url|default('/dashboard', true) }}">
                     <span>CONFIE PERSONAL</span>
                 </a>
-                <p class="sidebar-user">{{ profissional_nome|default('henrique', true) }}</p>
+                <p class="sidebar-user">{{ profissional_nome|default('Personal Trainer', true) }}</p>
             </div>
 
             <nav class="sidebar-nav" aria-label="Menu principal">
@@ -193,7 +44,7 @@
                         <path d="M5 10L10 5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
                         <path d="M14 19L19 14" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
                     </svg>
-                    <span>Exercícios</span>
+                    <span>Exercicios</span>
                 </a>
 
                 <a class="sidebar-link {% if pagina_ativa == 'treinos' %}is-active{% endif %}" href="{{ treinos_url|default('/treinos', true) }}">
@@ -237,7 +88,7 @@
                         <path d="M9 12H15" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
                         <path d="M9 16H13" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
                     </svg>
-                    <span>Avaliações</span>
+                    <span>Avaliacoes</span>
                 </a>
 
                 <a class="sidebar-link {% if pagina_ativa == 'evolucao' %}is-active{% endif %}" href="{{ evolucao_url|default('/evolucao', true) }}">
@@ -245,7 +96,7 @@
                         <path d="M4 16L9 11L13 15L20 8" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
                         <path d="M20 12V8H16" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
-                    <span>Evolução</span>
+                    <span>Evolucao</span>
                 </a>
 
                 <a class="sidebar-link {% if pagina_ativa == 'financeiro' %}is-active{% endif %}" href="{{ financeiro_url|default('/financeiro', true) }}">
@@ -273,6 +124,10 @@
                     <h1 class="dashboard-title">Dashboard</h1>
                     <p class="dashboard-subtitle">Bem-vindo, {{ profissional_nome|default('Henrique Gucciardo', true) }}</p>
                 </div>
+
+                <a class="button dashboard-add-button" href="{{ adicionar_aluno_url|default('/alunos#novo-aluno', true) }}">
+                    + Adicionar aluno
+                </a>
             </header>
 
             {% if sucesso %}
@@ -298,10 +153,10 @@
                                 <path d="M23 11H17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
                             </svg>
                         </div>
-                        <p class="dashboard-stat-label">ALUNOS</p>
+                        <p class="dashboard-stat-label">Alunos</p>
                     </div>
-                    <strong class="dashboard-stat-value">{{ total_alunos|default(3, true) }}</strong>
-                    <p class="dashboard-stat-note">Total cadastrados</p>
+                    <strong class="dashboard-stat-value">{{ total_alunos|default(0, true) }}</strong>
+                    <p class="dashboard-stat-note">{{ alunos_descricao|default('Total cadastrados', true) }}</p>
                 </article>
 
                 <article class="dashboard-stat-card">
@@ -314,10 +169,10 @@
                                 <path d="M4 10H20" stroke="currentColor" stroke-width="1.9"/>
                             </svg>
                         </div>
-                        <p class="dashboard-stat-label">SESSÕES</p>
+                        <p class="dashboard-stat-label">Sessoes</p>
                     </div>
                     <strong class="dashboard-stat-value">{{ total_sessoes|default(0, true) }}</strong>
-                    <p class="dashboard-stat-note">Aulas concluídas</p>
+                    <p class="dashboard-stat-note">{{ sessoes_descricao|default('Aulas concluidas', true) }}</p>
                 </article>
 
                 <article class="dashboard-stat-card">
@@ -328,10 +183,10 @@
                                 <path d="M15 7.2C15 6 13.7 5.2 12 5.2C10.3 5.2 9 6 9 7.2C9 8.4 10.3 9.2 12 9.2C13.7 9.2 15 10 15 11.2C15 12.4 13.7 13.2 12 13.2C10.3 13.2 9 14 9 15.2C9 16.4 10.3 17.2 12 17.2C13.7 17.2 15 16.4 15 15.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                             </svg>
                         </div>
-                        <p class="dashboard-stat-label">RECEITA</p>
+                        <p class="dashboard-stat-label">Receita</p>
                     </div>
                     <strong class="dashboard-stat-value">{{ total_receita|default('R$ 0.00', true) }}</strong>
-                    <p class="dashboard-stat-note">Total recebido</p>
+                    <p class="dashboard-stat-note">{{ receita_descricao|default('Total recebido', true) }}</p>
                 </article>
 
                 <article class="dashboard-stat-card">
@@ -341,23 +196,21 @@
                                 <path d="M3 13H7L10 6L14 19L17 13H21" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
                         </div>
-                        <p class="dashboard-stat-label">ATIVIDADE</p>
+                        <p class="dashboard-stat-label">Atividade</p>
                     </div>
                     <strong class="dashboard-stat-value">
-                        {{ total_checkins|default(10, true) }}
+                        {{ total_checkins|default(0, true) }}
                         {% if variacao_checkins %}
                         <span class="dashboard-stat-growth">{{ variacao_checkins }}</span>
-                        {% else %}
-                        <span class="dashboard-stat-growth">(33%)</span>
                         {% endif %}
                     </strong>
-                    <p class="dashboard-stat-note">Check-ins recentes</p>
+                    <p class="dashboard-stat-note">{{ checkins_descricao|default('Check-ins recentes', true) }}</p>
                 </article>
             </section>
 
-            <section class="dashboard-quick-section" aria-label="Ações rápidas">
+            <section class="dashboard-quick-section" aria-label="Acoes rapidas">
                 <div class="dashboard-panel">
-                    <h2 class="dashboard-panel-title">Ações rápidas</h2>
+                    <h2 class="dashboard-panel-title">Acoes rapidas</h2>
 
                     <div class="dashboard-quick-grid">
                         <a class="dashboard-quick-card dashboard-quick-card-primary" href="{{ adicionar_aluno_url|default('/alunos#novo-aluno', true) }}">
@@ -378,7 +231,7 @@
                                     <path d="M3 13H7L10 6L14 19L17 13H21" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
                             </div>
-                            <span class="dashboard-quick-text">Criar Treino</span>
+                            <span class="dashboard-quick-text">Criar treino</span>
                         </a>
 
                         <a class="dashboard-quick-card" href="{{ agendar_aula_url|default('/agenda/nova', true) }}">
@@ -390,13 +243,13 @@
                                     <path d="M4 10H20" stroke="currentColor" stroke-width="1.9"/>
                                 </svg>
                             </div>
-                            <span class="dashboard-quick-text">Agendar Aula</span>
+                            <span class="dashboard-quick-text">Agendar aula</span>
                         </a>
                     </div>
                 </div>
             </section>
 
-            <section aria-label="Dados para integração" hidden>
+            <section aria-label="Dados para integracao" hidden>
                 <form id="dashboard-filters">
                     <input type="hidden" name="profissional_id" value="{{ profissional_id|default('', true) }}">
                     <input type="hidden" name="empresa_id" value="{{ empresa_id|default('', true) }}">

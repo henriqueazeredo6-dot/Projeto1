@@ -10,7 +10,7 @@
     <div class="dashboard-layout">
         <aside class="dashboard-sidebar">
             <div class="sidebar-brand">
-                <a class="sidebar-logo" href="{{ dashboard_url|default('/dashboard', true) }}">CONFIE PERSONAL</a>
+                <a class="sidebar-logo" href="{{ dashboard_url|default('/dashboard', true) }}">{{ marca_nome|default('CONFIE PERSONAL', true) }}</a>
                 <p class="sidebar-user">{{ profissional_nome|default('Personal Trainer', true) }}</p>
             </div>
 
