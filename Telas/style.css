@@ -1482,6 +1482,196 @@ textarea:focus {
     border-color: var(--line-strong);
 }
 
+.financeiro-stats {
+    margin-top: 1.8rem;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.8rem;
+}
+
+.financeiro-stat-card {
+    min-height: 132px;
+    padding: 1.1rem 1.1rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    background: rgba(17, 17, 22, 0.96);
+}
+
+.financeiro-stat-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.7rem;
+}
+
+.financeiro-stat-head svg {
+    width: 1.1rem;
+    height: 1.1rem;
+    color: var(--primary);
+    flex-shrink: 0;
+}
+
+.financeiro-stat-head p {
+    color: #707787;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.financeiro-stat-card strong {
+    display: block;
+    margin-top: 0.8rem;
+    font-family: var(--title-font);
+    font-size: clamp(1.8rem, 3vw, 2.4rem);
+    line-height: 0.95;
+    text-transform: uppercase;
+}
+
+.financeiro-stat-card span {
+    display: block;
+    margin-top: 0.4rem;
+    color: #949ba8;
+    font-size: 0.9rem;
+}
+
+.financeiro-section {
+    margin-top: 1.7rem;
+}
+
+.financeiro-section-title {
+    font-family: var(--title-font);
+    font-size: clamp(1.7rem, 3vw, 2.3rem);
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.financeiro-table-wrap {
+    margin-top: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(17, 17, 22, 0.96);
+    overflow: auto;
+}
+
+.financeiro-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.financeiro-table th,
+.financeiro-table td {
+    padding: 0.9rem 0.8rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    text-align: left;
+}
+
+.financeiro-table th {
+    color: #71798a;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.financeiro-table td {
+    color: #d4d8df;
+    font-size: 0.94rem;
+}
+
+.financeiro-table tr:last-child td {
+    border-bottom: 0;
+}
+
+.financeiro-empty-row {
+    color: #8f95a1;
+    text-align: center;
+}
+
+.financeiro-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 1.6rem;
+    padding: 0 0.6rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+}
+
+.financeiro-status-pendente {
+    background: rgba(255, 90, 10, 0.16);
+    border-color: rgba(255, 90, 10, 0.35);
+    color: #ffc2a0;
+}
+
+.financeiro-status-pago {
+    background: rgba(41, 147, 74, 0.18);
+    border-color: rgba(41, 147, 74, 0.32);
+    color: #7fe79e;
+}
+
+.financeiro-status-atrasado {
+    background: rgba(255, 89, 89, 0.14);
+    border-color: rgba(255, 89, 89, 0.26);
+    color: #ffaeae;
+}
+
+.financeiro-plan-grid {
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.85rem;
+}
+
+.financeiro-plan-card {
+    min-height: 210px;
+    display: grid;
+    align-content: space-between;
+    gap: 1rem;
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    background: rgba(17, 17, 22, 0.96);
+}
+
+.financeiro-plan-card h3 {
+    font-family: var(--title-font);
+    font-size: 1.4rem;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.financeiro-plan-desc {
+    margin-top: 0.5rem;
+    color: #97a0ae;
+    font-size: 0.95rem;
+}
+
+.financeiro-plan-price {
+    margin-top: 0.8rem;
+    color: var(--primary);
+    font-family: var(--title-font);
+    font-size: 2rem;
+    line-height: 0.95;
+    text-transform: uppercase;
+}
+
+.financeiro-plan-period {
+    margin-top: 0.3rem;
+    color: #7e8594;
+    font-size: 0.9rem;
+}
+
+.financeiro-plan-card .student-action {
+    min-height: 2.25rem;
+}
+
+.financeiro-plan-card-empty {
+    min-height: 170px;
+    text-align: center;
+}
+
+.financeiro-plan-card-empty p {
+    margin-top: 0.7rem;
+    color: #8f95a1;
+}
+
 @media (max-width: 1100px) {
     .feature-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1520,8 +1710,13 @@ textarea:focus {
     }
 
     .avaliacao-top-stats,
-    .evolucao-top-stats {
+    .evolucao-top-stats,
+    .financeiro-stats {
         grid-template-columns: 1fr 1fr;
+    }
+
+    .financeiro-plan-grid {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -1593,8 +1788,15 @@ textarea:focus {
     .avaliacao-card-grid,
     .avaliacao-history-metrics,
     .avaliacao-top-stats,
-    .evolucao-top-stats {
+    .evolucao-top-stats,
+    .financeiro-stats {
         grid-template-columns: 1fr;
+    }
+
+    .financeiro-table th,
+    .financeiro-table td {
+        padding-left: 0.65rem;
+        padding-right: 0.65rem;
     }
 
     .avaliacao-modal-actions {
