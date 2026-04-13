@@ -3,12 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aluno - Execucao</title>
+    <title>{{ page_title|default('CONFIE - Execucao de Treino', true) }}</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="aluno-page">
+    {% set pagina_ativa = pagina_ativa|default('meu_treino', true) %}
     {% set treino = treino|default({}, true) %}
     {% set lista_exercicios = exercicios|default([], true) %}
+    {% set treino_id = treino.id|default('', true) %}
+    {% set treino_proximo_destino = treino_proximo_url|default('', true) %}
+    {% if treino_proximo_destino == '#' %}
+        {% set treino_proximo_destino = '' %}
+    {% endif %}
+    {% set registrar_serie_destino = registrar_serie_url|default('/aluno/treinos/registrar-serie', true) %}
+    {% set concluir_treino_destino = concluir_treino_url|default('/aluno/treinos/concluir', true) %}
+    {% set checkin_destino = checkin_url|default('/aluno/checkin', true) %}
+    {% set polling_destino = polling_url|default('/aluno/treinos/status', true) %}
 
     <div class="dashboard-layout">
         <aside class="dashboard-sidebar">
@@ -101,6 +111,10 @@
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowfullscreen
                     ></iframe>
+                    <p>
+                        Se o video nao carregar no painel, abra em outra guia para continuar a execucao:
+                        <a href="{{ treino.video_url }}" target="_blank" rel="noopener noreferrer">assistir video</a>.
+                    </p>
                     {% else %}
                     <div class="aluno-video-fallback">
                         <h2>Video indisponivel</h2>
@@ -123,22 +137,33 @@
                         </thead>
                         <tbody>
                             {% for exercicio in lista_exercicios %}
+                            {% set exercicio_id = exercicio.id|default('', true) %}
+                            {% set pode_marcar = exercicio_id != '' %}
+                            {% set status_classe = exercicio.status_classe|default('pendente', true)|lower|trim %}
+                            {% if status_classe not in ['pendente', 'concluido'] %}
+                                {% set status_classe = 'pendente' %}
+                            {% endif %}
                             <tr>
                                 <td>{{ exercicio.nome|default('Exercicio', true) }}</td>
                                 <td>{{ exercicio.series|default('-', true) }}</td>
                                 <td>{{ exercicio.repeticoes|default('-', true) }}</td>
                                 <td>{{ exercicio.descanso|default('-', true) }}</td>
                                 <td>
-                                    <span class="aluno-table-status aluno-table-status-{{ exercicio.status_classe|default('pendente', true) }}">
+                                    <span class="aluno-table-status aluno-table-status-{{ status_classe }}">
                                         {{ exercicio.status|default('Pendente', true) }}
                                     </span>
                                 </td>
                                 <td>
-                                    <form action="{{ registrar_serie_url|default('/aluno/treinos/registrar-serie', true) }}" method="post">
+                                    <form action="{{ registrar_serie_destino }}" method="post">
+                                        {% if csrf_token is defined %}
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        {% endif %}
                                         <input type="hidden" name="aluno_id" value="{{ aluno_id|default('', true) }}">
-                                        <input type="hidden" name="treino_id" value="{{ treino.id|default('', true) }}">
-                                        <input type="hidden" name="exercicio_id" value="{{ exercicio.id|default('', true) }}">
-                                        <button class="aluno-table-action" type="submit">Marcar</button>
+                                        <input type="hidden" name="treino_id" value="{{ treino_id }}">
+                                        <input type="hidden" name="exercicio_id" value="{{ exercicio_id }}">
+                                        <button class="aluno-table-action" type="submit" {% if not pode_marcar %}disabled{% endif %}>
+                                            {% if pode_marcar %}Marcar{% else %}Indisponivel{% endif %}
+                                        </button>
                                     </form>
                                 </td>
                             </tr>
@@ -152,10 +177,15 @@
                 </div>
             </section>
 
-            <form action="{{ concluir_treino_url|default('/aluno/treinos/concluir', true) }}" method="post">
+            <form action="{{ concluir_treino_destino }}" method="post">
+                {% if csrf_token is defined %}
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                {% endif %}
                 <input type="hidden" name="aluno_id" value="{{ aluno_id|default('', true) }}">
-                <input type="hidden" name="treino_id" value="{{ treino.id|default('', true) }}">
-                <button class="button button-block aluno-concluir-button" type="submit">Concluir treino</button>
+                <input type="hidden" name="treino_id" value="{{ treino_id }}">
+                <button class="button button-block aluno-concluir-button" type="submit" {% if not treino_id %}disabled{% endif %}>
+                    {% if treino_id %}Concluir treino{% else %}Treino indisponivel{% endif %}
+                </button>
             </form>
 
             <a class="aluno-side-nav aluno-side-nav-left" href="{{ aluno_treinos_url|default('/aluno/treinos', true) }}" aria-label="Voltar para meus treinos">
@@ -164,7 +194,12 @@
                 </svg>
             </a>
 
-            <a class="aluno-side-nav aluno-side-nav-right" href="{{ treino_proximo_url|default('#', true) }}" aria-label="Proximo treino">
+            <a
+                class="aluno-side-nav aluno-side-nav-right{% if not treino_proximo_destino %} is-disabled{% endif %}"
+                href="{{ treino_proximo_destino|default('#', true) }}"
+                aria-label="Proximo treino"
+                {% if not treino_proximo_destino %}aria-disabled="true" tabindex="-1"{% endif %}
+            >
                 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
@@ -173,9 +208,11 @@
             <section aria-label="Dados para integracao" hidden>
                 <form id="aluno-execucao-contexto">
                     <input type="hidden" name="aluno_id" value="{{ aluno_id|default('', true) }}">
-                    <input type="hidden" name="treino_id" value="{{ treino.id|default('', true) }}">
-                    <input type="hidden" name="checkin_url" value="{{ checkin_url|default('/aluno/checkin', true) }}">
-                    <input type="hidden" name="polling_url" value="{{ polling_url|default('/aluno/treinos/status', true) }}">
+                    <input type="hidden" name="treino_id" value="{{ treino_id }}">
+                    <input type="hidden" name="registrar_serie_url" value="{{ registrar_serie_destino }}">
+                    <input type="hidden" name="concluir_treino_url" value="{{ concluir_treino_destino }}">
+                    <input type="hidden" name="checkin_url" value="{{ checkin_destino }}">
+                    <input type="hidden" name="polling_url" value="{{ polling_destino }}">
                 </form>
             </section>
         </main>

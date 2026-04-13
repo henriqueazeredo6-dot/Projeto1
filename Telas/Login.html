@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CONFIE - Entrar</title>
+    <title>{{ page_title|default('CONFIE - Entrar', true) }}</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,7 +11,7 @@
         <section class="auth-brand">
             <div class="brand-block">
                 <h1 class="brand-title">CONFIE Personal</h1>
-                <p class="brand-copy">Gestao profissional de personal training</p>
+                <p class="brand-copy">Gestao profissional para personal training</p>
             </div>
         </section>
 
@@ -33,6 +33,9 @@
                 {% endif %}
 
                 <form action="{{ login_url|default('/login', true) }}" method="post">
+                    {% if csrf_token is defined %}
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    {% endif %}
                     <input type="hidden" name="next" value="{{ next_url|default('', true) }}">
 
                     <div class="field">

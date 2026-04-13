@@ -7,6 +7,9 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    {% set pagina_ativa = pagina_ativa|default('financeiro', true) %}
+    {% set pagamentos_lista = pagamentos|default([], true) %}
+    {% set planos_lista = planos|default([], true) %}
     <div class="dashboard-layout">
         <aside class="dashboard-sidebar">
             <div class="sidebar-brand">
@@ -33,7 +36,7 @@
             <header class="dashboard-header">
                 <div>
                     <h1 class="dashboard-title">Financeiro</h1>
-                    <p class="dashboard-subtitle">Gerencie planos e acompanhe sua receita</p>
+                    <p class="dashboard-subtitle">Gerencie planos e acompanhe a sua receita</p>
                 </div>
 
                 <a class="button dashboard-add-button" href="#novo-plano">+ Criar plano</a>
@@ -87,7 +90,7 @@
                         </svg>
                         <p>Planos ativos</p>
                     </div>
-                    <strong>{{ total_planos_ativos|default(planos|length, true) }}</strong>
+                    <strong>{{ total_planos_ativos|default(planos_lista|length, true) }}</strong>
                     <span>{{ planos_descricao|default('Planos disponiveis', true) }}</span>
                 </article>
             </section>
@@ -105,7 +108,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for pagamento in pagamentos|default([], true) %}
+                            {% for pagamento in pagamentos_lista %}
                             <tr>
                                 <td>{{ pagamento.aluno_nome }}</td>
                                 <td>{{ pagamento.email }}</td>
@@ -129,7 +132,7 @@
                 <h2 class="financeiro-section-title">Planos disponiveis</h2>
 
                 <div class="financeiro-plan-grid">
-                    {% for plano in planos|default([], true) %}
+                    {% for plano in planos_lista %}
                     <article class="financeiro-plan-card">
                         <div>
                             <h3>{{ plano.nome }}</h3>
@@ -160,6 +163,9 @@
                     </div>
 
                     <form class="student-form" action="{{ criar_plano_url|default('/financeiro/planos', true) }}" method="post">
+                        {% if csrf_token is defined %}
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        {% endif %}
                         <div class="field">
                             <label for="nome_plano">Nome do plano</label>
                             <input id="nome_plano" name="nome" type="text" placeholder="Ex: Plano mensal" required>

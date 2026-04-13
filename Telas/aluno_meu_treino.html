@@ -3,11 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aluno - Meu Treino</title>
+    <title>{{ page_title|default('CONFIE - Meus Treinos', true) }}</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="aluno-page">
+    {% set pagina_ativa = pagina_ativa|default('meu_treino', true) %}
     {% set lista_treinos = treinos|default([], true) %}
+    {% set total_treinos_resumo = total_treinos|default(lista_treinos|length, true)|int %}
+    {% set treino_anterior_destino = treino_anterior_url|default('', true) %}
+    {% if treino_anterior_destino == '#' %}
+        {% set treino_anterior_destino = '' %}
+    {% endif %}
+    {% set treino_proximo_destino = treino_proximo_url|default('', true) %}
+    {% if treino_proximo_destino == '#' %}
+        {% set treino_proximo_destino = '' %}
+    {% endif %}
 
     <div class="dashboard-layout">
         <aside class="dashboard-sidebar">
@@ -76,9 +86,9 @@
             <header class="aluno-header">
                 <h1 class="aluno-main-title">Meus Treinos</h1>
                 <p class="aluno-main-subtitle">
-                    {{ total_treinos|default(lista_treinos|length, true) }} treino
-                    {% if total_treinos|default(lista_treinos|length, true) != 1 %}s{% endif %}
-                    disponivel
+                    {{ total_treinos_resumo }} treino
+                    {% if total_treinos_resumo != 1 %}s{% endif %}
+                    {% if total_treinos_resumo == 1 %}disponivel{% else %}disponiveis{% endif %}
                 </p>
             </header>
 
@@ -96,6 +106,16 @@
 
             <section class="aluno-treinos-wrap" aria-label="Lista de treinos do aluno">
                 {% for treino in lista_treinos %}
+                {% set treino_id = treino.id|default('', true) %}
+                {% set tem_treino_id = treino_id != '' %}
+                {% set treino_detalhes_destino = treino.detalhes_url|default('', true) %}
+                {% if not treino_detalhes_destino and tem_treino_id %}
+                    {% set treino_detalhes_destino = (aluno_treino_detalhe_url_base|default('/aluno/treinos', true)) ~ '/' ~ treino_id %}
+                {% endif %}
+                {% set treino_iniciar_destino = treino.iniciar_url|default('', true) %}
+                {% if not treino_iniciar_destino and tem_treino_id %}
+                    {% set treino_iniciar_destino = (iniciar_treino_url_base|default('/aluno/treinos/iniciar', true)) ~ '/' ~ treino_id %}
+                {% endif %}
                 <article class="aluno-treino-card">
                     <div class="aluno-treino-head">
                         <div class="aluno-treino-title-wrap">
@@ -114,16 +134,24 @@
                             </div>
                         </div>
 
-                        <a class="button button-secondary aluno-outline-button" href="{{ treino.detalhes_url|default((aluno_treino_detalhe_url_base|default('/aluno/treinos', true)) ~ '/' ~ treino.id, true) }}">
+                        {% if treino_detalhes_destino %}
+                        <a class="button button-secondary aluno-outline-button" href="{{ treino_detalhes_destino }}">
                             Ver detalhes
                         </a>
+                        {% else %}
+                        <span class="button button-secondary aluno-outline-button is-disabled" aria-disabled="true">Ver detalhes</span>
+                        {% endif %}
                     </div>
 
                     <p class="aluno-treino-meta">{{ treino.total_exercicios|default(0, true) }} exercicios</p>
 
-                    <a class="button button-block aluno-start-button" href="{{ treino.iniciar_url|default((iniciar_treino_url_base|default('/aluno/treinos/iniciar', true)) ~ '/' ~ treino.id, true) }}">
+                    {% if treino_iniciar_destino %}
+                    <a class="button button-block aluno-start-button" href="{{ treino_iniciar_destino }}">
                         Iniciar treino
                     </a>
+                    {% else %}
+                    <span class="button button-block aluno-start-button is-disabled" aria-disabled="true">Treino indisponivel</span>
+                    {% endif %}
                 </article>
                 {% else %}
                 <article class="aluno-treino-card aluno-treino-card-empty">
@@ -133,13 +161,23 @@
                 {% endfor %}
             </section>
 
-            <a class="aluno-side-nav aluno-side-nav-left" href="{{ treino_anterior_url|default('#', true) }}" aria-label="Treino anterior">
+            <a
+                class="aluno-side-nav aluno-side-nav-left{% if not treino_anterior_destino %} is-disabled{% endif %}"
+                href="{{ treino_anterior_destino|default('#', true) }}"
+                aria-label="Treino anterior"
+                {% if not treino_anterior_destino %}aria-disabled="true" tabindex="-1"{% endif %}
+            >
                 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
             </a>
 
-            <a class="aluno-side-nav aluno-side-nav-right" href="{{ treino_proximo_url|default('#', true) }}" aria-label="Proximo treino">
+            <a
+                class="aluno-side-nav aluno-side-nav-right{% if not treino_proximo_destino %} is-disabled{% endif %}"
+                href="{{ treino_proximo_destino|default('#', true) }}"
+                aria-label="Proximo treino"
+                {% if not treino_proximo_destino %}aria-disabled="true" tabindex="-1"{% endif %}
+            >
                 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
@@ -150,6 +188,8 @@
                     <input type="hidden" name="aluno_id" value="{{ aluno_id|default('', true) }}">
                     <input type="hidden" name="treino_id_ativo" value="{{ treino_ativo_id|default('', true) }}">
                     <input type="hidden" name="pagina_atual" value="{{ pagina|default(1, true) }}">
+                    <input type="hidden" name="aluno_treino_detalhe_url_base" value="{{ aluno_treino_detalhe_url_base|default('/aluno/treinos', true) }}">
+                    <input type="hidden" name="iniciar_treino_url_base" value="{{ iniciar_treino_url_base|default('/aluno/treinos/iniciar', true) }}">
                 </form>
             </section>
         </main>

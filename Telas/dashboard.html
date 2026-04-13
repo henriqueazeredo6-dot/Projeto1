@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CONFIE - Dashboard</title>
+    <title>{{ page_title|default('CONFIE - Dashboard', true) }}</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    {% set pagina_ativa = pagina_ativa|default('dashboard', true) %}
     <div class="dashboard-layout">
         <aside class="dashboard-sidebar">
             <div class="sidebar-brand">
@@ -122,7 +123,7 @@
             <header class="dashboard-header">
                 <div>
                     <h1 class="dashboard-title">Dashboard</h1>
-                    <p class="dashboard-subtitle">Bem-vindo, {{ profissional_nome|default('Henrique Gucciardo', true) }}</p>
+                    <p class="dashboard-subtitle">Bem-vindo, {{ profissional_nome|default('Personal Trainer', true) }}</p>
                 </div>
 
                 <a class="button dashboard-add-button" href="{{ adicionar_aluno_url|default('/alunos#novo-aluno', true) }}">

@@ -3,11 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aluno - Dashboard</title>
+    <title>{{ page_title|default('CONFIE - Dashboard do Aluno', true) }}</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="aluno-page">
+    {% set pagina_ativa = pagina_ativa|default('dashboard', true) %}
     {% set treino_do_dia = treino_do_dia|default({}, true) %}
+    {% set treino_do_dia_id = treino_do_dia.id|default('', true) %}
+    {% set tem_treino_do_dia = treino_do_dia_id != '' %}
+    {% set total_treinos_resumo = total_treinos|default(0, true)|int %}
+    {% set total_checkins_resumo = total_checkins|default(0, true)|int %}
+    {% set total_avaliacoes_resumo = total_avaliacoes|default(0, true)|int %}
+    {% set iniciar_treino_destino = iniciar_treino_url|default('/aluno/treinos/iniciar', true) %}
+    {% if tem_treino_do_dia %}
+        {% set iniciar_treino_destino = iniciar_treino_destino ~ '?treino_id=' ~ treino_do_dia_id %}
+    {% endif %}
 
     <div class="dashboard-layout">
         <aside class="dashboard-sidebar">
@@ -74,7 +84,7 @@
 
         <main class="dashboard-main">
             <header class="aluno-header">
-                <h1 class="aluno-main-title">Meu Treino</h1>
+                <h1 class="aluno-main-title">Dashboard</h1>
                 <p class="aluno-main-subtitle">Ola, {{ aluno_nome|default('Aluno', true) }}</p>
             </header>
 
@@ -90,23 +100,42 @@
             </section>
             {% endif %}
 
-            <section class="aluno-highlight-card" aria-label="Treino do dia">
+            <section class="aluno-highlight-card{% if not tem_treino_do_dia %} aluno-highlight-empty{% endif %}" aria-label="Treino do dia">
+                {% if tem_treino_do_dia %}
                 <div class="aluno-highlight-head">
                     <div>
                         <p class="aluno-kicker">Treino do dia</p>
-                        <h2>{{ treino_do_dia.nome|default('Peito', true) }}</h2>
+                        <h2>{{ treino_do_dia.nome|default('Treino do dia', true) }}</h2>
                     </div>
-                    <span class="aluno-highlight-count">{{ treino_do_dia.total_exercicios|default('1 exercicio', true) }}</span>
+                    <span class="aluno-highlight-count">{{ treino_do_dia.total_exercicios|default('0 exercicios', true) }}</span>
                 </div>
 
                 <div class="aluno-highlight-line">
-                    <strong>{{ treino_do_dia.exercicio_destaque|default('Supino reto', true) }}</strong>
-                    <span>{{ treino_do_dia.prescricao|default('3x12', true) }}</span>
+                    <strong>{{ treino_do_dia.exercicio_destaque|default('Exercicio principal', true) }}</strong>
+                    <span>{{ treino_do_dia.prescricao|default('Consulte os detalhes para iniciar', true) }}</span>
                 </div>
 
-                <a class="button button-block aluno-start-button" href="{{ iniciar_treino_url|default('/aluno/treinos/iniciar', true) }}{% if treino_do_dia.id %}?treino_id={{ treino_do_dia.id }}{% endif %}">
+                <a class="button button-block aluno-start-button" href="{{ iniciar_treino_destino }}">
                     Iniciar treino
                 </a>
+                {% else %}
+                <div class="aluno-highlight-head">
+                    <div>
+                        <p class="aluno-kicker">Treino do dia</p>
+                        <h2>Nenhum treino atribuido para hoje</h2>
+                    </div>
+                    <span class="aluno-highlight-count">0 exercicios</span>
+                </div>
+
+                <div class="aluno-highlight-line">
+                    <strong>Seu personal ainda nao vinculou um treino para esta data.</strong>
+                    <span>Volte depois ou abra "Meu Treino".</span>
+                </div>
+
+                <a class="button button-secondary button-block aluno-start-button" href="{{ aluno_treinos_url|default('/aluno/treinos', true) }}">
+                    Ver meus treinos
+                </a>
+                {% endif %}
             </section>
 
             <section class="aluno-stats-grid" aria-label="Indicadores do aluno">
@@ -119,7 +148,7 @@
                         </svg>
                         <p>Treinos</p>
                     </div>
-                    <strong>{{ total_treinos|default(0, true) }}</strong>
+                    <strong>{{ total_treinos_resumo }}</strong>
                     <span>Total disponiveis</span>
                 </article>
 
@@ -130,8 +159,8 @@
                         </svg>
                         <p>Check-ins</p>
                     </div>
-                    <strong>{{ total_checkins|default(0, true) }}</strong>
-                    <span>Treinos concluidos</span>
+                    <strong>{{ total_checkins_resumo }}</strong>
+                    <span>Treinos finalizados</span>
                 </article>
 
                 <article class="aluno-stat-card">
@@ -142,7 +171,7 @@
                         </svg>
                         <p>Avaliacoes</p>
                     </div>
-                    <strong>{{ total_avaliacoes|default(0, true) }}</strong>
+                    <strong>{{ total_avaliacoes_resumo }}</strong>
                     <span>Registros fisicos</span>
                 </article>
             </section>
@@ -150,8 +179,10 @@
             <section aria-label="Dados para integracao" hidden>
                 <form id="aluno-dashboard-contexto">
                     <input type="hidden" name="aluno_id" value="{{ aluno_id|default('', true) }}">
-                    <input type="hidden" name="treino_dia_id" value="{{ treino_do_dia.id|default('', true) }}">
+                    <input type="hidden" name="treino_dia_id" value="{{ treino_do_dia_id }}">
                     <input type="hidden" name="dia_referencia" value="{{ dia_referencia|default('', true) }}">
+                    <input type="hidden" name="meu_treino_url" value="{{ aluno_treinos_url|default('/aluno/treinos', true) }}">
+                    <input type="hidden" name="iniciar_treino_url_base" value="{{ iniciar_treino_url|default('/aluno/treinos/iniciar', true) }}">
                 </form>
             </section>
         </main>

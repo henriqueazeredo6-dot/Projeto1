@@ -2239,6 +2239,16 @@ textarea:focus {
     padding: 1.1rem;
 }
 
+.aluno-highlight-empty {
+    border: 1px dashed rgba(255, 255, 255, 0.14);
+    background: rgba(17, 17, 22, 0.96);
+    padding: 0;
+}
+
+.aluno-highlight-empty h2 {
+    max-width: 560px;
+}
+
 .aluno-highlight-head {
     display: flex;
     align-items: flex-start;
@@ -2399,6 +2409,13 @@ textarea:focus {
     font-size: 0.9rem;
 }
 
+.aluno-outline-button.is-disabled,
+.aluno-start-button.is-disabled {
+    opacity: 0.55;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
 .aluno-treino-meta {
     margin-top: 0.65rem;
     color: #9ea4b0;
@@ -2443,6 +2460,11 @@ textarea:focus {
     background: rgba(255, 90, 10, 0.2);
     border-color: rgba(255, 90, 10, 0.45);
     color: #ffffff;
+}
+
+.aluno-side-nav.is-disabled {
+    opacity: 0.42;
+    pointer-events: none;
 }
 
 .aluno-side-nav-left {
@@ -2558,6 +2580,17 @@ textarea:focus {
 
 .aluno-table-action:hover {
     background: rgba(255, 255, 255, 0.06);
+}
+
+.aluno-table-action:disabled,
+.aluno-concluir-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.aluno-table-action:disabled:hover {
+    background: transparent;
 }
 
 .aluno-table-empty {
