@@ -45,7 +45,7 @@
                         <path d="M5 10L10 5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
                         <path d="M14 19L19 14" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
                     </svg>
-                    <span>Exercicios</span>
+                    <span>Exercícios</span>
                 </a>
 
                 <a class="sidebar-link {% if pagina_ativa == 'treinos' %}is-active{% endif %}" href="{{ treinos_url|default('/treinos', true) }}">
@@ -82,6 +82,10 @@
                     <span>Anamnese</span>
                 </a>
 
+                <a class="sidebar-link {% if pagina_ativa == 'observacoes' %}is-active{% endif %}" href="{{ observacoes_url|default('/observacoes', true) }}">
+                    <span>Observações</span>
+                </a>
+
                 <a class="sidebar-link {% if pagina_ativa == 'avaliacoes' %}is-active{% endif %}" href="{{ avaliacoes_url|default('/avaliacoes', true) }}">
                     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                         <path d="M6 4H14L18 8V20H6V4Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
@@ -89,7 +93,7 @@
                         <path d="M9 12H15" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
                         <path d="M9 16H13" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
                     </svg>
-                    <span>Avaliacoes</span>
+                    <span>Avaliações</span>
                 </a>
 
                 <a class="sidebar-link {% if pagina_ativa == 'evolucao' %}is-active{% endif %}" href="{{ evolucao_url|default('/evolucao', true) }}">
@@ -97,7 +101,7 @@
                         <path d="M4 16L9 11L13 15L20 8" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
                         <path d="M20 12V8H16" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
-                    <span>Evolucao</span>
+                    <span>Evolução</span>
                 </a>
 
                 <a class="sidebar-link {% if pagina_ativa == 'financeiro' %}is-active{% endif %}" href="{{ financeiro_url|default('/financeiro', true) }}">
@@ -106,6 +110,10 @@
                         <path d="M15 7.2C15 6 13.7 5.2 12 5.2C10.3 5.2 9 6 9 7.2C9 8.4 10.3 9.2 12 9.2C13.7 9.2 15 10 15 11.2C15 12.4 13.7 13.2 12 13.2C10.3 13.2 9 14 9 15.2C9 16.4 10.3 17.2 12 17.2C13.7 17.2 15 16.4 15 15.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                     </svg>
                     <span>Financeiro</span>
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'configuracoes' %}is-active{% endif %}" href="{{ configuracoes_url|default('/configuracoes', true) }}">
+                    <span>Configurações</span>
                 </a>
 
                 <a class="sidebar-link" href="{{ logout_url|default('/logout', true) }}">
@@ -170,10 +178,10 @@
                                 <path d="M4 10H20" stroke="currentColor" stroke-width="1.9"/>
                             </svg>
                         </div>
-                        <p class="dashboard-stat-label">Sessoes</p>
+                        <p class="dashboard-stat-label">Sessões</p>
                     </div>
                     <strong class="dashboard-stat-value">{{ total_sessoes|default(0, true) }}</strong>
-                    <p class="dashboard-stat-note">{{ sessoes_descricao|default('Aulas concluidas', true) }}</p>
+                    <p class="dashboard-stat-note">{{ sessoes_descricao|default('Aulas concluídas', true) }}</p>
                 </article>
 
                 <article class="dashboard-stat-card">
@@ -209,9 +217,9 @@
                 </article>
             </section>
 
-            <section class="dashboard-quick-section" aria-label="Acoes rapidas">
+            <section class="dashboard-quick-section" aria-label="Ações rápidas">
                 <div class="dashboard-panel">
-                    <h2 class="dashboard-panel-title">Acoes rapidas</h2>
+                    <h2 class="dashboard-panel-title">Ações rápidas</h2>
 
                     <div class="dashboard-quick-grid">
                         <a class="dashboard-quick-card dashboard-quick-card-primary" href="{{ adicionar_aluno_url|default('/alunos#novo-aluno', true) }}">
@@ -250,7 +258,7 @@
                 </div>
             </section>
 
-            <section aria-label="Dados para integracao" hidden>
+            <section aria-label="Dados para integração" hidden>
                 <form id="dashboard-filters">
                     <input type="hidden" name="profissional_id" value="{{ profissional_id|default('', true) }}">
                     <input type="hidden" name="empresa_id" value="{{ empresa_id|default('', true) }}">
