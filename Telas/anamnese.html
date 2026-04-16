@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title|default('CONFIE - Anamnese', true) }}</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    {% set aluno_ativo = aluno_ativo|default({}, true) %}
+    {% set alunos_lista = alunos|default([], true) %}
+    {% set anamnese = anamnese|default({}, true) %}
+
+    <div class="dashboard-layout">
+        <aside class="dashboard-sidebar">
+            <div class="sidebar-brand">
+                <a class="sidebar-logo" href="{{ dashboard_url|default('/dashboard', true) }}">CONFIE PERSONAL</a>
+                <p class="sidebar-user">{{ profissional_nome|default('Personal Trainer', true) }}</p>
+            </div>
+
+            <nav class="sidebar-nav" aria-label="Menu principal">
+                <a class="sidebar-link {% if pagina_ativa == 'dashboard' %}is-active{% endif %}" href="{{ dashboard_url|default('/dashboard', true) }}">Dashboard</a>
+                <a class="sidebar-link {% if pagina_ativa == 'alunos' %}is-active{% endif %}" href="{{ alunos_url|default('/alunos', true) }}">Alunos</a>
+                <a class="sidebar-link {% if pagina_ativa == 'exercicios' %}is-active{% endif %}" href="{{ exercicios_url|default('/exercicios', true) }}">Exercicios</a>
+                <a class="sidebar-link {% if pagina_ativa == 'treinos' %}is-active{% endif %}" href="{{ treinos_url|default('/treinos', true) }}">Treinos</a>
+                <a class="sidebar-link {% if pagina_ativa == 'agenda' %}is-active{% endif %}" href="{{ agenda_url|default('/agenda', true) }}">Agenda</a>
+                <a class="sidebar-link {% if pagina_ativa == 'mensagens' %}is-active{% endif %}" href="{{ mensagens_url|default('/mensagens', true) }}">Mensagens</a>
+                <a class="sidebar-link {% if pagina_ativa == 'anamnese' %}is-active{% endif %}" href="{{ anamnese_url|default('/anamnese', true) }}">Anamnese</a>
+                <a class="sidebar-link {% if pagina_ativa == 'avaliacoes' %}is-active{% endif %}" href="{{ avaliacoes_url|default('/avaliacoes', true) }}">Avaliacoes</a>
+                <a class="sidebar-link {% if pagina_ativa == 'evolucao' %}is-active{% endif %}" href="{{ evolucao_url|default('/evolucao', true) }}">Evolucao</a>
+                <a class="sidebar-link {% if pagina_ativa == 'financeiro' %}is-active{% endif %}" href="{{ financeiro_url|default('/financeiro', true) }}">Financeiro</a>
+                <a class="sidebar-link" href="{{ logout_url|default('/logout', true) }}">Sair</a>
+            </nav>
+        </aside>
+
+        <main class="dashboard-main">
+            <header class="dashboard-header">
+                <div>
+                    <h1 class="dashboard-title">Anamnese</h1>
+                    <p class="dashboard-subtitle">{{ subtitulo_pagina|default('Historico de saude dos alunos', true) }}</p>
+                </div>
+            </header>
+
+            {% if sucesso %}
+            <section class="student-feedback student-feedback-success" aria-label="Mensagem de sucesso">
+                <p>{{ sucesso }}</p>
+            </section>
+            {% endif %}
+
+            {% if erro %}
+            <section class="student-feedback student-feedback-error" aria-label="Mensagem de erro">
+                <p>{{ erro }}</p>
+            </section>
+            {% endif %}
+
+            <section class="anamnese-layout" aria-label="Central de anamnese">
+                <aside aria-label="Lista de alunos">
+                    <h2 class="anamnese-sidebar-title">Alunos</h2>
+
+                    <div class="anamnese-contact-list">
+                        {% for aluno in alunos_lista %}
+                        <a
+                            class="anamnese-contact-card {% if aluno.id == aluno_ativo.id %}is-active{% endif %}"
+                            href="{{ aluno.url|default((anamnese_url|default('/anamnese', true)) ~ '?aluno_id=' ~ aluno.id, true) }}"
+                            aria-current="{% if aluno.id == aluno_ativo.id %}page{% else %}false{% endif %}"
+                        >
+                            <span class="mensagens-avatar" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <circle cx="12" cy="8" r="3" stroke="currentColor" stroke-width="1.8"/>
+                                    <path d="M6.5 18C7.2 15.6 9.2 14 12 14C14.8 14 16.8 15.6 17.5 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                </svg>
+                            </span>
+
+                            <span>
+                                <strong class="anamnese-contact-name">{{ aluno.nome }}</strong>
+                                <span class="anamnese-contact-email">{{ aluno.email }}</span>
+                            </span>
+                        </a>
+                        {% else %}
+                        <article class="anamnese-empty-panel">
+                            <div class="anamnese-empty-state">
+                                <h2>Nenhum aluno</h2>
+                                <p>Nao existem alunos disponiveis para preencher a anamnese neste momento.</p>
+                            </div>
+                        </article>
+                        {% endfor %}
+                    </div>
+                </aside>
+
+                {% if aluno_ativo and aluno_ativo.id %}
+                <section class="avaliacao-panel anamnese-form-panel" aria-label="Formulario de anamnese">
+                    <h2 class="anamnese-form-title">Anamnese de {{ aluno_ativo.nome|default('Aluno', true) }}</h2>
+
+                    <form class="anamnese-form" action="{{ salvar_anamnese_url|default('/anamnese/salvar', true) }}" method="post">
+                        <input type="hidden" name="aluno_id" value="{{ aluno_ativo.id }}">
+                        <input type="hidden" name="profissional_id" value="{{ profissional_id|default('', true) }}">
+                        <input type="hidden" name="anamnese_id" value="{{ anamnese.id|default('', true) }}">
+
+                        <div class="anamnese-field">
+                            <label for="historico_medico">Historico medico</label>
+                            <textarea id="historico_medico" name="historico_medico" rows="4" placeholder="Doencas pre-existentes, cirurgias anteriores...">{{ anamnese.historico_medico|default('', true) }}</textarea>
+                        </div>
+
+                        <div class="anamnese-field">
+                            <label for="restricoes_fisicas">Restricoes fisicas</label>
+                            <textarea id="restricoes_fisicas" name="restricoes_fisicas" rows="4" placeholder="Limitacoes fisicas, contraindicacoes...">{{ anamnese.restricoes_fisicas|default('', true) }}</textarea>
+                        </div>
+
+                        <div class="anamnese-field">
+                            <label for="lesoes">Lesoes</label>
+                            <textarea id="lesoes" name="lesoes" rows="4" placeholder="Lesoes atuais ou antigas...">{{ anamnese.lesoes|default('', true) }}</textarea>
+                        </div>
+
+                        <div class="anamnese-field">
+                            <label for="atividade_fisica_anterior">Atividade fisica anterior</label>
+                            <textarea id="atividade_fisica_anterior" name="atividade_fisica_anterior" rows="4" placeholder="Experiencia com atividades fisicas...">{{ anamnese.atividade_fisica_anterior|default('', true) }}</textarea>
+                        </div>
+
+                        <div class="anamnese-field">
+                            <label for="objetivos">Objetivos</label>
+                            <textarea id="objetivos" name="objetivos" rows="4" placeholder="Objetivos do aluno com o treinamento...">{{ anamnese.objetivos|default('', true) }}</textarea>
+                        </div>
+
+                        <div class="anamnese-field">
+                            <label for="observacoes">Observacoes</label>
+                            <textarea id="observacoes" name="observacoes" rows="4" placeholder="Outras observacoes relevantes...">{{ anamnese.observacoes|default('', true) }}</textarea>
+                        </div>
+
+                        <button class="button anamnese-submit" type="submit">Salvar anamnese</button>
+                    </form>
+                </section>
+                {% else %}
+                <section class="anamnese-empty-panel" aria-label="Nenhum aluno selecionado">
+                    <div class="anamnese-empty-state">
+                        <h2>Selecione um aluno</h2>
+                        <p>Escolha um aluno na lista ao lado para visualizar e atualizar o historico de saude pela integracao com Flask.</p>
+                    </div>
+                </section>
+                {% endif %}
+            </section>
+
+            <section aria-label="Dados para integracao" hidden>
+                <form id="anamnese-contexto">
+                    <input type="hidden" name="profissional_id" value="{{ profissional_id|default('', true) }}">
+                    <input type="hidden" name="aluno_id_ativo" value="{{ aluno_ativo.id|default('', true) }}">
+                    <input type="hidden" name="buscar_anamnese_url" value="{{ buscar_anamnese_url|default('/anamnese/buscar', true) }}">
+                    <input type="hidden" name="salvar_anamnese_url" value="{{ salvar_anamnese_url|default('/anamnese/salvar', true) }}">
+                    <input type="hidden" name="atualizado_em" value="{{ anamnese.atualizado_em|default('', true) }}">
+                </form>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

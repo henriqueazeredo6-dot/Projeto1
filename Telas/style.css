@@ -2347,6 +2347,123 @@ select:focus {
     font-size: 0.85rem;
 }
 
+.anamnese-layout {
+    margin-top: 1.3rem;
+    display: grid;
+    grid-template-columns: minmax(300px, 0.8fr) minmax(0, 1.65fr);
+    gap: 1rem;
+    align-items: start;
+}
+
+.anamnese-sidebar-title,
+.anamnese-form-title {
+    margin-bottom: 0.85rem;
+    font-family: var(--title-font);
+    font-size: 1.35rem;
+    text-transform: uppercase;
+    line-height: 1;
+}
+
+.anamnese-contact-list {
+    display: grid;
+}
+
+.anamnese-contact-card {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.8rem;
+    align-items: center;
+    padding: 0.95rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 0;
+    background: rgba(17, 17, 22, 0.96);
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.anamnese-contact-list .anamnese-contact-card:last-child {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.anamnese-contact-card:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.anamnese-contact-card.is-active {
+    background: var(--primary);
+    border-color: var(--primary);
+}
+
+.anamnese-contact-card.is-active .anamnese-contact-email {
+    color: rgba(255, 255, 255, 0.82);
+}
+
+.anamnese-contact-name {
+    font-family: var(--title-font);
+    font-size: 1rem;
+    text-transform: uppercase;
+    line-height: 1;
+}
+
+.anamnese-contact-email {
+    margin-top: 0.28rem;
+    color: #8b909c;
+    font-size: 0.82rem;
+}
+
+.anamnese-form-panel {
+    min-height: 100%;
+}
+
+.anamnese-form {
+    margin: 0;
+}
+
+.anamnese-field + .anamnese-field {
+    margin-top: 1rem;
+}
+
+.anamnese-field label {
+    margin-bottom: 0.6rem;
+}
+
+.anamnese-field textarea {
+    min-height: 4.9rem;
+    background: rgba(8, 8, 11, 0.82);
+    resize: vertical;
+}
+
+.anamnese-submit {
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.anamnese-empty-panel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 520px;
+    padding: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(17, 17, 22, 0.96);
+}
+
+.anamnese-empty-state {
+    max-width: 380px;
+    text-align: center;
+}
+
+.anamnese-empty-state h2 {
+    font-family: var(--title-font);
+    font-size: 1.7rem;
+    text-transform: uppercase;
+}
+
+.anamnese-empty-state p {
+    margin-top: 0.8rem;
+    color: #9da3af;
+    line-height: 1.6;
+}
+
 textarea {
     width: 100%;
     padding: 0.9rem;
@@ -3037,7 +3154,8 @@ textarea:focus {
     .avaliacoes-layout,
     .avaliacao-detail-grid,
     .evolucao-layout,
-    .mensagens-layout {
+    .mensagens-layout,
+    .anamnese-layout {
         grid-template-columns: 1fr;
     }
 
