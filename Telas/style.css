@@ -2302,6 +2302,51 @@ select:focus {
     height: 1rem;
 }
 
+.observacoes-field-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.observacoes-label-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    margin-bottom: 0.7rem;
+    flex-wrap: wrap;
+}
+
+.observacoes-label-actions label {
+    margin-bottom: 0;
+}
+
+.observacoes-inline-actions,
+.observacoes-save-row {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.observacoes-save-row {
+    margin-top: 1rem;
+}
+
+.observacoes-history-card {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 1rem;
+    margin-top: 0.8rem;
+    background: rgba(255, 255, 255, 0.01);
+}
+
+.observacoes-history-card p + p {
+    margin-top: 0.45rem;
+}
+
+.observacoes-history-date {
+    color: #99a0ad;
+    font-size: 0.85rem;
+}
+
 textarea {
     width: 100%;
     padding: 0.9rem;
@@ -3076,6 +3121,7 @@ textarea:focus {
 
     .agenda-actions,
     .agenda-form-row,
+    .observacoes-field-row,
     .mensagens-compose-row {
         grid-template-columns: 1fr;
     }
@@ -3251,6 +3297,24 @@ textarea:focus {
     .mensagens-compose-row button {
         width: 100%;
         min-height: 3rem;
+    }
+
+    .dashboard-title {
+        font-size: clamp(2.7rem, 14vw, 4.2rem);
+        line-height: 0.9;
+    }
+
+    .dashboard-add-button,
+    .observacoes-inline-actions button,
+    .observacoes-save-row button {
+        width: 100%;
+    }
+
+    .agenda-card-header,
+    .avaliacao-hero-top,
+    .avaliacao-history-top {
+        flex-direction: column;
+        align-items: stretch;
     }
 }
 

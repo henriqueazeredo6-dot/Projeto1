@@ -60,7 +60,7 @@
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     {% endif %}
 
-                    <div class="field-row" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="field-row observacoes-field-row">
                         <div class="field">
                             <label for="aluno_id">Aluno atendido</label>
                             <select id="aluno_id" name="aluno_id" required>
@@ -78,9 +78,9 @@
                     </div>
 
                     <div class="field">
-                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; margin-bottom: 0.7rem; flex-wrap: wrap;">
-                            <label for="observacao_transcrita" style="margin-bottom: 0;">Observação transcrita</label>
-                            <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+                        <div class="observacoes-label-actions">
+                            <label for="observacao_transcrita">Observação transcrita</label>
+                            <div class="observacoes-inline-actions">
                                 <button type="submit" name="acao" value="gravar">Gravar</button>
                                 <button class="button-secondary" type="submit" name="acao" value="organizar">Organizar</button>
                             </div>
@@ -93,7 +93,7 @@
                         <textarea id="proximo_ajuste" name="proximo_ajuste" rows="4" placeholder="Qual ajuste será aplicado na próxima sessão">{{ form.proximo_ajuste if form is defined else '' }}</textarea>
                     </div>
 
-                    <div style="display: flex; gap: 0.8rem; flex-wrap: wrap; margin-top: 1rem;">
+                    <div class="observacoes-save-row">
                         <button type="submit">Salvar observação</button>
                     </div>
                 </form>
@@ -103,18 +103,18 @@
                 <h2 class="dashboard-panel-title">Histórico</h2>
 
                 {% for item in historico_lista %}
-                <article style="border: 1px solid rgba(255,255,255,0.12); padding: 1rem; margin-top: 0.8rem; background: rgba(255,255,255,0.01);">
-                    <p style="color: #99a0ad; font-size: 0.85rem;">{{ item.data|default('-', true) }} - {{ item.hora|default('-', true) }}</p>
-                    <p style="margin-top: 0.45rem;"><strong>{{ item.aluno_nome|default('Aluno', true) }}</strong></p>
-                    <p style="margin-top: 0.45rem;"><strong>Foco:</strong> {{ item.foco_treino|default('-', true) }}</p>
-                    <p style="margin-top: 0.45rem;">{{ item.observacao_transcrita|default('-', true) }}</p>
+                <article class="observacoes-history-card">
+                    <p class="observacoes-history-date">{{ item.data|default('-', true) }} - {{ item.hora|default('-', true) }}</p>
+                    <p><strong>{{ item.aluno_nome|default('Aluno', true) }}</strong></p>
+                    <p><strong>Foco:</strong> {{ item.foco_treino|default('-', true) }}</p>
+                    <p>{{ item.observacao_transcrita|default('-', true) }}</p>
                     {% if item.proximo_ajuste %}
-                    <p style="margin-top: 0.6rem;"><strong>Próximo ajuste:</strong> {{ item.proximo_ajuste }}</p>
+                    <p><strong>Próximo ajuste:</strong> {{ item.proximo_ajuste }}</p>
                     {% endif %}
                 </article>
                 {% else %}
-                <article style="border: 1px solid rgba(255,255,255,0.12); padding: 1rem; margin-top: 0.8rem; background: rgba(255,255,255,0.01);">
-                    <p style="color: #99a0ad;">Nenhuma observação registrada ainda.</p>
+                <article class="observacoes-history-card">
+                    <p class="observacoes-history-date">Nenhuma observação registrada ainda.</p>
                 </article>
                 {% endfor %}
             </section>
