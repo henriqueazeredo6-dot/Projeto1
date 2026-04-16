@@ -200,10 +200,15 @@
                 <form id="aluno-mensagens-contexto">
                     <input type="hidden" name="aluno_id" value="{{ aluno_id|default('', true) }}">
                     <input type="hidden" name="contato_id_ativo" value="{{ conversa_ativa.id|default('', true) }}">
+                    <input type="hidden" name="contato_nome_ativo" value="{{ conversa_ativa.nome|default('', true) }}">
                     <input type="hidden" name="ultima_mensagem_id" value="{{ ultima_mensagem_id|default('', true) }}">
                     <input type="hidden" name="aluno_mensagens_url" value="{{ aluno_mensagens_url|default('/aluno/mensagens', true) }}">
+                    <input type="hidden" name="carregar_contatos_url" value="{{ carregar_contatos_url|default('/aluno/mensagens/contatos', true) }}">
+                    <input type="hidden" name="carregar_conversa_url" value="{{ carregar_conversa_url|default('/aluno/mensagens/conversa', true) }}">
                     <input type="hidden" name="enviar_mensagem_url" value="{{ enviar_mensagem_url|default('/aluno/mensagens/enviar', true) }}">
                     <input type="hidden" name="polling_url" value="{{ polling_url|default('/aluno/mensagens/atualizar', true) }}">
+                    <input type="hidden" name="upload_url" value="{{ upload_url|default('/aluno/mensagens/upload', true) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token|default('', true) }}">
                 </form>
             </section>
         </main>
