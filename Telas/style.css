@@ -619,6 +619,12 @@ select:focus {
     margin-top: 0.2rem;
 }
 
+.dashboard-add-button svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+}
+
 .dashboard-stats {
     margin-top: 1.45rem;
     display: grid;
@@ -812,6 +818,180 @@ select:focus {
     width: 14px;
     height: 14px;
     flex-shrink: 0;
+}
+
+.exercicios-toolbar {
+    margin-top: 1.8rem;
+}
+
+.exercicios-search-form {
+    margin: 0;
+}
+
+.exercicios-search-wrap {
+    position: relative;
+}
+
+.exercicios-search-wrap svg {
+    position: absolute;
+    top: 50%;
+    left: 0.9rem;
+    width: 16px;
+    height: 16px;
+    color: #666d79;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.exercicios-search-wrap input {
+    padding-left: 2.6rem;
+    height: 3rem;
+    background: rgba(8, 8, 11, 0.82);
+}
+
+.exercicios-grid {
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    align-items: start;
+}
+
+.exercicios-card {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(17, 17, 22, 0.96);
+    overflow: hidden;
+}
+
+.exercicios-card-media {
+    height: 180px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #525864;
+}
+
+.exercicios-card-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.exercicios-card-media svg {
+    width: 40px;
+    height: 40px;
+}
+
+.exercicios-card-body {
+    padding: 1rem;
+}
+
+.exercicios-card-title {
+    font-family: var(--title-font);
+    font-size: 1.35rem;
+    text-transform: uppercase;
+    line-height: 1;
+}
+
+.exercicios-card-group {
+    margin-top: 0.6rem;
+    color: var(--primary);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.exercicios-card-meta {
+    margin-top: 0.8rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    color: #8f95a1;
+    font-size: 0.86rem;
+}
+
+.exercicios-card-description {
+    margin-top: 0.85rem;
+    color: #afb5c0;
+    font-size: 0.92rem;
+    line-height: 1.55;
+}
+
+.exercicios-card-actions {
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.45rem;
+}
+
+.exercicios-action {
+    min-height: 2.2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    padding: 0 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: transparent;
+    color: #d4d7de;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+}
+
+.exercicios-action svg {
+    width: 14px;
+    height: 14px;
+}
+
+.exercicios-action-danger {
+    color: #f1b2b2;
+    border-color: rgba(226, 90, 90, 0.32);
+}
+
+.exercicios-empty-panel {
+    min-height: 280px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed rgba(255, 255, 255, 0.12);
+    background: rgba(17, 17, 22, 0.48);
+    padding: 2rem 1.5rem;
+    text-align: center;
+}
+
+.exercicios-empty-panel h2 {
+    font-family: var(--title-font);
+    font-size: 1.6rem;
+    text-transform: uppercase;
+}
+
+.exercicios-empty-panel p {
+    margin-top: 0.7rem;
+    color: #8f95a1;
+    line-height: 1.55;
+}
+
+.exercicios-modal {
+    width: min(100%, 520px);
+    padding: 1rem 1rem 1.2rem;
+    background: #1a1a1f;
+}
+
+.exercicios-modal .field {
+    margin-top: 0.95rem;
+}
+
+.exercicios-modal textarea {
+    min-height: 72px;
+    resize: vertical;
+}
+
+.exercicios-modal-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
 }
 
 .treinos-shell {
@@ -3151,6 +3331,10 @@ textarea:focus {
         grid-template-columns: 1fr;
     }
 
+    .exercicios-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
     .avaliacoes-layout,
     .avaliacao-detail-grid,
     .evolucao-layout,
@@ -3240,7 +3424,8 @@ textarea:focus {
     .agenda-actions,
     .agenda-form-row,
     .observacoes-field-row,
-    .mensagens-compose-row {
+    .mensagens-compose-row,
+    .exercicios-modal-row {
         grid-template-columns: 1fr;
     }
 
@@ -3254,7 +3439,8 @@ textarea:focus {
     }
 
     .dashboard-stats,
-    .dashboard-quick-grid {
+    .dashboard-quick-grid,
+    .exercicios-grid {
         grid-template-columns: 1fr;
     }
 
