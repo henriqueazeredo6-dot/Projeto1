@@ -3,18 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ page_title|default('CONFIE - Financeiro', true) }}</title>
+    <title>{{ page_title|default('Financeiro', true) }}</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="personal-page page-financeiro">
     {% set pagina_ativa = pagina_ativa|default('financeiro', true) %}
     {% set pagamentos_lista = pagamentos|default([], true) %}
     {% set planos_lista = planos|default([], true) %}
+    {% set marca_logo_url_valor = marca_logo_url|default('', true) %}
+    {% set abrir_novo_plano_url = novo_plano_url|default('/financeiro/planos/novo', true) %}
+    {% set csrf_form_token = form_csrf_token|default('', true) %}
+    {% if csrf_token is defined %}
+        {% set csrf_form_token = csrf_token %}
+    {% endif %}
     <div class="dashboard-layout">
         <aside class="dashboard-sidebar">
             <div class="sidebar-brand">
-                <a class="sidebar-logo" href="{{ dashboard_url|default('/dashboard', true) }}">{{ marca_nome|default('CONFIE PERSONAL', true) }}</a>
-                <p class="sidebar-user">{{ profissional_nome|default('Personal Trainer', true) }}</p>
+                <a class="sidebar-logo" href="{{ dashboard_url|default('/dashboard', true) }}">
+                    {% if marca_logo_url_valor %}
+                    <img src="{{ marca_logo_url_valor }}" alt="{{ marca_nome|default('Marca', true) }}" class="sidebar-logo-image">
+                    {% else %}
+                    <span>{{ marca_nome|default('', true) }}</span>
+                    {% endif %}
+                </a>
+                <p class="sidebar-user">{{ profissional_nome|default('', true) }}</p>
             </div>
 
             <nav class="sidebar-nav" aria-label="Menu principal">
@@ -41,7 +53,7 @@
                     <p class="dashboard-subtitle">Gerencie planos e acompanhe a sua receita</p>
                 </div>
 
-                <a class="button dashboard-add-button" href="#novo-plano">+ Criar plano</a>
+                <a class="button ui-btn ui-btn-primary dashboard-add-button" href="{{ abrir_novo_plano_url }}">+ Criar plano</a>
             </header>
 
             {% if sucesso %}
@@ -57,7 +69,7 @@
             {% endif %}
 
             <section class="financeiro-stats" aria-label="Resumo financeiro">
-                <article class="financeiro-stat-card">
+                <article class="financeiro-stat-card ui-card">
                     <div class="financeiro-stat-head">
                         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                             <path d="M12 3V21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
@@ -69,7 +81,7 @@
                     <span>{{ receita_descricao|default('Baseado em aulas concluídas', true) }}</span>
                 </article>
 
-                <article class="financeiro-stat-card">
+                <article class="financeiro-stat-card ui-card">
                     <div class="financeiro-stat-head">
                         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                             <rect x="4" y="5" width="16" height="15" rx="2" stroke="currentColor" stroke-width="1.9"/>
@@ -83,7 +95,7 @@
                     <span>{{ sessoes_descricao|default('Aulas concluídas', true) }}</span>
                 </article>
 
-                <article class="financeiro-stat-card">
+                <article class="financeiro-stat-card ui-card">
                     <div class="financeiro-stat-head">
                         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                             <circle cx="9" cy="8" r="3" stroke="currentColor" stroke-width="1.9"/>
@@ -107,22 +119,53 @@
                                 <th>Aluno</th>
                                 <th>Email</th>
                                 <th>Status</th>
+                                <th>Alterar status</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for pagamento in pagamentos_lista %}
+                            {% set status_raw = pagamento.status|default('pendente', true)|lower|trim %}
+                            {% if status_raw in ['pago', 'pendente', 'atrasado'] %}
+                                {% set status_normalizado = status_raw %}
+                            {% else %}
+                                {% set status_normalizado = 'pendente' %}
+                            {% endif %}
                             <tr>
                                 <td>{{ pagamento.aluno_nome }}</td>
                                 <td>{{ pagamento.email }}</td>
                                 <td>
-                                    <span class="financeiro-status financeiro-status-{{ pagamento.status_classe|default('pendente', true) }}">
-                                        {{ pagamento.status|default('Pendente', true) }}
+                                    <span class="financeiro-status financeiro-status-{{ status_normalizado }}">
+                                        {% if status_normalizado == 'pago' %}
+                                            Pago
+                                        {% elif status_normalizado == 'atrasado' %}
+                                            Atrasado
+                                        {% else %}
+                                            Pendente
+                                        {% endif %}
                                     </span>
+                                </td>
+                                <td>
+                                    {% if pagamento.id or pagamento.alterar_status_url %}
+                                    <form class="ui-form" action="{{ pagamento.alterar_status_url|default((alterar_status_pagamento_url_base|default('/financeiro/pagamentos', true)) ~ '/' ~ pagamento.id ~ '/status', true) }}" method="post">
+                                        {% if csrf_form_token %}
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_form_token if csrf_form_token is string else csrf_form_token() }}">
+                                        {% endif %}
+                                        <input type="hidden" name="pagamento_id" value="{{ pagamento.id|default('', true) }}">
+                                        <select name="status_pagamento" aria-label="Alterar status de pagamento de {{ pagamento.aluno_nome }}" required>
+                                            <option value="pendente" {% if status_normalizado == 'pendente' %}selected{% endif %}>Pendente</option>
+                                            <option value="pago" {% if status_normalizado == 'pago' %}selected{% endif %}>Pago</option>
+                                            <option value="atrasado" {% if status_normalizado == 'atrasado' %}selected{% endif %}>Atrasado</option>
+                                        </select>
+                                        <button class="button ui-btn ui-btn-secondary button-secondary" type="submit">Salvar</button>
+                                    </form>
+                                    {% else %}
+                                    <span>-</span>
+                                    {% endif %}
                                 </td>
                             </tr>
                             {% else %}
                             <tr>
-                                <td colspan="3" class="financeiro-empty-row">Nenhum pagamento encontrado.</td>
+                                <td colspan="4" class="financeiro-empty-row">Nenhum pagamento encontrado.</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -135,7 +178,7 @@
 
                 <div class="financeiro-plan-grid">
                     {% for plano in planos_lista %}
-                    <article class="financeiro-plan-card">
+                    <article class="financeiro-plan-card ui-card">
                         <div>
                             <h3>{{ plano.nome }}</h3>
                             <p class="financeiro-plan-desc">{{ plano.descricao|default('Sem descrição', true) }}</p>
@@ -143,12 +186,12 @@
                             <p class="financeiro-plan-period">{{ plano.periodo|default('por 30 dias', true) }}</p>
                         </div>
 
-                        <a class="student-action" href="{{ plano.gerenciar_url|default((gerenciar_plano_url_base|default('/financeiro/planos', true)) ~ '/' ~ plano.id, true) }}">
+                        <a class="student-action ui-btn ui-btn-secondary" href="{{ plano.gerenciar_url|default((gerenciar_plano_url_base|default('/financeiro/planos', true)) ~ '/' ~ plano.id, true) }}">
                             Gerenciar
                         </a>
                     </article>
                     {% else %}
-                    <article class="financeiro-plan-card financeiro-plan-card-empty">
+                    <article class="financeiro-plan-card financeiro-plan-card-empty ui-card">
                         <h3>Nenhum plano cadastrado</h3>
                         <p>Crie o primeiro plano para começar a vender.</p>
                     </article>
@@ -156,17 +199,17 @@
                 </div>
             </section>
 
-            <section class="student-modal-wrap" id="novo-plano" aria-label="Criar novo plano">
+            <section class="student-modal-wrap ui-modal-wrap" id="novo-plano" aria-label="Criar novo plano">
                 <a class="student-modal-overlay" href="{{ financeiro_url|default('/financeiro', true) }}" aria-label="Fechar modal"></a>
-                <div class="student-modal">
+                <div class="student-modal ui-modal">
                     <div class="student-modal-header">
                         <h2>Novo plano</h2>
                         <a class="student-modal-close" href="{{ financeiro_url|default('/financeiro', true) }}" aria-label="Fechar modal">x</a>
                     </div>
 
-                    <form class="student-form" action="{{ criar_plano_url|default('/financeiro/planos', true) }}" method="post">
-                        {% if csrf_token is defined %}
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <form class="student-form ui-form" action="{{ criar_plano_url|default('/financeiro/planos', true) }}" method="post">
+                        {% if csrf_form_token %}
+                        <input type="hidden" name="csrf_token" value="{{ csrf_form_token if csrf_form_token is string else csrf_form_token() }}">
                         {% endif %}
                         <div class="field">
                             <label for="nome_plano">Nome do plano</label>
@@ -194,13 +237,13 @@
                             <label for="recorrente">Plano recorrente</label>
                         </div>
 
-                        <button class="button-block" type="submit">Salvar plano</button>
+                        <button class="button ui-btn ui-btn-primary button-block" type="submit">Salvar plano</button>
                     </form>
                 </div>
             </section>
 
             <section aria-label="Dados para integração" hidden>
-                <form id="financeiro-filtros">
+                <form id="financeiro-filtros" class="ui-form">
                     <input type="hidden" name="profissional_id" value="{{ profissional_id|default('', true) }}">
                     <input type="hidden" name="empresa_id" value="{{ empresa_id|default('', true) }}">
                     <input type="hidden" name="mes_referencia" value="{{ mes_referencia|default('', true) }}">

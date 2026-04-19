@@ -6,16 +6,20 @@
     <title>{{ page_title|default('CONFIE - Entrar', true) }}</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="page-login">
+    {% set csrf_form_token = form_csrf_token|default('', true) %}
+    {% if csrf_token is defined %}
+        {% set csrf_form_token = csrf_token %}
+    {% endif %}
     <main class="auth-layout">
         <section class="auth-brand">
             <div class="brand-block">
-                <h1 class="brand-title">CONFIE Personal</h1>
-                <p class="brand-copy">Gestao profissional para personal training</p>
+                <h1 class="brand-title">{{ marca_nome|default('CONFIE Personal', true) }}</h1>
+                <p class="brand-copy">Gestão profissional para personal training</p>
             </div>
         </section>
 
-        <section class="auth-panel">
+        <section class="auth-panel ui-card">
             <div class="auth-panel-inner">
                 <h2>Entrar</h2>
                 <p class="auth-subtitle">Acesse sua conta</p>
@@ -32,9 +36,9 @@
                 </section>
                 {% endif %}
 
-                <form action="{{ login_url|default('/login', true) }}" method="post">
-                    {% if csrf_token is defined %}
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <form class="ui-form" action="{{ login_url|default(url_for('login'), true) }}" method="post">
+                    {% if csrf_form_token %}
+                    <input type="hidden" name="csrf_token" value="{{ csrf_form_token if csrf_form_token is string else csrf_form_token() }}">
                     {% endif %}
                     <input type="hidden" name="next" value="{{ next_url|default('', true) }}">
 
@@ -53,11 +57,11 @@
                         <label for="lembrar">Manter conectado neste dispositivo</label>
                     </div>
 
-                    <button class="button-block" type="submit">Entrar</button>
+                    <button class="button ui-btn ui-btn-primary button-block" type="submit">Entrar</button>
                 </form>
 
-                <p class="link-row">Nao tem uma conta? <a href="{{ cadastro_url|default('/cadastro', true) }}">Cadastre-se</a></p>
-                <a class="back-link" href="{{ home_url|default('/', true) }}">Voltar para home</a>
+                <p class="link-row">Não tem uma conta? <a href="{{ cadastro_url|default(url_for('cadastro'), true) }}">Cadastre-se</a></p>
+                <a class="back-link" href="{{ home_url|default(url_for('index'), true) }}">Voltar para home</a>
             </div>
         </section>
     </main>

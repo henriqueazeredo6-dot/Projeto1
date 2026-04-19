@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ page_title|default('CONFIE - Dashboard do Aluno', true) }}</title>
+    <title>{{ page_title|default('Dashboard do Aluno', true) }}</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="aluno-page">
+<body class="aluno-page page-aluno-dashboard">
     {% set pagina_ativa = pagina_ativa|default('dashboard', true) %}
     {% set treino_do_dia = treino_do_dia|default({}, true) %}
     {% set treino_do_dia_id = treino_do_dia.id|default('', true) %}
@@ -23,9 +23,9 @@
         <aside class="dashboard-sidebar">
             <div class="sidebar-brand">
                 <a class="sidebar-logo" href="{{ aluno_dashboard_url|default('/aluno/dashboard', true) }}">
-                    <span>CONFIE PERSONAL</span>
+                    <span>{{ marca_nome|default('', true) }}</span>
                 </a>
-                <p class="sidebar-user">{{ aluno_nome|default('Aluno', true) }}</p>
+                <p class="sidebar-user">{{ aluno_nome|default('', true) }}</p>
             </div>
 
             <nav class="sidebar-nav" aria-label="Menu principal do aluno">
@@ -68,7 +68,7 @@
                         <path d="M4 16L9 11L13 15L20 8" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
                         <path d="M20 12V8H16" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
-                    <span>Evolucao</span>
+                    <span>Evolução</span>
                 </a>
 
                 <a class="sidebar-link" href="{{ logout_url|default('/logout', true) }}">
@@ -85,7 +85,7 @@
         <main class="dashboard-main">
             <header class="aluno-header">
                 <h1 class="aluno-main-title">Dashboard</h1>
-                <p class="aluno-main-subtitle">Ola, {{ aluno_nome|default('Aluno', true) }}</p>
+                <p class="aluno-main-subtitle">Olá{% if aluno_nome %}, {{ aluno_nome }}{% endif %}</p>
             </header>
 
             {% if sucesso %}
@@ -100,46 +100,46 @@
             </section>
             {% endif %}
 
-            <section class="aluno-highlight-card{% if not tem_treino_do_dia %} aluno-highlight-empty{% endif %}" aria-label="Treino do dia">
+            <section class="aluno-highlight-card ui-card{% if not tem_treino_do_dia %} aluno-highlight-empty{% endif %}" aria-label="Treino do dia">
                 {% if tem_treino_do_dia %}
                 <div class="aluno-highlight-head">
                     <div>
                         <p class="aluno-kicker">Treino do dia</p>
                         <h2>{{ treino_do_dia.nome|default('Treino do dia', true) }}</h2>
                     </div>
-                    <span class="aluno-highlight-count">{{ treino_do_dia.total_exercicios|default('0 exercicios', true) }}</span>
+                    <span class="aluno-highlight-count">{{ treino_do_dia.total_exercicios|default('0 exercícios', true) }}</span>
                 </div>
 
                 <div class="aluno-highlight-line">
-                    <strong>{{ treino_do_dia.exercicio_destaque|default('Exercicio principal', true) }}</strong>
+                    <strong>{{ treino_do_dia.exercicio_destaque|default('Exercício principal', true) }}</strong>
                     <span>{{ treino_do_dia.prescricao|default('Consulte os detalhes para iniciar', true) }}</span>
                 </div>
 
-                <a class="button button-block aluno-start-button" href="{{ iniciar_treino_destino }}">
+                <a class="button ui-btn ui-btn-primary button-block aluno-start-button" href="{{ iniciar_treino_destino }}">
                     Iniciar treino
                 </a>
                 {% else %}
                 <div class="aluno-highlight-head">
                     <div>
                         <p class="aluno-kicker">Treino do dia</p>
-                        <h2>Nenhum treino atribuido para hoje</h2>
+                        <h2>Nenhum treino atribuído para hoje</h2>
                     </div>
-                    <span class="aluno-highlight-count">0 exercicios</span>
+                    <span class="aluno-highlight-count">0 exercícios</span>
                 </div>
 
                 <div class="aluno-highlight-line">
-                    <strong>Seu personal ainda nao vinculou um treino para esta data.</strong>
+                    <strong>Seu personal ainda não vinculou um treino para esta data.</strong>
                     <span>Volte depois ou abra "Meu Treino".</span>
                 </div>
 
-                <a class="button button-secondary button-block aluno-start-button" href="{{ aluno_treinos_url|default('/aluno/treinos', true) }}">
+                <a class="button ui-btn ui-btn-secondary button-secondary button-block aluno-start-button" href="{{ aluno_treinos_url|default('/aluno/treinos', true) }}">
                     Ver meus treinos
                 </a>
                 {% endif %}
             </section>
 
             <section class="aluno-stats-grid" aria-label="Indicadores do aluno">
-                <article class="aluno-stat-card">
+                <article class="aluno-stat-card ui-card">
                     <div class="aluno-stat-head">
                         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                             <path d="M7 8L9 6L12 9L10 11L7 8Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
@@ -149,10 +149,10 @@
                         <p>Treinos</p>
                     </div>
                     <strong>{{ total_treinos_resumo }}</strong>
-                    <span>Total disponiveis</span>
+                    <span>Total disponíveis</span>
                 </article>
 
-                <article class="aluno-stat-card">
+                <article class="aluno-stat-card ui-card">
                     <div class="aluno-stat-head">
                         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                             <path d="M20 7L10 17L5 12" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
@@ -163,21 +163,21 @@
                     <span>Treinos finalizados</span>
                 </article>
 
-                <article class="aluno-stat-card">
+                <article class="aluno-stat-card ui-card">
                     <div class="aluno-stat-head">
                         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                             <path d="M4 16L9 11L13 15L20 8" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
                             <path d="M20 12V8H16" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
-                        <p>Avaliacoes</p>
+                        <p>Avaliações</p>
                     </div>
                     <strong>{{ total_avaliacoes_resumo }}</strong>
-                    <span>Registros fisicos</span>
+                    <span>Registros físicos</span>
                 </article>
             </section>
 
-            <section aria-label="Dados para integracao" hidden>
-                <form id="aluno-dashboard-contexto">
+            <section aria-label="Dados para integração" hidden>
+                <form id="aluno-dashboard-contexto" class="ui-form">
                     <input type="hidden" name="aluno_id" value="{{ aluno_id|default('', true) }}">
                     <input type="hidden" name="treino_dia_id" value="{{ treino_do_dia_id }}">
                     <input type="hidden" name="dia_referencia" value="{{ dia_referencia|default('', true) }}">

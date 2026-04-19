@@ -554,6 +554,13 @@ select:focus {
     text-transform: uppercase;
 }
 
+.sidebar-logo-image {
+    display: block;
+    max-width: 100%;
+    max-height: 2rem;
+    object-fit: contain;
+}
+
 .sidebar-user {
     margin-top: 0.55rem;
     color: #7c808c;
@@ -3663,5 +3670,116 @@ textarea:focus {
 
     .mensagens-compose-row input {
         font-size: 0.92rem;
+    }
+}
+
+/* ==========================================================================
+   Escopo Atual - Padronizacao (sem interferir no CSS base legado)
+   ========================================================================== */
+
+/* Base */
+.ui-btn {
+    font-family: var(--title-font);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.ui-btn-primary {
+    background: var(--primary);
+    border-color: transparent;
+    color: var(--text);
+}
+
+.ui-btn-primary:hover {
+    background: var(--primary-strong);
+}
+
+.ui-btn-secondary {
+    background: transparent;
+    border-color: var(--line-strong);
+    color: var(--text);
+}
+
+.ui-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.ui-btn:focus-visible {
+    outline: 2px solid rgba(255, 90, 10, 0.75);
+    outline-offset: 1px;
+}
+
+.ui-card {
+    border-radius: 0;
+}
+
+.ui-form {
+    margin: 0;
+}
+
+.ui-modal-wrap {
+    position: fixed;
+    inset: 0;
+}
+
+.ui-modal {
+    position: relative;
+}
+
+.page-login .auth-panel.ui-card {
+    border-radius: 0;
+}
+
+/* Menu */
+.page-dashboard .sidebar-nav,
+.page-financeiro .sidebar-nav,
+.page-aluno-dashboard .sidebar-nav,
+.page-aluno-meu-treino .sidebar-nav,
+.page-aluno-treino-execucao .sidebar-nav {
+    align-content: start;
+}
+
+/* Dashboard */
+.page-dashboard .dashboard-stat-card.ui-card,
+.page-dashboard .dashboard-panel.ui-card,
+.page-dashboard .dashboard-quick-card.ui-card,
+.page-financeiro .financeiro-stat-card.ui-card,
+.page-financeiro .financeiro-plan-card.ui-card,
+.page-treinos .treinos-panel.ui-card,
+.page-treinos .treinos-workout-block.ui-card {
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.01);
+}
+
+/* Alunos */
+.page-aluno-dashboard .aluno-start-button.ui-btn,
+.page-aluno-meu-treino .aluno-start-button.ui-btn,
+.page-aluno-meu-treino .aluno-outline-button.ui-btn,
+.page-aluno-treino-execucao .aluno-concluir-button.ui-btn {
+    min-height: 2.3rem;
+}
+
+.page-aluno-treino-execucao .aluno-table-action.ui-btn {
+    min-height: 1.95rem;
+    font-size: 0.76rem;
+}
+
+/* Agenda */
+/* Sem ajustes no escopo atual. */
+
+/* Avaliacao */
+/* Sem ajustes no escopo atual. */
+
+/* Evolucao */
+/* Sem ajustes no escopo atual. */
+
+/* Observacoes */
+/* Sem ajustes no escopo atual. */
+
+/* Mobile */
+@media (max-width: 760px) {
+    .page-dashboard .dashboard-add-button.ui-btn,
+    .page-financeiro .dashboard-add-button.ui-btn,
+    .page-treinos .dashboard-add-button.ui-btn {
+        width: 100%;
     }
 }
