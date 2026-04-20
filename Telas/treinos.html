@@ -1,0 +1,298 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title|default('Treinos', true) }}</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="treinos-page page-treinos">
+    {% set pagina_ativa = pagina_ativa|default('treinos', true) %}
+    {% set visualizar_treino_base = visualizar_treino_url_base|default('/treinos/visualizar', true) %}
+    {% set editar_treino_base = editar_treino_url_base|default('/treinos/editar', true) %}
+    {% set excluir_treino_base = excluir_treino_url_base|default('/treinos/excluir', true) %}
+    {% set csrf_form_token = form_csrf_token|default('', true) %}
+    {% if csrf_token is defined %}
+        {% set csrf_form_token = csrf_token %}
+    {% endif %}
+    <div class="dashboard-layout">
+        <aside class="dashboard-sidebar">
+            <div class="sidebar-brand">
+                <a class="sidebar-logo" href="{{ dashboard_url|default('/dashboard', true) }}">
+                    <span>{{ marca_nome|default('', true) }}</span>
+                </a>
+                <p class="sidebar-user">{{ profissional_nome|default('', true) }}</p>
+            </div>
+
+            <nav class="sidebar-nav" aria-label="Menu principal">
+                <a class="sidebar-link {% if pagina_ativa == 'dashboard' %}is-active{% endif %}" href="{{ dashboard_url|default('/dashboard', true) }}">Dashboard</a>
+                <a class="sidebar-link {% if pagina_ativa == 'alunos' %}is-active{% endif %}" href="{{ alunos_url|default('/alunos', true) }}">Alunos</a>
+                <a class="sidebar-link {% if pagina_ativa == 'exercicios' %}is-active{% endif %}" href="{{ exercicios_url|default('/exercicios', true) }}">Exercícios</a>
+                <a class="sidebar-link {% if pagina_ativa == 'treinos' %}is-active{% endif %}" href="{{ treinos_url|default('/treinos', true) }}">Treinos</a>
+                <a class="sidebar-link {% if pagina_ativa == 'agenda' %}is-active{% endif %}" href="{{ agenda_url|default('/agenda', true) }}">Agenda</a>
+                <a class="sidebar-link {% if pagina_ativa == 'mensagens' %}is-active{% endif %}" href="{{ mensagens_url|default('/mensagens', true) }}">Mensagens</a>
+                <a class="sidebar-link {% if pagina_ativa == 'anamnese' %}is-active{% endif %}" href="{{ anamnese_url|default('/anamnese', true) }}">Anamnese</a>
+                <a class="sidebar-link {% if pagina_ativa == 'observacoes' %}is-active{% endif %}" href="{{ observacoes_url|default('/observacoes', true) }}">Observações</a>
+                <a class="sidebar-link {% if pagina_ativa == 'avaliacoes' %}is-active{% endif %}" href="{{ avaliacoes_url|default('/avaliacoes', true) }}">Avaliações</a>
+                <a class="sidebar-link {% if pagina_ativa == 'evolucao' %}is-active{% endif %}" href="{{ evolucao_url|default('/evolucao', true) }}">Evolução</a>
+                <a class="sidebar-link {% if pagina_ativa == 'financeiro' %}is-active{% endif %}" href="{{ financeiro_url|default('/financeiro', true) }}">Financeiro</a>
+                <a class="sidebar-link {% if pagina_ativa == 'configuracoes' %}is-active{% endif %}" href="{{ configuracoes_url|default('/configuracoes', true) }}">Configurações</a>
+                <a class="sidebar-link" href="{{ logout_url|default('/logout', true) }}">Sair</a>
+            </nav>
+        </aside>
+
+        <main class="dashboard-main">
+            <header class="dashboard-header">
+                <div>
+                    <h1 class="dashboard-title">Treinos</h1>
+                    <p class="dashboard-subtitle">Gerencie planilhas de treino dos alunos</p>
+                </div>
+
+                <a class="button ui-btn ui-btn-primary dashboard-add-button" href="#novo-treino-modal">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M12 5V19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    Criar treino
+                </a>
+            </header>
+
+            {% if sucesso %}
+            <section class="student-feedback student-feedback-success" aria-label="Mensagem de sucesso">
+                <p>{{ sucesso }}</p>
+            </section>
+            {% endif %}
+
+            {% if erro %}
+            <section class="student-feedback student-feedback-error" aria-label="Mensagem de erro">
+                <p>{{ erro }}</p>
+            </section>
+            {% endif %}
+
+            <section class="treinos-shell" aria-label="Treinos por aluno">
+                <div class="treinos-content">
+                    <section>
+                        <h2 class="treinos-column-title">Alunos</h2>
+
+                        <div class="treinos-list">
+                            {% if alunos %}
+                                {% for aluno in alunos %}
+                                <a class="treinos-list-item {% if aluno_selecionado and aluno.id == aluno_selecionado.id %}is-active{% endif %}" href="{{ url_treinos_aluno_base|default('/treinos/aluno', true) }}/{{ aluno.id }}">
+                                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                        <circle cx="9" cy="8" r="3" stroke="currentColor" stroke-width="1.9"/>
+                                        <path d="M3.5 19C4.2 16.6 6.3 15 9 15" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                                    </svg>
+                                    <span>{{ aluno.nome }}</span>
+                                </a>
+                                {% endfor %}
+                            {% else %}
+                                <div class="treinos-list-item">
+                                    <span>Nenhum aluno disponível</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </section>
+
+                    <section>
+                        {% if aluno_selecionado %}
+                        <h2 class="treinos-panel-heading">Treinos de {{ aluno_selecionado.nome }}</h2>
+                        {% else %}
+                        <h2 class="treinos-panel-heading">Treinos</h2>
+                        {% endif %}
+
+                        <div class="treinos-panel ui-card">
+                            {% if aluno_selecionado %}
+                                {% if treinos %}
+                                    {% for treino in treinos %}
+                                    <article class="treinos-workout-block ui-card">
+                                        <h3 class="treinos-workout-title">{{ treino.nome|default('Treino', true) }}</h3>
+
+                                        {% if treino.exercicios and treino.exercicios|length > 0 %}
+                                            {% for exercicio in treino.exercicios %}
+                                            <div class="treinos-workout-line">
+                                                <strong>{{ exercicio.nome|default('Exercício', true) }}</strong>
+                                                <span>{{ exercicio.prescricao|default('3x12 - 60s descanso', true) }}</span>
+                                            </div>
+                                            {% endfor %}
+                                        {% else %}
+                                            <div class="treinos-workout-line">
+                                                <strong>{{ treino.exercicio_nome|default('Sem exercícios cadastrados', true) }}</strong>
+                                                <span>{{ treino.prescricao|default('--', true) }}</span>
+                                            </div>
+                                        {% endif %}
+
+                                        <div class="treinos-workout-actions">
+                                            {% if treino.id %}
+                                                <a class="treinos-workout-action" href="{{ visualizar_treino_base }}/{{ treino.id }}">Ver treino</a>
+                                                <a class="treinos-workout-action" href="{{ treinos_url|default('/treinos', true) }}?aluno_id={{ aluno_selecionado.id if aluno_selecionado else '' }}&editar_treino_id={{ treino.id }}#editar-treino-modal">Editar treino</a>
+                                                <a class="treinos-workout-action treinos-workout-action-danger" href="{{ treinos_url|default('/treinos', true) }}?aluno_id={{ aluno_selecionado.id if aluno_selecionado else '' }}&excluir_treino_id={{ treino.id }}#excluir-treino-modal">Excluir treino</a>
+                                            {% else %}
+                                                <span class="treinos-workout-action" aria-disabled="true">Ver treino</span>
+                                                <span class="treinos-workout-action" aria-disabled="true">Editar treino</span>
+                                                <span class="treinos-workout-action treinos-workout-action-danger" aria-disabled="true">Excluir treino</span>
+                                            {% endif %}
+                                        </div>
+                                    </article>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="treinos-empty-state">
+                                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                            <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
+                                            <path d="M5 20V18C5 15.8 6.8 14 9 14H15C17.2 14 19 15.8 19 18V20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        </svg>
+                                        <h3>Nenhum treino</h3>
+                                        <p>Este aluno ainda não possui treinos cadastrados.</p>
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <div class="treinos-empty-state">
+                                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                        <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
+                                        <path d="M5 20V18C5 15.8 6.8 14 9 14H15C17.2 14 19 15.8 19 18V20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                    <h3>Selecione um aluno</h3>
+                                    <p>Escolha um aluno para ver seus treinos</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </section>
+                </div>
+            </section>
+
+            <section aria-label="Dados para integração" hidden>
+                <form id="treinos-filtros" class="ui-form">
+                    <input type="hidden" name="profissional_id" value="{{ profissional_id|default('', true) }}">
+                    <input type="hidden" name="empresa_id" value="{{ empresa_id|default('', true) }}">
+                    <input type="hidden" name="aluno_id" value="{{ aluno_selecionado.id if aluno_selecionado else '' }}">
+                </form>
+            </section>
+        </main>
+    </div>
+
+    <section class="treinos-modal-wrap ui-modal-wrap" id="novo-treino-modal" aria-label="Modal novo treino">
+        <a class="treinos-modal-overlay" href="{{ treinos_url|default('/treinos', true) }}{% if aluno_selecionado %}?aluno_id={{ aluno_selecionado.id }}{% endif %}" aria-label="Fechar modal"></a>
+
+        <article class="treinos-modal ui-modal">
+            <header class="treinos-modal-header">
+                <h2>Novo treino</h2>
+                <a class="treinos-modal-close" href="{{ treinos_url|default('/treinos', true) }}{% if aluno_selecionado %}?aluno_id={{ aluno_selecionado.id }}{% endif %}" aria-label="Fechar modal">&times;</a>
+            </header>
+
+            <form id="form-criar-treino" class="treinos-modal-form ui-form" action="{{ criar_treino_url|default('/treinos/novo', true) }}" method="post">
+                {% if csrf_form_token %}
+                <input type="hidden" name="csrf_token" value="{{ csrf_form_token if csrf_form_token is string else csrf_form_token() }}">
+                {% endif %}
+                <input type="hidden" name="origem_url" value="{{ treinos_url|default('/treinos', true) }}{% if aluno_selecionado %}?aluno_id={{ aluno_selecionado.id }}{% endif %}">
+                <div class="treinos-modal-row">
+                    <div class="field">
+                        <label for="novo_treino_nome">Nome do treino</label>
+                        <input id="novo_treino_nome" name="nome" type="text" placeholder="Ex: Treino A - Peito e Tríceps" value="{{ form.nome if form is defined else '' }}" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="novo_treino_aluno">Aluno</label>
+                        <select id="novo_treino_aluno" name="aluno_id" required>
+                            <option value="">Selecione um aluno</option>
+                            {% for aluno in alunos if alunos is defined %}
+                            <option value="{{ aluno.id }}" {% if (form is defined and form.aluno_id == aluno.id) or (aluno_selecionado and aluno.id == aluno_selecionado.id) %}selected{% endif %}>{{ aluno.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="novo_treino_exercicios">Adicionar exercícios</label>
+                    <input id="novo_treino_exercicios" name="exercicios_raw" type="text" placeholder="Ex: supino reto | 3x12 - 60s descanso" value="{{ form.exercicios_raw if form is defined else '' }}" required>
+                    <p class="treinos-helper-text">Dica: use "nome do exercício | série/repetição/descanso".</p>
+                </div>
+
+                <div class="field">
+                    <label for="novo_treino_observacoes">Observações</label>
+                    <textarea id="novo_treino_observacoes" name="observacoes" placeholder="Observações sobre o treino...">{{ form.observacoes if form is defined else '' }}</textarea>
+                </div>
+
+                <button class="button ui-btn ui-btn-primary button-block" type="submit">Criar treino</button>
+            </form>
+        </article>
+    </section>
+
+    {% if treino_edicao is defined and treino_edicao %}
+    <section class="treinos-modal-wrap ui-modal-wrap" id="editar-treino-modal" aria-label="Modal editar treino">
+        <a class="treinos-modal-overlay" href="{{ treinos_url|default('/treinos', true) }}{% if aluno_selecionado %}?aluno_id={{ aluno_selecionado.id }}{% endif %}" aria-label="Fechar modal"></a>
+
+        <article class="treinos-modal ui-modal">
+            <header class="treinos-modal-header">
+                <h2>Editar treino</h2>
+                <a class="treinos-modal-close" href="{{ treinos_url|default('/treinos', true) }}{% if aluno_selecionado %}?aluno_id={{ aluno_selecionado.id }}{% endif %}" aria-label="Fechar modal">&times;</a>
+            </header>
+
+            <form class="treinos-modal-form ui-form" action="{{ editar_treino_base }}/{{ treino_edicao.id }}" method="post">
+                {% if csrf_form_token %}
+                <input type="hidden" name="csrf_token" value="{{ csrf_form_token if csrf_form_token is string else csrf_form_token() }}">
+                {% endif %}
+                <input type="hidden" name="treino_id" value="{{ treino_edicao.id }}">
+
+                <div class="treinos-modal-row">
+                    <div class="field">
+                        <label for="editar_treino_nome">Nome do treino</label>
+                        <input id="editar_treino_nome" name="nome" type="text" value="{{ treino_edicao.nome|default('', true) }}" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="editar_treino_aluno">Aluno</label>
+                        <select id="editar_treino_aluno" name="aluno_id" required>
+                            <option value="">Selecione um aluno</option>
+                            {% for aluno in alunos if alunos is defined %}
+                            <option value="{{ aluno.id }}" {% if (treino_edicao.aluno_id is defined and treino_edicao.aluno_id|string == aluno.id|string) or (aluno_selecionado and aluno_selecionado.id|string == aluno.id|string) %}selected{% endif %}>{{ aluno.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="editar_treino_exercicios">Adicionar exercícios</label>
+                    <input id="editar_treino_exercicios" name="exercicios_raw" type="text" value="{{ treino_edicao.exercicios_raw|default('', true) }}" placeholder="Ex: supino reto | 3x12 - 60s descanso">
+                </div>
+
+                <div class="field">
+                    <label for="editar_treino_observacoes">Observações</label>
+                    <textarea id="editar_treino_observacoes" name="observacoes" placeholder="Observações sobre o treino...">{{ treino_edicao.observacoes|default('', true) }}</textarea>
+                </div>
+
+                <button class="button ui-btn ui-btn-primary button-block" type="submit">Salvar alterações</button>
+            </form>
+        </article>
+    </section>
+    {% endif %}
+
+    {% if treino_exclusao is defined and treino_exclusao %}
+    <section class="treinos-modal-wrap ui-modal-wrap" id="excluir-treino-modal" aria-label="Modal excluir treino">
+        <a class="treinos-modal-overlay" href="{{ treinos_url|default('/treinos', true) }}{% if aluno_selecionado %}?aluno_id={{ aluno_selecionado.id }}{% endif %}" aria-label="Fechar modal"></a>
+
+        <article class="treinos-modal ui-modal">
+            <header class="treinos-modal-header">
+                <h2>Excluir treino</h2>
+                <a class="treinos-modal-close" href="{{ treinos_url|default('/treinos', true) }}{% if aluno_selecionado %}?aluno_id={{ aluno_selecionado.id }}{% endif %}" aria-label="Fechar modal">&times;</a>
+            </header>
+
+            <form class="treinos-modal-form ui-form" action="{{ excluir_treino_base }}/{{ treino_exclusao.id }}" method="post">
+                {% if csrf_form_token %}
+                <input type="hidden" name="csrf_token" value="{{ csrf_form_token if csrf_form_token is string else csrf_form_token() }}">
+                {% endif %}
+                <input type="hidden" name="treino_id" value="{{ treino_exclusao.id }}">
+                <input type="hidden" name="aluno_id" value="{{ aluno_selecionado.id if aluno_selecionado else '' }}">
+
+                <p class="treinos-confirm-copy">
+                    Você tem certeza de que deseja excluir o treino <strong>{{ treino_exclusao.nome|default('sem nome', true) }}</strong>? Esta ação não pode ser desfeita.
+                </p>
+
+                <div class="treinos-confirm-actions">
+                    <a class="button ui-btn ui-btn-secondary button-secondary" href="{{ treinos_url|default('/treinos', true) }}{% if aluno_selecionado %}?aluno_id={{ aluno_selecionado.id }}{% endif %}">Cancelar</a>
+                    <button class="button ui-btn button-danger" type="submit">Excluir treino</button>
+                </div>
+            </form>
+        </article>
+    </section>
+    {% endif %}
+</body>
+</html>

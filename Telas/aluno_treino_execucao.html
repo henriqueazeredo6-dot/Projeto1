@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title|default('Execução de Treino', true) }}</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="aluno-page page-aluno-treino-execucao">
+    {% set pagina_ativa = pagina_ativa|default('meu_treino', true) %}
+    {% set treino = treino|default({}, true) %}
+    {% set lista_exercicios = exercicios|default([], true) %}
+    {% set treino_id = treino.id|default('', true) %}
+    {% set treino_proximo_destino = treino_proximo_url|default('', true) %}
+    {% set retorno_treinos_destino = aluno_treinos_url|default('/aluno/treinos', true) %}
+    {% if treino_proximo_destino == '#' %}
+        {% set treino_proximo_destino = '' %}
+    {% endif %}
+    {% set registrar_serie_destino = registrar_serie_url|default('/aluno/treinos/registrar-serie', true) %}
+    {% set concluir_treino_destino = concluir_treino_url|default('/aluno/treinos/concluir', true) %}
+    {% set csrf_form_token = form_csrf_token|default('', true) %}
+    {% if csrf_token is defined %}
+        {% set csrf_form_token = csrf_token %}
+    {% endif %}
+
+    <div class="dashboard-layout">
+        <aside class="dashboard-sidebar">
+            <div class="sidebar-brand">
+                <a class="sidebar-logo" href="{{ aluno_dashboard_url|default('/aluno/dashboard', true) }}">
+                    <span>{{ marca_nome|default('', true) }}</span>
+                </a>
+                <p class="sidebar-user">{{ aluno_nome|default('', true) }}</p>
+            </div>
+
+            <nav class="sidebar-nav" aria-label="Menu principal do aluno">
+                <a class="sidebar-link {% if pagina_ativa == 'dashboard' %}is-active{% endif %}" href="{{ aluno_dashboard_url|default('/aluno/dashboard', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M4 10.5L12 4L20 10.5V19A1 1 0 0 1 19 20H5A1 1 0 0 1 4 19V10.5Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                        <path d="M9 20V13H15V20" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Dashboard</span>
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'meu_treino' %}is-active{% endif %}" href="{{ aluno_treinos_url|default('/aluno/treinos', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M7 8L9 6L12 9L10 11L7 8Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                        <path d="M14 15L16 13L19 16L17 18L14 15Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                        <path d="M10 11L14 15" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                    </svg>
+                    <span>Meu Treino</span>
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'agenda' %}is-active{% endif %}" href="{{ aluno_agenda_url|default('/aluno/agenda', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <rect x="4" y="5" width="16" height="15" rx="2" stroke="currentColor" stroke-width="1.9"/>
+                        <path d="M8 3V7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M16 3V7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M4 10H20" stroke="currentColor" stroke-width="1.9"/>
+                    </svg>
+                    <span>Agendar Aula</span>
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'mensagens' %}is-active{% endif %}" href="{{ aluno_mensagens_url|default('/aluno/mensagens', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M20 11.5C20 16.2 16 20 11 20C9.7 20 8.5 19.8 7.4 19.3L4 20L4.8 16.9C4.3 15.9 4 14.7 4 13.5C4 8.8 8 5 13 5C17 5 20 7.9 20 11.5Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Mensagens</span>
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'evolucao' %}is-active{% endif %}" href="{{ aluno_evolucao_url|default('/aluno/evolucao', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M4 16L9 11L13 15L20 8" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M20 12V8H16" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Evolução</span>
+                </a>
+
+                <a class="sidebar-link" href="{{ logout_url|default('/logout', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M15 17L20 12L15 7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M20 12H9" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M9 21H5A2 2 0 0 1 3 19V5A2 2 0 0 1 5 3H9" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                    </svg>
+                    <span>Sair</span>
+                </a>
+            </nav>
+        </aside>
+
+        <main class="dashboard-main">
+            <header class="aluno-header">
+                <h1 class="aluno-main-title">{{ treino.nome|default('Execução de treino', true) }}</h1>
+                <p class="aluno-main-subtitle">{{ treino.grupo_muscular|default('Treino do dia', true) }}</p>
+            </header>
+
+            {% if sucesso %}
+            <section class="student-feedback student-feedback-success" aria-label="Mensagem de sucesso">
+                <p>{{ sucesso }}</p>
+            </section>
+            {% endif %}
+
+            {% if erro %}
+            <section class="student-feedback student-feedback-error" aria-label="Mensagem de erro">
+                <p>{{ erro }}</p>
+            </section>
+            {% endif %}
+
+            <section class="aluno-player-panel ui-card" aria-label="Vídeo e execução do treino">
+                <div class="aluno-video-shell">
+                    {% if treino.video_url %}
+                    <iframe
+                        src="{{ treino.video_url }}"
+                        title="Vídeo do treino"
+                        loading="lazy"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen
+                    ></iframe>
+                    <p>
+                        Se o vídeo não carregar no painel, abra em outra guia para continuar a execução:
+                        <a href="{{ treino.video_url }}" target="_blank" rel="noopener noreferrer">assistir vídeo</a>.
+                    </p>
+                    {% else %}
+                    <div class="aluno-video-fallback">
+                        <h2>Vídeo indisponível</h2>
+                        <p>Seu personal ainda não vinculou vídeo para este treino.</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="aluno-table-wrap">
+                    <table class="aluno-workout-table" aria-label="Tabela de exercícios">
+                        <thead>
+                            <tr>
+                                <th>Exercício</th>
+                                <th>Séries</th>
+                                <th>Repetições</th>
+                                <th>Descanso</th>
+                                <th>Status</th>
+                                <th>Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for exercicio in lista_exercicios %}
+                            {% set exercicio_id = exercicio.id|default('', true) %}
+                            {% set pode_marcar = exercicio_id != '' %}
+                            {% set status_classe = exercicio.status_classe|default('pendente', true)|lower|trim %}
+                            {% if status_classe == 'concluído' %}
+                                {% set status_classe = 'concluido' %}
+                            {% endif %}
+                            {% if status_classe not in ['pendente', 'concluido'] %}
+                                {% set status_classe = 'pendente' %}
+                            {% endif %}
+                            <tr>
+                                <td>{{ exercicio.nome|default('Exercício', true) }}</td>
+                                <td>{{ exercicio.series|default('-', true) }}</td>
+                                <td>{{ exercicio.repeticoes|default('-', true) }}</td>
+                                <td>{{ exercicio.descanso|default('-', true) }}</td>
+                                <td>
+                                    <span class="aluno-table-status aluno-table-status-{{ status_classe }}">
+                                        {{ exercicio.status|default('Pendente', true) }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <form class="ui-form" action="{{ registrar_serie_destino }}" method="post">
+                                        {% if csrf_form_token %}
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_form_token if csrf_form_token is string else csrf_form_token() }}">
+                                        {% endif %}
+                                        <input type="hidden" name="aluno_id" value="{{ aluno_id|default('', true) }}">
+                                        <input type="hidden" name="treino_id" value="{{ treino_id }}">
+                                        <input type="hidden" name="exercicio_id" value="{{ exercicio_id }}">
+                                        <button class="aluno-table-action ui-btn ui-btn-secondary" type="submit" {% if not pode_marcar %}disabled{% endif %}>
+                                            {% if pode_marcar %}Marcar{% else %}Indisponível{% endif %}
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="aluno-table-empty">Nenhum exercício cadastrado para este treino.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <form class="ui-form" action="{{ concluir_treino_destino }}" method="post">
+                {% if csrf_form_token %}
+                <input type="hidden" name="csrf_token" value="{{ csrf_form_token if csrf_form_token is string else csrf_form_token() }}">
+                {% endif %}
+                <input type="hidden" name="aluno_id" value="{{ aluno_id|default('', true) }}">
+                <input type="hidden" name="treino_id" value="{{ treino_id }}">
+                <button class="button ui-btn ui-btn-primary button-block aluno-concluir-button" type="submit" {% if not treino_id %}disabled{% endif %}>
+                    {% if treino_id %}Concluir treino{% else %}Treino indisponível{% endif %}
+                </button>
+            </form>
+
+            <a class="aluno-side-nav aluno-side-nav-left" href="{{ aluno_treinos_url|default('/aluno/treinos', true) }}" aria-label="Voltar para meus treinos">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </a>
+
+            <a
+                class="aluno-side-nav aluno-side-nav-right{% if not treino_proximo_destino %} is-disabled{% endif %}"
+                href="{{ treino_proximo_destino if treino_proximo_destino else retorno_treinos_destino }}"
+                aria-label="Próximo treino"
+                {% if not treino_proximo_destino %}aria-disabled="true" tabindex="-1"{% endif %}
+            >
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </a>
+
+            <section aria-label="Dados para integração" hidden>
+                <form id="aluno-execucao-contexto" class="ui-form">
+                    <input type="hidden" name="aluno_id" value="{{ aluno_id|default('', true) }}">
+                    <input type="hidden" name="treino_id" value="{{ treino_id }}">
+                    <input type="hidden" name="registrar_serie_url" value="{{ registrar_serie_destino }}">
+                    <input type="hidden" name="concluir_treino_url" value="{{ concluir_treino_destino }}">
+                </form>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

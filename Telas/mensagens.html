@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title|default('CONFIE - Mensagens', true) }}</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    {% set conversa_ativa = conversa_ativa|default({}, true) %}
+    {% set contatos_lista = contatos|default([], true) %}
+    {% set mensagens_lista = mensagens|default([], true) %}
+
+    <div class="dashboard-layout">
+        <aside class="dashboard-sidebar">
+            <div class="sidebar-brand">
+                <a class="sidebar-logo" href="{{ dashboard_url|default('/dashboard', true) }}">CONFIE PERSONAL</a>
+                <p class="sidebar-user">{{ profissional_nome|default('Personal Trainer', true) }}</p>
+            </div>
+
+            <nav class="sidebar-nav" aria-label="Menu principal">
+                <a class="sidebar-link {% if pagina_ativa == 'dashboard' %}is-active{% endif %}" href="{{ dashboard_url|default('/dashboard', true) }}">Dashboard</a>
+                <a class="sidebar-link {% if pagina_ativa == 'alunos' %}is-active{% endif %}" href="{{ alunos_url|default('/alunos', true) }}">Alunos</a>
+                <a class="sidebar-link {% if pagina_ativa == 'exercicios' %}is-active{% endif %}" href="{{ exercicios_url|default('/exercicios', true) }}">Exercicios</a>
+                <a class="sidebar-link {% if pagina_ativa == 'treinos' %}is-active{% endif %}" href="{{ treinos_url|default('/treinos', true) }}">Treinos</a>
+                <a class="sidebar-link {% if pagina_ativa == 'agenda' %}is-active{% endif %}" href="{{ agenda_url|default('/agenda', true) }}">Agenda</a>
+                <a class="sidebar-link {% if pagina_ativa == 'mensagens' %}is-active{% endif %}" href="{{ mensagens_url|default('/mensagens', true) }}">Mensagens</a>
+                <a class="sidebar-link {% if pagina_ativa == 'anamnese' %}is-active{% endif %}" href="{{ anamnese_url|default('/anamnese', true) }}">Anamnese</a>
+                <a class="sidebar-link {% if pagina_ativa == 'observacoes' %}is-active{% endif %}" href="{{ observacoes_url|default('/observacoes', true) }}">Observacoes</a>
+                <a class="sidebar-link {% if pagina_ativa == 'avaliacoes' %}is-active{% endif %}" href="{{ avaliacoes_url|default('/avaliacoes', true) }}">Avaliacoes</a>
+                <a class="sidebar-link {% if pagina_ativa == 'evolucao' %}is-active{% endif %}" href="{{ evolucao_url|default('/evolucao', true) }}">Evolucao</a>
+                <a class="sidebar-link {% if pagina_ativa == 'financeiro' %}is-active{% endif %}" href="{{ financeiro_url|default('/financeiro', true) }}">Financeiro</a>
+                <a class="sidebar-link {% if pagina_ativa == 'configuracoes' %}is-active{% endif %}" href="{{ configuracoes_url|default('/configuracoes', true) }}">Configuracoes</a>
+                <a class="sidebar-link" href="{{ logout_url|default('/logout', true) }}">Sair</a>
+            </nav>
+        </aside>
+
+        <main class="dashboard-main">
+            <header class="dashboard-header">
+                <div>
+                    <h1 class="dashboard-title">Mensagens</h1>
+                    <p class="dashboard-subtitle">{{ subtitulo_pagina|default('Comunique-se com seus alunos', true) }}</p>
+                </div>
+            </header>
+
+            {% if sucesso %}
+            <section class="student-feedback student-feedback-success" aria-label="Mensagem de sucesso">
+                <p>{{ sucesso }}</p>
+            </section>
+            {% endif %}
+
+            {% if erro %}
+            <section class="student-feedback student-feedback-error" aria-label="Mensagem de erro">
+                <p>{{ erro }}</p>
+            </section>
+            {% endif %}
+
+            <section class="mensagens-layout" aria-label="Central de mensagens">
+                <aside class="mensagens-panel" aria-label="Lista de contatos">
+                    <div class="mensagens-panel-header">
+                        <h2 class="mensagens-panel-title">Contatos</h2>
+                    </div>
+
+                    <div class="mensagens-contact-list">
+                        {% for contato in contatos_lista %}
+                        <a
+                            class="mensagens-contact-card {% if contato.id == conversa_ativa.id %}is-active{% endif %}"
+                            href="{{ contato.url|default((mensagens_url|default('/mensagens', true)) ~ '?contato_id=' ~ contato.id, true) }}"
+                            aria-current="{% if contato.id == conversa_ativa.id %}page{% else %}false{% endif %}"
+                        >
+                            <span class="mensagens-avatar" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <circle cx="12" cy="8" r="3" stroke="currentColor" stroke-width="1.8"/>
+                                    <path d="M6.5 18C7.2 15.6 9.2 14 12 14C14.8 14 16.8 15.6 17.5 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                </svg>
+                            </span>
+
+                            <span>
+                                <strong class="mensagens-contact-name">{{ contato.nome }}</strong>
+                                <span class="mensagens-contact-email">{{ contato.email }}</span>
+                            </span>
+                        </a>
+                        {% else %}
+                        <div class="mensagens-panel-header">
+                            <p class="mensagens-empty-copy">Nenhum contato disponivel para conversa no momento.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </aside>
+
+                <section class="mensagens-panel mensagens-thread" aria-label="Conversa ativa">
+                    {% if conversa_ativa and conversa_ativa.id %}
+                    <header class="mensagens-thread-header">
+                        <span class="mensagens-avatar" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <circle cx="12" cy="8" r="3" stroke="currentColor" stroke-width="1.8"/>
+                                <path d="M6.5 18C7.2 15.6 9.2 14 12 14C14.8 14 16.8 15.6 17.5 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                            </svg>
+                        </span>
+
+                        <div>
+                            <strong class="mensagens-contact-name">{{ conversa_ativa.nome|default('Aluno', true) }}</strong>
+                            <p class="mensagens-header-email">{{ conversa_ativa.email|default('Sem email cadastrado', true) }}</p>
+                        </div>
+                    </header>
+
+                    <div class="mensagens-thread-body">
+                        {% for mensagem in mensagens_lista %}
+                        <article class="mensagens-message {% if mensagem.remetente == 'profissional' %}is-own{% endif %}">
+                            <strong class="mensagens-message-author">
+                                {{ mensagem.autor|default('Mensagem', true) }}
+                            </strong>
+                            <p class="mensagens-message-text">{{ mensagem.texto }}</p>
+                            <p class="mensagens-message-time">{{ mensagem.horario|default('', true) }}</p>
+                        </article>
+                        {% else %}
+                        <div class="mensagens-thread-empty">
+                            <div class="mensagens-empty-state">
+                                <h2>Sem mensagens</h2>
+                                <p class="mensagens-empty-copy">Esta conversa ainda nao possui historico. Envie a primeira mensagem para iniciar o contato.</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <form class="mensagens-thread-form" action="{{ enviar_mensagem_url|default('/mensagens/enviar', true) }}" method="post">
+                        <input type="hidden" name="contato_id" value="{{ conversa_ativa.id }}">
+                        <input type="hidden" name="profissional_id" value="{{ profissional_id|default('', true) }}">
+                        <input type="hidden" name="canal" value="{{ canal_mensagem|default('painel', true) }}">
+
+                        <div class="mensagens-form-row">
+                            <textarea
+                                class="mensagens-input"
+                                id="mensagem_texto"
+                                name="mensagem"
+                                rows="1"
+                                placeholder="Digite sua mensagem..."
+                                required
+                            ></textarea>
+
+                            <button class="mensagens-send-button" type="submit" aria-label="Enviar mensagem">
+                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path d="M21 3L10 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                    <path d="M21 3L14 21L10 14L3 10L21 3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </form>
+                    {% else %}
+                    <div class="mensagens-thread-body mensagens-thread-empty">
+                        <div class="mensagens-empty-state">
+                            <h2>Selecione um contato</h2>
+                            <p class="mensagens-empty-copy">Escolha um aluno na lista ao lado para visualizar o historico e enviar novas mensagens.</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </section>
+            </section>
+
+            <section aria-label="Dados para integracao" hidden>
+                <form id="mensagens-contexto">
+                    <input type="hidden" name="profissional_id" value="{{ profissional_id|default('', true) }}">
+                    <input type="hidden" name="aluno_id_ativo" value="{{ conversa_ativa.id|default('', true) }}">
+                    <input type="hidden" name="ultima_mensagem_id" value="{{ ultima_mensagem_id|default('', true) }}">
+                    <input type="hidden" name="polling_url" value="{{ polling_url|default('/mensagens/atualizar', true) }}">
+                    <input type="hidden" name="upload_url" value="{{ upload_url|default('/mensagens/upload', true) }}">
+                </form>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

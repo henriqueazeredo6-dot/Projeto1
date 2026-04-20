@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title|default('CONFIE - Exercicios', true) }}</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    {% set pagina_ativa = pagina_ativa|default('exercicios', true) %}
+    {% set exercicios_lista = exercicios|default([], true) %}
+
+    <div class="dashboard-layout">
+        <aside class="dashboard-sidebar">
+            <div class="sidebar-brand">
+                <a class="sidebar-logo" href="{{ dashboard_url|default('/dashboard', true) }}">
+                    <span>CONFIE PERSONAL</span>
+                </a>
+                <p class="sidebar-user">{{ profissional_nome|default('Personal Trainer', true) }}</p>
+            </div>
+
+            <nav class="sidebar-nav" aria-label="Menu principal">
+                <a class="sidebar-link {% if pagina_ativa == 'dashboard' %}is-active{% endif %}" href="{{ dashboard_url|default('/dashboard', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M4 10.5L12 4L20 10.5V19A1 1 0 0 1 19 20H5A1 1 0 0 1 4 19V10.5Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                        <path d="M9 20V13H15V20" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Dashboard</span>
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'alunos' %}is-active{% endif %}" href="{{ alunos_url|default('/alunos', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <circle cx="9" cy="8" r="3" stroke="currentColor" stroke-width="1.9"/>
+                        <path d="M3.5 19C4.2 16.6 6.3 15 9 15C11.7 15 13.8 16.6 14.5 19" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <circle cx="17" cy="9" r="2" stroke="currentColor" stroke-width="1.9"/>
+                        <path d="M17 14V18" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M15 16H19" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                    </svg>
+                    <span>Alunos</span>
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'exercicios' %}is-active{% endif %}" href="{{ exercicios_url|default('/exercicios', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M7 8L9 6L12 9L10 11L7 8Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                        <path d="M14 15L16 13L19 16L17 18L14 15Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                        <path d="M10 11L14 15" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M5 10L10 5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M14 19L19 14" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                    </svg>
+                    <span>Exercicios</span>
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'treinos' %}is-active{% endif %}" href="{{ treinos_url|default('/treinos', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M3 13H7L10 6L14 19L17 13H21" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Treinos</span>
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'agenda' %}is-active{% endif %}" href="{{ agenda_url|default('/agenda', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <rect x="4" y="5" width="16" height="15" rx="2" stroke="currentColor" stroke-width="1.9"/>
+                        <path d="M8 3V7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M16 3V7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M4 10H20" stroke="currentColor" stroke-width="1.9"/>
+                    </svg>
+                    <span>Agenda</span>
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'mensagens' %}is-active{% endif %}" href="{{ mensagens_url|default('/mensagens', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M20 11.5C20 16.2 16 20 11 20C9.7 20 8.5 19.8 7.4 19.3L4 20L4.8 16.9C4.3 15.9 4 14.7 4 13.5C4 8.8 8 5 13 5C17 5 20 7.9 20 11.5Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Mensagens</span>
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'anamnese' %}is-active{% endif %}" href="{{ anamnese_url|default('/anamnese', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M5 19V11" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M10 19V7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M15 19V13" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M20 19V4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                    </svg>
+                    <span>Anamnese</span>
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'observacoes' %}is-active{% endif %}" href="{{ observacoes_url|default('/observacoes', true) }}">
+                    <span>Observacoes</span>
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'avaliacoes' %}is-active{% endif %}" href="{{ avaliacoes_url|default('/avaliacoes', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M6 4H14L18 8V20H6V4Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                        <path d="M14 4V8H18" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                        <path d="M9 12H15" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M9 16H13" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                    </svg>
+                    <span>Avaliacoes</span>
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'evolucao' %}is-active{% endif %}" href="{{ evolucao_url|default('/evolucao', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M4 16L9 11L13 15L20 8" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M20 12V8H16" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Evolucao</span>
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'financeiro' %}is-active{% endif %}" href="{{ financeiro_url|default('/financeiro', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M12 3V21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M15 7.2C15 6 13.7 5.2 12 5.2C10.3 5.2 9 6 9 7.2C9 8.4 10.3 9.2 12 9.2C13.7 9.2 15 10 15 11.2C15 12.4 13.7 13.2 12 13.2C10.3 13.2 9 14 9 15.2C9 16.4 10.3 17.2 12 17.2C13.7 17.2 15 16.4 15 15.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    </svg>
+                    <span>Financeiro</span>
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'configuracoes' %}is-active{% endif %}" href="{{ configuracoes_url|default('/configuracoes', true) }}">
+                    <span>Configuracoes</span>
+                </a>
+
+                <a class="sidebar-link" href="{{ logout_url|default('/logout', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M15 17L20 12L15 7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M20 12H9" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M9 21H5A2 2 0 0 1 3 19V5A2 2 0 0 1 5 3H9" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                    </svg>
+                    <span>Sair</span>
+                </a>
+            </nav>
+        </aside>
+
+        <main class="dashboard-main">
+            <header class="dashboard-header">
+                <div>
+                    <h1 class="dashboard-title">Exercicios</h1>
+                    <p class="dashboard-subtitle">{{ total_exercicios|default(exercicios_lista|length, true) }} exercicios no banco</p>
+                </div>
+
+                <a class="button dashboard-add-button" href="#novo-exercicio-modal">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M12 5V19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    Adicionar exercicio
+                </a>
+            </header>
+
+            {% if sucesso %}
+            <section class="student-feedback student-feedback-success" aria-label="Mensagem de sucesso">
+                <p>{{ sucesso }}</p>
+            </section>
+            {% endif %}
+
+            {% if erro %}
+            <section class="student-feedback student-feedback-error" aria-label="Mensagem de erro">
+                <p>{{ erro }}</p>
+            </section>
+            {% endif %}
+
+            <section class="exercicios-toolbar" aria-label="Busca de exercicios">
+                <form class="exercicios-search-form" action="{{ exercicios_url|default('/exercicios', true) }}" method="get">
+                    <div class="exercicios-search-wrap">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.8"/>
+                            <path d="M16 16L20 20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        </svg>
+                        <input type="search" name="busca" value="{{ busca|default('', true) }}" placeholder="Buscar exercicios...">
+                    </div>
+                </form>
+            </section>
+
+            <section class="exercicios-grid" aria-label="Lista de exercicios">
+                {% for exercicio in exercicios_lista %}
+                <article class="exercicios-card">
+                    <div class="exercicios-card-media">
+                        {% if exercicio.imagem_url %}
+                        <img src="{{ exercicio.imagem_url }}" alt="{{ exercicio.nome }}">
+                        {% else %}
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M7 8L9 6L12 9L10 11L7 8Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                            <path d="M14 15L16 13L19 16L17 18L14 15Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                            <path d="M10 11L14 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        </svg>
+                        {% endif %}
+                    </div>
+
+                    <div class="exercicios-card-body">
+                        <h2 class="exercicios-card-title">{{ exercicio.nome }}</h2>
+                        <p class="exercicios-card-group">{{ exercicio.grupo_muscular|default('Grupo nao informado', true) }}</p>
+
+                        <div class="exercicios-card-meta">
+                            <span>{{ exercicio.dificuldade|default('Intermediario', true) }}</span>
+                            {% if exercicio.video_url %}
+                            <span>Video</span>
+                            {% endif %}
+                        </div>
+
+                        {% if exercicio.descricao %}
+                        <p class="exercicios-card-description">{{ exercicio.descricao }}</p>
+                        {% endif %}
+
+                        <div class="exercicios-card-actions">
+                            <a class="exercicios-action" href="{{ editar_exercicio_url_base|default('/exercicios/editar', true) }}/{{ exercicio.id }}#novo-exercicio-modal">
+                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path d="M4 20H8L18 10L14 6L4 16V20Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                                    <path d="M12.5 7.5L16.5 11.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                </svg>
+                                Editar
+                            </a>
+
+                            <form action="{{ excluir_exercicio_url_base|default('/exercicios/excluir', true) }}/{{ exercicio.id }}" method="post">
+                                <button class="exercicios-action exercicios-action-danger" type="submit" aria-label="Excluir exercicio">
+                                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                        <path d="M5 7H19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                        <path d="M9 7V5H15V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                        <path d="M8 7V19H16V7" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </article>
+                {% else %}
+                <article class="exercicios-empty-panel">
+                    <div>
+                        <h2>Nenhum exercicio encontrado</h2>
+                        <p>Cadastre o primeiro exercicio ou ajuste a busca para encontrar um item do banco.</p>
+                    </div>
+                </article>
+                {% endfor %}
+            </section>
+
+            <section aria-label="Dados para integracao" hidden>
+                <form id="exercicios-contexto">
+                    <input type="hidden" name="profissional_id" value="{{ profissional_id|default('', true) }}">
+                    <input type="hidden" name="total_exercicios" value="{{ total_exercicios|default(exercicios_lista|length, true) }}">
+                    <input type="hidden" name="buscar_exercicios_url" value="{{ exercicios_url|default('/exercicios', true) }}">
+                    <input type="hidden" name="salvar_exercicio_url" value="{{ salvar_exercicio_url|default('/exercicios/salvar', true) }}">
+                    <input type="hidden" name="upload_imagem_url" value="{{ upload_imagem_url|default('/exercicios/upload-imagem', true) }}">
+                </form>
+            </section>
+        </main>
+    </div>
+
+    <section class="student-modal-wrap" id="novo-exercicio-modal" aria-label="Cadastro de exercicio">
+        <a class="student-modal-overlay" href="{{ exercicios_url|default('/exercicios', true) }}" aria-label="Fechar modal"></a>
+        <div class="student-modal exercicios-modal">
+            <div class="student-modal-header">
+                <h2>{{ modal_titulo|default('Novo exercicio', true) }}</h2>
+                <a class="student-modal-close" href="{{ exercicios_url|default('/exercicios', true) }}" aria-label="Fechar modal">x</a>
+            </div>
+
+            <form class="student-form" action="{{ salvar_exercicio_url|default('/exercicios/salvar', true) }}" method="post">
+                <input type="hidden" name="exercicio_id" value="{{ exercicio_edicao.id|default('', true) }}">
+                <input type="hidden" name="profissional_id" value="{{ profissional_id|default('', true) }}">
+
+                <div class="field">
+                    <label for="nome">Nome do exercicio</label>
+                    <input id="nome" name="nome" type="text" placeholder="Ex: Supino reto" value="{{ exercicio_edicao.nome|default('', true) }}" required>
+                </div>
+
+                <div class="exercicios-modal-row">
+                    <div class="field">
+                        <label for="grupo_muscular">Grupo muscular</label>
+                        <select id="grupo_muscular" name="grupo_muscular" required>
+                            <option value="">Selecione</option>
+                            {% for grupo in grupos_musculares|default(['Peito', 'Costas', 'Pernas', 'Ombros', 'Bracos', 'Core'], true) %}
+                            <option value="{{ grupo }}" {% if exercicio_edicao.grupo_muscular|default('', true) == grupo %}selected{% endif %}>{{ grupo }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="dificuldade">Dificuldade</label>
+                        <select id="dificuldade" name="dificuldade" required>
+                            {% for nivel in niveis_dificuldade|default(['Iniciante', 'Intermediario', 'Avancado'], true) %}
+                            <option value="{{ nivel }}" {% if exercicio_edicao.dificuldade|default('Intermediario', true) == nivel %}selected{% endif %}>{{ nivel }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="descricao">Descricao</label>
+                    <textarea id="descricao" name="descricao" rows="4" placeholder="Instrucoes de execucao...">{{ exercicio_edicao.descricao|default('', true) }}</textarea>
+                </div>
+
+                <div class="exercicios-modal-row">
+                    <div class="field">
+                        <label for="video_url">URL do video</label>
+                        <input id="video_url" name="video_url" type="url" placeholder="https://youtube.com/..." value="{{ exercicio_edicao.video_url|default('', true) }}">
+                    </div>
+
+                    <div class="field">
+                        <label for="imagem_url">URL da imagem</label>
+                        <input id="imagem_url" name="imagem_url" type="url" placeholder="https://..." value="{{ exercicio_edicao.imagem_url|default('', true) }}">
+                    </div>
+                </div>
+
+                <button class="button-block" type="submit">Adicionar exercicio</button>
+            </form>
+        </div>
+    </section>
+</body>
+</html>
