@@ -1,0 +1,63 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CONFIE - Entrar</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <main class="auth-layout">
+        <section class="auth-brand">
+            <div class="brand-block">
+                <h1 class="brand-title">CONFIE Personal</h1>
+                <p class="brand-copy">Gestao Profissional de Personal Training</p>
+            </div>
+        </section>
+
+        <section class="auth-panel">
+            <div class="auth-panel-inner">
+                <h2>Entrar</h2>
+                <p class="auth-subtitle">Acesse sua conta</p>
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div style="margin-bottom: 1rem;">
+                    {% for category, message in messages %}
+                    <p style="padding: .65rem .8rem; border-radius: 8px; margin: 0 0 .5rem 0; {% if category == 'error' %}background:#3a1418;color:#ffd5d5;border:1px solid #7d2a33;{% else %}background:#103022;color:#cbf5df;border:1px solid #1a6b45;{% endif %}">
+                        {{ message }}
+                    </p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% endwith %}
+
+                <form method="post" action="{{ url_for('login') }}">
+                    <div class="field">
+                        <label for="email">Email</label>
+                        <input id="email" name="email" type="email" placeholder="seu@email.com" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="senha">Senha</label>
+                        <input id="senha" name="senha" type="password" placeholder="********" required>
+                    </div>
+
+                    <button class="button-block" type="submit">Entrar</button>
+                </form>
+
+                <form method="post" action="{{ url_for('reenviar_confirmacao') }}" style="margin-top:.75rem;">
+                    <div class="field">
+                        <label for="email_confirmacao">Nao recebeu confirmacao?</label>
+                        <input id="email_confirmacao" name="email" type="email" placeholder="Digite seu email e clique abaixo" required>
+                    </div>
+                    <button class="button-block" type="submit">Reenviar confirmacao</button>
+                </form>
+
+                <p class="link-row">Nao tem uma conta? <a href="{{ url_for('cadastro') }}">Cadastre-se</a></p>
+                <a class="back-link" href="{{ url_for('index') }}">Voltar para home</a>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

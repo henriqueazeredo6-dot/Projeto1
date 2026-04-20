@@ -1,0 +1,735 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CONFIE - Treinos</title>
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        .dashboard-sidebar {
+            background: rgba(4, 5, 8, 0.96);
+        }
+
+        .sidebar-brand {
+            padding: 0.7rem 0.55rem 1.1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .sidebar-logo {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: flex-start;
+            line-height: 0.9;
+        }
+
+        .sidebar-logo span {
+            display: block;
+            font-family: var(--title-font);
+            font-size: 1.95rem;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.01em;
+        }
+
+        .sidebar-user {
+            margin-top: 0.7rem;
+            color: #737884;
+            font-size: 0.78rem;
+        }
+
+        .sidebar-nav {
+            gap: 0.15rem;
+            padding: 1rem 0.2rem;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 0.95rem;
+            min-height: 2.7rem;
+            padding: 0 0.75rem;
+        }
+
+        .sidebar-link svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+
+        .dashboard-main {
+            padding: 1.5rem 1.9rem 2rem;
+        }
+
+        .dashboard-add-button {
+            min-width: 180px;
+        }
+
+        .dashboard-add-button svg {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+        }
+
+        .treinos-shell {
+            margin-top: 1.8rem;
+        }
+
+        .treinos-content {
+            display: grid;
+            grid-template-columns: minmax(280px, 530px) minmax(0, 1fr);
+            gap: 1rem;
+            align-items: start;
+        }
+
+        .treinos-column-title,
+        .treinos-panel-heading {
+            margin-bottom: 0.85rem;
+            font-family: var(--title-font);
+            font-size: 1.8rem;
+            text-transform: uppercase;
+            line-height: 1;
+        }
+
+        .treinos-panel-heading {
+            font-size: 1.55rem;
+        }
+
+        .treinos-list {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: #111116;
+        }
+
+        .treinos-list-item {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            min-height: 2.75rem;
+            padding: 0 0.9rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+            transition: background-color 0.2s ease;
+        }
+
+        .treinos-list-item:last-child {
+            border-bottom: 0;
+        }
+
+        .treinos-list-item:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .treinos-list-item.is-active {
+            background: var(--primary);
+            color: #ffffff;
+        }
+
+        .treinos-list-item svg {
+            width: 16px;
+            height: 16px;
+            color: currentColor;
+            flex-shrink: 0;
+        }
+
+        .treinos-list-item span {
+            font-size: 0.98rem;
+            color: currentColor;
+        }
+
+        .treinos-panel {
+            min-height: 148px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: #111116;
+            padding: 1.1rem;
+        }
+
+        .treinos-workout-block {
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.01);
+            padding: 0.95rem;
+        }
+
+        .treinos-workout-block + .treinos-workout-block {
+            margin-top: 0.75rem;
+        }
+
+        .treinos-workout-title {
+            margin-bottom: 0.65rem;
+            font-family: var(--title-font);
+            font-size: 1.15rem;
+            text-transform: uppercase;
+        }
+
+        .treinos-workout-line {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            min-height: 2.05rem;
+            padding: 0 0.6rem;
+            background: rgba(0, 0, 0, 0.3);
+            color: #d5dae3;
+            font-size: 0.93rem;
+        }
+
+        .treinos-workout-line + .treinos-workout-line {
+            margin-top: 0.5rem;
+        }
+
+        .treinos-workout-line strong {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .treinos-workout-line span:last-child {
+            color: #a8aebb;
+            white-space: nowrap;
+            font-size: 0.9rem;
+        }
+
+        .treinos-workout-actions {
+            margin-top: 0.75rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 0.55rem;
+        }
+
+        .treinos-workout-action {
+            min-height: 2.15rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #d0d5de;
+            font-size: 0.84rem;
+            text-transform: uppercase;
+            transition: background-color 0.2s ease;
+        }
+
+        .treinos-workout-action:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .treinos-workout-action-danger {
+            border-color: rgba(226, 90, 90, 0.38);
+            color: #f2a6a6;
+        }
+
+        .treinos-workout-action-danger:hover {
+            background: rgba(226, 90, 90, 0.14);
+        }
+
+        .treinos-empty-state {
+            min-height: 148px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: var(--muted);
+        }
+
+        .treinos-empty-state svg {
+            width: 42px;
+            height: 42px;
+            color: #4e525d;
+        }
+
+        .treinos-empty-state h3 {
+            margin-top: 0.8rem;
+            font-family: var(--title-font);
+            font-size: 1.3rem;
+            text-transform: uppercase;
+            color: #b8bcc6;
+            line-height: 1;
+        }
+
+        .treinos-empty-state p {
+            margin-top: 0.55rem;
+            font-size: 0.95rem;
+            color: #8f95a1;
+        }
+
+        .treinos-modal-wrap {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            z-index: 40;
+        }
+
+        .treinos-modal-wrap:target {
+            display: flex;
+        }
+
+        .treinos-modal-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.68);
+            -webkit-backdrop-filter: blur(1.5px);
+            backdrop-filter: blur(1.5px);
+        }
+
+        .treinos-modal {
+            position: relative;
+            z-index: 1;
+            width: min(100%, 670px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: #17181f;
+            padding: 1.1rem;
+        }
+
+        .treinos-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .treinos-modal-header h2 {
+            font-family: var(--title-font);
+            font-size: 1.55rem;
+            text-transform: uppercase;
+        }
+
+        .treinos-modal-close {
+            color: #8d93a0;
+            font-size: 1.1rem;
+            line-height: 1;
+        }
+
+        .treinos-modal-form {
+            margin-top: 0.9rem;
+        }
+
+        .treinos-modal-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.8rem;
+        }
+
+        .treinos-modal .field {
+            margin-top: 0.9rem;
+        }
+
+        .treinos-modal textarea {
+            width: 100%;
+            min-height: 74px;
+            resize: vertical;
+            padding: 0.7rem 0.9rem;
+            border: 1px solid var(--line);
+            background: transparent;
+            color: var(--text);
+            font: inherit;
+            outline: none;
+        }
+
+        .treinos-modal textarea:focus {
+            border-color: var(--line-strong);
+        }
+
+        .treinos-confirm-copy {
+            margin-top: 0.95rem;
+            color: #b9bfca;
+            font-size: 0.95rem;
+            line-height: 1.45;
+        }
+
+        .treinos-confirm-actions {
+            margin-top: 1rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.65rem;
+        }
+
+        .treinos-confirm-actions .button,
+        .treinos-modal .button-block {
+            min-height: 2.95rem;
+        }
+
+        .button-danger {
+            background: #ba3e31;
+            border-color: #ba3e31;
+        }
+
+        .button-danger:hover {
+            background: #c74b3d;
+            border-color: #c74b3d;
+        }
+
+        @media (max-width: 1100px) {
+            .treinos-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 760px) {
+            .treinos-modal-row,
+            .treinos-workout-actions,
+            .treinos-confirm-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .treinos-panel-heading,
+            .treinos-column-title {
+                font-size: 1.35rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <aside class="dashboard-sidebar">
+            <div class="sidebar-brand">
+                <a class="sidebar-logo" href="{{ dashboard_url|default('/dashboard', true) }}">
+                        <span>CONFIE Personal</span>
+                </a>
+                <p class="sidebar-user">{{ profissional_nome|default('', true) }}</p>
+            </div>
+
+            <nav class="sidebar-nav" aria-label="Menu principal">
+                <a class="sidebar-link {% if pagina_ativa == 'dashboard' %}is-active{% endif %}" href="{{ dashboard_url|default('/dashboard', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M4 10.5L12 4L20 10.5V19A1 1 0 0 1 19 20H5A1 1 0 0 1 4 19V10.5Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                        <path d="M9 20V13H15V20" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Dashboard</span>
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'alunos' %}is-active{% endif %}" href="{{ alunos_url|default('/alunos', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <circle cx="9" cy="8" r="3" stroke="currentColor" stroke-width="1.9"/>
+                        <path d="M3.5 19C4.2 16.6 6.3 15 9 15C11.7 15 13.8 16.6 14.5 19" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <circle cx="17" cy="9" r="2" stroke="currentColor" stroke-width="1.9"/>
+                    </svg>
+                    <span>Alunos</span>
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'exercicios' %}is-active{% endif %}" href="{{ exercicios_url|default('/exercicios', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M7 8L9 6L12 9L10 11L7 8Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                        <path d="M14 15L16 13L19 16L17 18L14 15Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                        <path d="M10 11L14 15" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M5 10L10 5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M14 19L19 14" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                    </svg>
+                    <span>Exercícios</span>
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'treinos' %}is-active{% endif %}" href="{{ treinos_url|default('/treinos', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M3 13H7L10 6L14 19L17 13H21" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Treinos</span>
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'agenda' %}is-active{% endif %}" href="{{ agenda_url|default('/agenda', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <rect x="4" y="5" width="16" height="15" rx="2" stroke="currentColor" stroke-width="1.9"/>
+                        <path d="M8 3V7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M16 3V7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M4 10H20" stroke="currentColor" stroke-width="1.9"/>
+                    </svg>
+                    <span>Agenda</span>
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'mensagens' %}is-active{% endif %}" href="{{ mensagens_url|default('/mensagens', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M20 11.5C20 16.2 16 20 11 20C9.7 20 8.5 19.8 7.4 19.3L4 20L4.8 16.9C4.3 15.9 4 14.7 4 13.5C4 8.8 8 5 13 5C17 5 20 7.9 20 11.5Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Mensagens</span>
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'anamnese' %}is-active{% endif %}" href="{{ anamnese_url|default('/anamnese', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M5 19V11" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M10 19V7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M15 19V13" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M20 19V4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                    </svg>
+                    <span>Anamnese</span>
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'avaliacoes' %}is-active{% endif %}" href="{{ avaliacoes_url|default('/avaliacoes', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M6 4H14L18 8V20H6V4Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                        <path d="M14 4V8H18" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                        <path d="M9 12H15" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M9 16H13" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                    </svg>
+                    <span>Avaliações</span>
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'evolucao' %}is-active{% endif %}" href="{{ evolucao_url|default('/evolucao', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M4 16L9 11L13 15L20 8" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M20 12V8H16" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Evolução</span>
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'financeiro' %}is-active{% endif %}" href="{{ financeiro_url|default('/financeiro', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M12 3V21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M15 7.2C15 6 13.7 5.2 12 5.2C10.3 5.2 9 6 9 7.2C9 8.4 10.3 9.2 12 9.2C13.7 9.2 15 10 15 11.2C15 12.4 13.7 13.2 12 13.2C10.3 13.2 9 14 9 15.2C9 16.4 10.3 17.2 12 17.2C13.7 17.2 15 16.4 15 15.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    </svg>
+                    <span>Financeiro</span>
+                </a>
+
+                <a class="sidebar-link" href="{{ logout_url|default('/logout', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M15 17L20 12L15 7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M20 12H9" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M9 21H5A2 2 0 0 1 3 19V5A2 2 0 0 1 5 3H9" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                    </svg>
+                    <span>Sair</span>
+                </a>
+            </nav>
+        </aside>
+
+        <main class="dashboard-main">
+            <header class="dashboard-header">
+                <div>
+                    <h1 class="dashboard-title">Treinos</h1>
+                    <p class="dashboard-subtitle">Gerencie planilhas de treino dos alunos</p>
+                </div>
+
+                <a class="button dashboard-add-button" href="#novo-treino-modal">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M12 5V19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    Criar treino
+                </a>
+            </header>
+
+            {% if sucesso %}
+            <section class="student-feedback student-feedback-success" aria-label="Mensagem de sucesso">
+                <p>{{ sucesso }}</p>
+            </section>
+            {% endif %}
+
+            {% if erro %}
+            <section class="student-feedback student-feedback-error" aria-label="Mensagem de erro">
+                <p>{{ erro }}</p>
+            </section>
+            {% endif %}
+
+            <section class="treinos-shell" aria-label="Treinos por aluno">
+                <div class="treinos-content">
+                    <section>
+                        <h2 class="treinos-column-title">Alunos</h2>
+
+                        <div class="treinos-list">
+                            {% if alunos %}
+                                {% for aluno in alunos %}
+                                <a class="treinos-list-item {% if aluno_selecionado and aluno.id == aluno_selecionado.id %}is-active{% endif %}" href="{{ url_treinos_aluno_base|default('/treinos/aluno', true) }}/{{ aluno.id }}">
+                                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                        <circle cx="9" cy="8" r="3" stroke="currentColor" stroke-width="1.9"/>
+                                        <path d="M3.5 19C4.2 16.6 6.3 15 9 15" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                                    </svg>
+                                    <span>{{ aluno.nome }}</span>
+                                </a>
+                                {% endfor %}
+                            {% else %}
+                                <div class="treinos-list-item">
+                                    <span>Nenhum aluno disponível</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </section>
+
+                    <section>
+                        {% if aluno_selecionado %}
+                        <h2 class="treinos-panel-heading">Treinos de {{ aluno_selecionado.nome }}</h2>
+                        {% else %}
+                        <h2 class="treinos-panel-heading">Treinos</h2>
+                        {% endif %}
+
+                        <div class="treinos-panel">
+                            {% if aluno_selecionado %}
+                                {% if treinos %}
+                                    {% for treino in treinos %}
+                                    <article class="treinos-workout-block">
+                                        <h3 class="treinos-workout-title">{{ treino.nome|default('Treino', true) }}</h3>
+
+                                        {% if treino.exercicios and treino.exercicios|length > 0 %}
+                                            {% for exercicio in treino.exercicios %}
+                                            <div class="treinos-workout-line">
+                                                <strong>{{ exercicio.nome|default('Exercício', true) }}</strong>
+                                                <span>{{ exercicio.prescricao|default('3x12 - 60s descanso', true) }}</span>
+                                            </div>
+                                            {% endfor %}
+                                        {% else %}
+                                            <div class="treinos-workout-line">
+                                                <strong>{{ treino.exercicio_nome|default('Sem exercícios cadastrados', true) }}</strong>
+                                                <span>{{ treino.prescricao|default('--', true) }}</span>
+                                            </div>
+                                        {% endif %}
+
+                                        <div class="treinos-workout-actions">
+                                            {% if treino.id %}
+                                                <a class="treinos-workout-action" href="{{ visualizar_treino_url_base|default('/treinos', true) }}/{{ treino.id }}">Ver treino</a>
+                                                <a class="treinos-workout-action" href="{{ treinos_url|default('/treinos', true) }}?aluno_id={{ aluno_selecionado.id if aluno_selecionado else '' }}&editar_treino_id={{ treino.id }}#editar-treino-modal">Editar treino</a>
+                                                <a class="treinos-workout-action treinos-workout-action-danger" href="{{ treinos_url|default('/treinos', true) }}?aluno_id={{ aluno_selecionado.id if aluno_selecionado else '' }}&excluir_treino_id={{ treino.id }}#excluir-treino-modal">Excluir treino</a>
+                                            {% else %}
+                                                <span class="treinos-workout-action" aria-disabled="true">Ver treino</span>
+                                                <span class="treinos-workout-action" aria-disabled="true">Editar treino</span>
+                                                <span class="treinos-workout-action treinos-workout-action-danger" aria-disabled="true">Excluir treino</span>
+                                            {% endif %}
+                                        </div>
+                                    </article>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="treinos-empty-state">
+                                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                            <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
+                                            <path d="M5 20V18C5 15.8 6.8 14 9 14H15C17.2 14 19 15.8 19 18V20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        </svg>
+                                        <h3>Nenhum treino</h3>
+                                        <p>Este aluno ainda não possui treinos cadastrados.</p>
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <div class="treinos-empty-state">
+                                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                        <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
+                                        <path d="M5 20V18C5 15.8 6.8 14 9 14H15C17.2 14 19 15.8 19 18V20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                    <h3>Selecione um aluno</h3>
+                                    <p>Escolha um aluno para ver seus treinos</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </section>
+                </div>
+            </section>
+
+            <section aria-label="Dados para integração" hidden>
+                <form id="treinos-filtros">
+                    <input type="hidden" name="profissional_id" value="{{ profissional_id|default('', true) }}">
+                    <input type="hidden" name="empresa_id" value="{{ empresa_id|default('', true) }}">
+                    <input type="hidden" name="aluno_id" value="{{ aluno_selecionado.id if aluno_selecionado else '' }}">
+                </form>
+            </section>
+        </main>
+    </div>
+
+    <section class="treinos-modal-wrap" id="novo-treino-modal" aria-label="Modal novo treino">
+        <a class="treinos-modal-overlay" href="#" aria-label="Fechar modal"></a>
+
+        <article class="treinos-modal">
+            <header class="treinos-modal-header">
+                <h2>Novo treino</h2>
+                <a class="treinos-modal-close" href="#" aria-label="Fechar modal">&times;</a>
+            </header>
+
+            <form class="treinos-modal-form" action="{{ criar_treino_url|default('/treinos/novo', true) }}" method="post">
+                <div class="treinos-modal-row">
+                    <div class="field">
+                        <label for="novo_treino_nome">Nome do treino</label>
+                        <input id="novo_treino_nome" name="nome" type="text" placeholder="Ex: Treino A - Peito e Tríceps" value="{{ form.nome if form is defined else '' }}" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="novo_treino_aluno">Aluno</label>
+                        <select id="novo_treino_aluno" name="aluno_id" required>
+                            <option value="">Selecione um aluno</option>
+                            {% for aluno in alunos if alunos is defined %}
+                            <option value="{{ aluno.id }}" {% if (form is defined and form.aluno_id == aluno.id) or (aluno_selecionado and aluno.id == aluno_selecionado.id) %}selected{% endif %}>{{ aluno.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="novo_treino_exercicios">Adicionar exercícios</label>
+                    <input id="novo_treino_exercicios" name="exercicios_raw" type="text" placeholder="Ex: supino reto | 3x12 - 60s descanso" value="{{ form.exercicios_raw if form is defined else '' }}">
+                </div>
+
+                <div class="field">
+                    <label for="novo_treino_observacoes">Observações</label>
+                    <textarea id="novo_treino_observacoes" name="observacoes" placeholder="Observações sobre o treino...">{{ form.observacoes if form is defined else '' }}</textarea>
+                </div>
+
+                <button class="button button-block" type="submit">Criar treino</button>
+            </form>
+        </article>
+    </section>
+
+    {% if treino_edicao is defined and treino_edicao %}
+    <section class="treinos-modal-wrap" id="editar-treino-modal" aria-label="Modal editar treino">
+        <a class="treinos-modal-overlay" href="#" aria-label="Fechar modal"></a>
+
+        <article class="treinos-modal">
+            <header class="treinos-modal-header">
+                <h2>Editar treino</h2>
+                <a class="treinos-modal-close" href="#" aria-label="Fechar modal">&times;</a>
+            </header>
+
+            <form class="treinos-modal-form" action="{{ editar_treino_url_base|default('/treinos/editar', true) }}/{{ treino_edicao.id }}" method="post">
+                <input type="hidden" name="treino_id" value="{{ treino_edicao.id }}">
+
+                <div class="treinos-modal-row">
+                    <div class="field">
+                        <label for="editar_treino_nome">Nome do treino</label>
+                        <input id="editar_treino_nome" name="nome" type="text" value="{{ treino_edicao.nome|default('', true) }}" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="editar_treino_aluno">Aluno</label>
+                        <select id="editar_treino_aluno" name="aluno_id" required>
+                            <option value="">Selecione um aluno</option>
+                            {% for aluno in alunos if alunos is defined %}
+                            <option value="{{ aluno.id }}" {% if (treino_edicao.aluno_id is defined and treino_edicao.aluno_id|string == aluno.id|string) or (aluno_selecionado and aluno_selecionado.id|string == aluno.id|string) %}selected{% endif %}>{{ aluno.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="editar_treino_exercicios">Adicionar exercícios</label>
+                    <input id="editar_treino_exercicios" name="exercicios_raw" type="text" value="{{ treino_edicao.exercicios_raw|default('', true) }}" placeholder="Ex: supino reto | 3x12 - 60s descanso">
+                </div>
+
+                <div class="field">
+                    <label for="editar_treino_observacoes">Observações</label>
+                    <textarea id="editar_treino_observacoes" name="observacoes" placeholder="Observações sobre o treino...">{{ treino_edicao.observacoes|default('', true) }}</textarea>
+                </div>
+
+                <button class="button button-block" type="submit">Salvar alterações</button>
+            </form>
+        </article>
+    </section>
+    {% endif %}
+
+    {% if treino_exclusao is defined and treino_exclusao %}
+    <section class="treinos-modal-wrap" id="excluir-treino-modal" aria-label="Modal excluir treino">
+        <a class="treinos-modal-overlay" href="#" aria-label="Fechar modal"></a>
+
+        <article class="treinos-modal">
+            <header class="treinos-modal-header">
+                <h2>Excluir treino</h2>
+                <a class="treinos-modal-close" href="#" aria-label="Fechar modal">&times;</a>
+            </header>
+
+            <form class="treinos-modal-form" action="{{ excluir_treino_url_base|default('/treinos/excluir', true) }}/{{ treino_exclusao.id }}" method="post">
+                <input type="hidden" name="treino_id" value="{{ treino_exclusao.id }}">
+                <input type="hidden" name="aluno_id" value="{{ aluno_selecionado.id if aluno_selecionado else '' }}">
+
+                <p class="treinos-confirm-copy">
+                    Você tem certeza de que deseja excluir o treino <strong>{{ treino_exclusao.nome|default('sem nome', true) }}</strong>? Esta ação não pode ser desfeita.
+                </p>
+
+                <div class="treinos-confirm-actions">
+                    <a class="button button-secondary" href="#">Cancelar</a>
+                    <button class="button button-danger" type="submit">Excluir treino</button>
+                </div>
+            </form>
+        </article>
+    </section>
+    {% endif %}
+</body>
+</html>
