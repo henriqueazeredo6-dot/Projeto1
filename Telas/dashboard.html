@@ -122,7 +122,7 @@
                                 <path d="M3 13H7L10 6L14 19L17 13H21" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
                         </div>
-                        <p class="dashboard-stat-label">Atividade</p>
+                        <p class="dashboard-stat-label">Check-ins</p>
                     </div>
                     <strong class="dashboard-stat-value">
                         {{ total_checkins_resumo }}
@@ -130,7 +130,7 @@
                         <span class="dashboard-stat-growth">{{ variacao_checkins }}</span>
                         {% endif %}
                     </strong>
-                    <p class="dashboard-stat-note">{{ checkins_descricao|default('Check-ins recentes', true) }}</p>
+                    <p class="dashboard-stat-note">{{ checkins_descricao|default('Check-ins registrados', true) }}</p>
                 </article>
             </section>
 

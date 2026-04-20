@@ -12,14 +12,23 @@
     {% set total_treinos_resumo = total_treinos|default(lista_treinos|length, true)|int %}
     {% set aluno_treino_detalhe_base = aluno_treino_detalhe_url_base|default('/aluno/treinos', true) %}
     {% set iniciar_treino_base = iniciar_treino_url_base|default('/aluno/treinos/iniciar', true) %}
+    {% set aluno_treino_execucao_base = aluno_treino_execucao_url_base|default(iniciar_treino_base, true) %}
     {% set retorno_treinos_destino = aluno_treinos_url|default('/aluno/treinos', true) %}
     {% set treino_anterior_destino = treino_anterior_url|default('', true) %}
+    {% set treino_anterior_id = treino_anterior_id|default('', true) %}
     {% if treino_anterior_destino == '#' %}
         {% set treino_anterior_destino = '' %}
     {% endif %}
     {% set treino_proximo_destino = treino_proximo_url|default('', true) %}
+    {% set treino_proximo_id = treino_proximo_id|default('', true) %}
     {% if treino_proximo_destino == '#' %}
         {% set treino_proximo_destino = '' %}
+    {% endif %}
+    {% if not treino_anterior_destino and treino_anterior_id != '' %}
+        {% set treino_anterior_destino = aluno_treino_execucao_base ~ '?treino_id=' ~ treino_anterior_id %}
+    {% endif %}
+    {% if not treino_proximo_destino and treino_proximo_id != '' %}
+        {% set treino_proximo_destino = aluno_treino_execucao_base ~ '?treino_id=' ~ treino_proximo_id %}
     {% endif %}
 
     <div class="dashboard-layout">
@@ -125,9 +134,9 @@
                 {% if not treino_iniciar_destino and tem_treino_id %}
                     {% set treino_iniciar_destino = iniciar_treino_base ~ '?treino_id=' ~ treino_id %}
                 {% endif %}
-                {% set treino_total_exercicios = treino.total_exercicios|default(0, true) %}
-                {% set treino_series_resumo = treino.series_resumo|default(treino.series|default('Não informado', true), true) %}
-                {% set treino_status_resumo = treino.status|default('Não informado', true) %}
+                {% set treino_total_exercicios = treino.total_exercicios|default(treino.exercicios_total|default(0, true), true) %}
+                {% set treino_series_resumo = treino.series_resumo|default(treino.series|default(treino.total_series|default('Não informado', true), true), true) %}
+                {% set treino_status_resumo = treino.status|default(treino.status_execucao|default('Não informado', true), true) %}
                 <article class="aluno-treino-card ui-card">
                     <div class="aluno-treino-head">
                         <div class="aluno-treino-title-wrap">

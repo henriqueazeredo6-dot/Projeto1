@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ page_title|default('CONFIE - Entrar', true) }}</title>
+    {% set marca_nome_login = marca_nome|default('', true)|trim %}
+    {% set login_title_padrao = 'Entrar' %}
+    {% if marca_nome_login %}
+        {% set login_title_padrao = marca_nome_login ~ ' - Entrar' %}
+    {% endif %}
+    <title>{{ page_title|default(login_title_padrao, true) }}</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="page-login">
@@ -14,7 +19,7 @@
     <main class="auth-layout">
         <section class="auth-brand">
             <div class="brand-block">
-                <h1 class="brand-title">{{ marca_nome|default('CONFIE Personal', true) }}</h1>
+                <h1 class="brand-title">{{ marca_nome_login|default('Sua Marca', true) }}</h1>
                 <p class="brand-copy">Gestão profissional para personal training</p>
             </div>
         </section>

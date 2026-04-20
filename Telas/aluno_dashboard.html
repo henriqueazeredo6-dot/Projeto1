@@ -11,9 +11,8 @@
     {% set treino_do_dia = treino_do_dia|default({}, true) %}
     {% set treino_do_dia_id = treino_do_dia.id|default('', true) %}
     {% set tem_treino_do_dia = treino_do_dia_id != '' %}
-    {% set total_treinos_resumo = total_treinos|default(0, true)|int %}
-    {% set total_checkins_resumo = total_checkins|default(0, true)|int %}
-    {% set total_avaliacoes_resumo = total_avaliacoes|default(0, true)|int %}
+    {% set total_checkins_resumo = total_checkins|default(checkins_totais|default(0, true), true)|int %}
+    {% set total_avaliacoes_resumo = total_avaliacoes|default(avaliacoes_totais|default(0, true), true)|int %}
     {% set iniciar_treino_destino = iniciar_treino_url|default('/aluno/treinos/iniciar', true) %}
     {% if tem_treino_do_dia %}
         {% set iniciar_treino_destino = iniciar_treino_destino ~ '?treino_id=' ~ treino_do_dia_id %}
@@ -146,10 +145,16 @@
                             <path d="M14 15L16 13L19 16L17 18L14 15Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
                             <path d="M10 11L14 15" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
                         </svg>
-                        <p>Treinos</p>
+                        <p>Treino do dia</p>
                     </div>
-                    <strong>{{ total_treinos_resumo }}</strong>
-                    <span>Total disponíveis</span>
+                    <strong>{% if tem_treino_do_dia %}Atribuído{% else %}Sem treino{% endif %}</strong>
+                    <span>
+                        {% if tem_treino_do_dia %}
+                            {{ treino_do_dia.total_exercicios|default(0, true) }} exercícios planejados
+                        {% else %}
+                            Aguardando novo treino
+                        {% endif %}
+                    </span>
                 </article>
 
                 <article class="aluno-stat-card ui-card">
