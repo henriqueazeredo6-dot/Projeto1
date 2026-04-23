@@ -36,6 +36,7 @@ TABLE_TREINOS = os.getenv("SUPABASE_TABLE_TREINOS", "tb_treino")
 TABLE_AGENDA = os.getenv("SUPABASE_TABLE_AGENDA", "tb_agenda")
 TABLE_AVALIACOES = os.getenv("SUPABASE_TABLE_AVALIACOES", "tb_avaliacao")
 TABLE_MENSAGENS = os.getenv("SUPABASE_TABLE_MENSAGENS", "tb_mensagem")
+TABLE_ANAMNESES = os.getenv("SUPABASE_TABLE_ANAMNESES", "tb_anamnese")
 TABLE_USUARIOS = os.getenv("SUPABASE_TABLE_USUARIOS", "tb_usuario")
 
 supabase: Optional[Client] = None
@@ -728,6 +729,87 @@ def enviar_mensagem():
     return redirect(url_for("mensagens", contato_id=contato_id))
 
 
+@app.route("/anamnese")
+def anamnese():
+    aluno_id = request.args.get("aluno_id")
+    alunos_result = _select(TABLE_ALUNOS)
+    alunos_data = alunos_result["data"] if alunos_result["ok"] else []
+
+    alunos = [
+        {
+            "id": aluno.get("id"),
+            "nome": aluno.get("nome") or "Aluno",
+            "email": aluno.get("email") or "Sem email",
+        }
+        for aluno in alunos_data
+    ]
+
+    aluno_ativo = None
+    if aluno_id:
+        aluno_ativo = next((item for item in alunos if str(item.get("id")) == str(aluno_id)), None)
+    if not aluno_ativo and alunos:
+        aluno_ativo = alunos[0]
+
+    anamnese_atual: Dict[str, Any] = {}
+    if aluno_ativo and aluno_ativo.get("id"):
+        anamnese_result = _select(TABLE_ANAMNESES, filters={"aluno_id": aluno_ativo["id"]})
+        anamneses = anamnese_result["data"] if anamnese_result["ok"] else []
+        anamnese_atual = anamneses[0] if anamneses else {}
+
+    return render_template(
+        "anamnese.html",
+        pagina_ativa="anamnese",
+        logo_nome="CONFIE Personal",
+        profissional_nome=session.get("user_email", "Personal Trainer"),
+        alunos=alunos,
+        aluno_ativo=aluno_ativo or {},
+        anamnese=anamnese_atual,
+        csrf_token=_ensure_form_token("anamnese"),
+    )
+
+
+@app.route("/anamnese/salvar", methods=["POST"])
+def salvar_anamnese():
+    aluno_id = (request.form.get("aluno_id") or "").strip()
+    csrf_token = request.form.get("csrf_token", "")
+
+    if not _is_valid_form_token("anamnese", csrf_token):
+        flash("Falha de seguranca no envio. Atualize a pagina e tente novamente.", "error")
+        return redirect(url_for("anamnese", aluno_id=aluno_id))
+
+    if not aluno_id:
+        flash("Selecione um aluno para salvar a anamnese.", "error")
+        return redirect(url_for("anamnese"))
+
+    aluno_result = _select_one(TABLE_ALUNOS, aluno_id)
+    if not aluno_result["ok"] or not aluno_result["data"]:
+        flash("Aluno invalido para anamnese.", "error")
+        return redirect(url_for("anamnese"))
+
+    payload = {
+        "aluno_id": aluno_id,
+        "profissional_id": request.form.get("profissional_id") or session.get("user_id"),
+        "historico_medico": request.form.get("historico_medico"),
+        "restricoes_fisicas": request.form.get("restricoes_fisicas"),
+        "lesoes": request.form.get("lesoes"),
+        "atividade_fisica_anterior": request.form.get("atividade_fisica_anterior"),
+        "objetivos": request.form.get("objetivos"),
+        "observacoes": request.form.get("observacoes"),
+    }
+
+    anamnese_id = (request.form.get("anamnese_id") or "").strip()
+    if anamnese_id:
+        result = _update(TABLE_ANAMNESES, anamnese_id, payload)
+    else:
+        result = _insert(TABLE_ANAMNESES, payload)
+
+    if result["ok"]:
+        flash("Anamnese salva com sucesso.", "success")
+    else:
+        flash(f"Erro ao salvar anamnese: {result['error']}", "error")
+    return redirect(url_for("anamnese", aluno_id=aluno_id))
+
+
 @app.route("/treinos")
 def treinos():
     aluno_id = request.args.get("aluno_id")
@@ -1099,6 +1181,39 @@ def api_mensagem_id(mensagem_id: str):
         return jsonify(result), status_code
 
     result = _delete(TABLE_MENSAGENS, mensagem_id)
+    status_code = 200 if result["ok"] else 400
+    return jsonify(result), status_code
+
+
+@app.route("/api/anamneses", methods=["GET", "POST"])
+def api_anamneses():
+    if request.method == "GET":
+        aluno_id = request.args.get("aluno_id")
+        filters = {"aluno_id": aluno_id} if aluno_id else None
+        result = _select(TABLE_ANAMNESES, filters=filters)
+        status_code = 200 if result["ok"] else 400
+        return jsonify(result), status_code
+
+    payload = request.get_json(silent=True) or {}
+    result = _insert(TABLE_ANAMNESES, payload)
+    status_code = 201 if result["ok"] else 400
+    return jsonify(result), status_code
+
+
+@app.route("/api/anamneses/<anamnese_id>", methods=["GET", "PUT", "DELETE"])
+def api_anamnese_id(anamnese_id: str):
+    if request.method == "GET":
+        result = _select_one(TABLE_ANAMNESES, anamnese_id)
+        status_code = 200 if result["ok"] else 400
+        return jsonify(result), status_code
+
+    if request.method == "PUT":
+        payload = request.get_json(silent=True) or {}
+        result = _update(TABLE_ANAMNESES, anamnese_id, payload)
+        status_code = 200 if result["ok"] else 400
+        return jsonify(result), status_code
+
+    result = _delete(TABLE_ANAMNESES, anamnese_id)
     status_code = 200 if result["ok"] else 400
     return jsonify(result), status_code
 

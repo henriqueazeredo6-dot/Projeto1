@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title|default('CONFIE - Anamnese', true) }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    {% set aluno_ativo = aluno_ativo|default({}, true) %}
+    {% set alunos_lista = alunos|default([], true) %}
+    {% set anamnese = anamnese|default({}, true) %}
+
+    <div class="dashboard-layout">
+        <aside class="dashboard-sidebar">
+            <div class="sidebar-brand">
+                <a class="sidebar-logo" href="{{ dashboard_url|default('/dashboard', true) }}">{{ logo_nome|default('CONFIE Personal', true) }}</a>
+                <p class="sidebar-user">{{ profissional_nome|default('Personal Trainer', true) }}</p>
+            </div>
+
+            <nav class="sidebar-nav" aria-label="Menu principal">
+                <a class="sidebar-link {% if pagina_ativa == 'dashboard' %}is-active{% endif %}" href="{{ dashboard_url|default('/dashboard', true) }}">Dashboard</a>
+                <a class="sidebar-link {% if pagina_ativa == 'alunos' %}is-active{% endif %}" href="{{ alunos_url|default('/alunos', true) }}">Alunos</a>
+                <a class="sidebar-link {% if pagina_ativa == 'exercicios' %}is-active{% endif %}" href="{{ exercicios_url|default('/exercicios', true) }}">Exercícios</a>
+                <a class="sidebar-link {% if pagina_ativa == 'treinos' %}is-active{% endif %}" href="{{ treinos_url|default('/treinos', true) }}">Treinos</a>
+                <a class="sidebar-link {% if pagina_ativa == 'agenda' %}is-active{% endif %}" href="{{ agenda_url|default('/agenda', true) }}">Agenda</a>
+                <a class="sidebar-link {% if pagina_ativa == 'mensagens' %}is-active{% endif %}" href="{{ mensagens_url|default('/mensagens', true) }}">Mensagens</a>
+                <a class="sidebar-link {% if pagina_ativa == 'anamnese' %}is-active{% endif %}" href="{{ anamnese_url|default('/anamnese', true) }}">Anamnese</a>
+                <a class="sidebar-link {% if pagina_ativa == 'avaliacoes' %}is-active{% endif %}" href="{{ avaliacoes_url|default('/avaliacoes', true) }}">Avaliações</a>
+                <a class="sidebar-link {% if pagina_ativa == 'evolucao' %}is-active{% endif %}" href="{{ evolucao_url|default('/evolucao', true) }}">Evolução</a>
+                <a class="sidebar-link {% if pagina_ativa == 'financeiro' %}is-active{% endif %}" href="{{ financeiro_url|default('/financeiro', true) }}">Financeiro</a>
+                <a class="sidebar-link" href="{{ logout_url|default('/logout', true) }}">Sair</a>
+            </nav>
+        </aside>
+
+        <main class="dashboard-main">
+            <header class="dashboard-header">
+                <div>
+                    <h1 class="dashboard-title">Anamnese</h1>
+                    <p class="dashboard-subtitle">Histórico de saúde e objetivos do aluno</p>
+                </div>
+            </header>
+
+            {% with mensagens_flash = get_flashed_messages(with_categories=true) %}
+                {% if mensagens_flash %}
+                    {% for categoria, mensagem in mensagens_flash %}
+                    <section class="student-feedback {% if categoria == 'success' %}student-feedback-success{% else %}student-feedback-error{% endif %}" aria-label="Mensagem do sistema">
+                        <p>{{ mensagem }}</p>
+                    </section>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <section class="avaliacoes-layout" aria-label="Central de anamnese">
+                <section class="agenda-card" aria-label="Formulário de anamnese">
+                    {% if aluno_ativo and aluno_ativo.id %}
+                    <div class="agenda-card-header">
+                        <div>
+                            <h2>Anamnese de {{ aluno_ativo.nome|default('Aluno', true) }}</h2>
+                            <p class="agenda-time">{{ aluno_ativo.email|default('Sem email cadastrado', true) }}</p>
+                        </div>
+                    </div>
+
+                    <form class="student-form" action="{{ salvar_anamnese_url|default('/anamnese/salvar', true) }}" method="post">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token|default('', true) }}">
+                        <input type="hidden" name="aluno_id" value="{{ aluno_ativo.id }}">
+                        <input type="hidden" name="profissional_id" value="{{ profissional_id|default('', true) }}">
+                        <input type="hidden" name="anamnese_id" value="{{ anamnese.id|default('', true) }}">
+
+                        <div class="field">
+                            <label for="historico_medico">Histórico médico</label>
+                            <textarea id="historico_medico" name="historico_medico" rows="3" placeholder="Doenças pré-existentes e cirurgias anteriores...">{{ anamnese.historico_medico|default('', true) }}</textarea>
+                        </div>
+
+                        <div class="field">
+                            <label for="restricoes_fisicas">Restrições físicas</label>
+                            <textarea id="restricoes_fisicas" name="restricoes_fisicas" rows="3" placeholder="Limitações físicas e contraindicações...">{{ anamnese.restricoes_fisicas|default('', true) }}</textarea>
+                        </div>
+
+                        <div class="field">
+                            <label for="lesoes">Lesões</label>
+                            <textarea id="lesoes" name="lesoes" rows="3" placeholder="Lesões atuais ou antigas...">{{ anamnese.lesoes|default('', true) }}</textarea>
+                        </div>
+
+                        <div class="field">
+                            <label for="atividade_fisica_anterior">Atividade física anterior</label>
+                            <textarea id="atividade_fisica_anterior" name="atividade_fisica_anterior" rows="3" placeholder="Experiência prévia com atividade física...">{{ anamnese.atividade_fisica_anterior|default('', true) }}</textarea>
+                        </div>
+
+                        <div class="field">
+                            <label for="objetivos">Objetivos</label>
+                            <textarea id="objetivos" name="objetivos" rows="3" placeholder="Objetivos do aluno com o treinamento...">{{ anamnese.objetivos|default('', true) }}</textarea>
+                        </div>
+
+                        <div class="field">
+                            <label for="observacoes">Observações</label>
+                            <textarea id="observacoes" name="observacoes" rows="3" placeholder="Outras observações relevantes...">{{ anamnese.observacoes|default('', true) }}</textarea>
+                        </div>
+
+                        <button class="button-block" type="submit">Salvar anamnese</button>
+                    </form>
+                    {% else %}
+                    <article class="student-card student-card-empty">
+                        <div class="student-meta">
+                            <h2>Selecione um aluno</h2>
+                            <p>Escolha um aluno na lista para preencher a anamnese.</p>
+                        </div>
+                    </article>
+                    {% endif %}
+                </section>
+
+                <aside class="agenda-card" aria-label="Lista de alunos">
+                    <div class="agenda-card-header">
+                        <div>
+                            <h2>Alunos</h2>
+                            <p class="agenda-time">{{ alunos_lista|length }} alunos</p>
+                        </div>
+                    </div>
+
+                    <div class="agenda-list">
+                        {% for aluno in alunos_lista %}
+                        <a class="student-card {% if aluno_ativo and aluno.id == aluno_ativo.id %}student-feedback student-feedback-success{% endif %}" href="{{ anamnese_url|default('/anamnese', true) }}?aluno_id={{ aluno.id }}">
+                            <div class="student-card-header">
+                                <div class="student-avatar">{{ aluno.nome[0]|upper if aluno.nome else '?' }}</div>
+                                <div class="student-meta">
+                                    <h2>{{ aluno.nome }}</h2>
+                                    <p>{{ aluno.email }}</p>
+                                </div>
+                            </div>
+                        </a>
+                        {% else %}
+                        <article class="student-card student-card-empty">
+                            <div class="student-meta">
+                                <h2>Nenhum aluno</h2>
+                                <p>Não existem alunos disponíveis para anamnese.</p>
+                            </div>
+                        </article>
+                        {% endfor %}
+                    </div>
+                </aside>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

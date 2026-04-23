@@ -55,6 +55,19 @@ create table if not exists public.tb_mensagem (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.tb_anamnese (
+  id uuid primary key default gen_random_uuid(),
+  aluno_id uuid references public.tb_aluno(id) on delete cascade,
+  profissional_id text,
+  historico_medico text,
+  restricoes_fisicas text,
+  lesoes text,
+  atividade_fisica_anterior text,
+  objetivos text,
+  observacoes text,
+  created_at timestamptz not null default now()
+);
+
 create table if not exists public.tb_agenda (
   id uuid primary key default gen_random_uuid(),
   aluno_id uuid references public.tb_aluno(id) on delete set null,
@@ -105,6 +118,7 @@ create table if not exists public.tb_avaliacao (
 create index if not exists idx_tb_treino_aluno on public.tb_treino (aluno_id);
 create index if not exists idx_tb_exercicio_grupo on public.tb_exercicio (grupo_muscular);
 create index if not exists idx_tb_mensagem_aluno on public.tb_mensagem (aluno_id);
+create index if not exists idx_tb_anamnese_aluno on public.tb_anamnese (aluno_id);
 create index if not exists idx_tb_agenda_aluno on public.tb_agenda (aluno_id);
 create index if not exists idx_tb_avaliacao_aluno on public.tb_avaliacao (aluno_id);
 
@@ -113,6 +127,7 @@ alter table public.tb_aluno enable row level security;
 alter table public.tb_treino enable row level security;
 alter table public.tb_exercicio enable row level security;
 alter table public.tb_mensagem enable row level security;
+alter table public.tb_anamnese enable row level security;
 alter table public.tb_agenda enable row level security;
 alter table public.tb_avaliacao enable row level security;
 
@@ -134,6 +149,9 @@ begin
   end if;
   if not exists (select 1 from pg_policies where policyname = 'dev_full_tb_mensagem') then
     create policy dev_full_tb_mensagem on public.tb_mensagem for all using (true) with check (true);
+  end if;
+  if not exists (select 1 from pg_policies where policyname = 'dev_full_tb_anamnese') then
+    create policy dev_full_tb_anamnese on public.tb_anamnese for all using (true) with check (true);
   end if;
   if not exists (select 1 from pg_policies where policyname = 'dev_full_tb_agenda') then
     create policy dev_full_tb_agenda on public.tb_agenda for all using (true) with check (true);
