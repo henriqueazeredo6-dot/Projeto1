@@ -52,6 +52,8 @@ A aplicacao sobe em `http://localhost:5000`.
 - `POST /mensagens/enviar`
 - `GET /anamnese`
 - `POST /anamnese/salvar`
+- `GET /aluno/mensagens`
+- `POST /aluno/mensagens/enviar`
 - `GET /treinos`
 - `GET/POST /agenda`
 - `GET/POST /avaliacoes`

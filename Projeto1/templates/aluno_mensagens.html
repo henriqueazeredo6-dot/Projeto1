@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ page_title|default('CONFIE - Mensagens do Aluno', true) }}</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body class="aluno-page">
     {% set pagina_ativa = pagina_ativa|default('mensagens', true) %}
@@ -16,7 +16,7 @@
         <aside class="dashboard-sidebar">
             <div class="sidebar-brand">
                 <a class="sidebar-logo" href="{{ aluno_dashboard_url|default('/aluno/dashboard', true) }}">
-                    <span>CONFIE PERSONAL</span>
+                    <span>{{ marca_nome|default('CONFIE PERSONAL', true) }}</span>
                 </a>
                 <p class="sidebar-user">{{ aluno_nome|default('Aluno', true) }}</p>
             </div>
@@ -81,17 +81,15 @@
                 <p class="aluno-main-subtitle">{{ subtitulo_pagina|default('Comunique-se com seu personal', true) }}</p>
             </header>
 
-            {% if sucesso %}
-            <section class="student-feedback student-feedback-success" aria-label="Mensagem de sucesso">
-                <p>{{ sucesso }}</p>
-            </section>
-            {% endif %}
-
-            {% if erro %}
-            <section class="student-feedback student-feedback-error" aria-label="Mensagem de erro">
-                <p>{{ erro }}</p>
-            </section>
-            {% endif %}
+            {% with mensagens_flash = get_flashed_messages(with_categories=true) %}
+                {% if mensagens_flash %}
+                    {% for categoria, mensagem in mensagens_flash %}
+                    <section class="student-feedback {% if categoria == 'success' %}student-feedback-success{% else %}student-feedback-error{% endif %}" aria-label="Mensagem do sistema">
+                        <p>{{ mensagem }}</p>
+                    </section>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
 
             <section class="mensagens-layout" aria-label="Central de mensagens do aluno">
                 <aside class="mensagens-panel" aria-label="Lista de contatos">
@@ -103,7 +101,7 @@
                         {% for contato in contatos_lista %}
                         <a
                             class="mensagens-contact-card {% if contato.id == conversa_ativa.id %}is-active{% endif %}"
-                            href="{{ contato.url|default((aluno_mensagens_url|default('/aluno/mensagens', true)) ~ '?contato_id=' ~ contato.id, true) }}"
+                            href="{{ (aluno_mensagens_url|default('/aluno/mensagens', true)) ~ '?aluno_id=' ~ (aluno_id|default('', true)) ~ '&contato_id=' ~ contato.id }}"
                             aria-current="{% if contato.id == conversa_ativa.id %}page{% else %}false{% endif %}"
                         >
                             <span class="mensagens-avatar" aria-hidden="true">
@@ -163,6 +161,7 @@
                     </div>
 
                     <form class="mensagens-thread-form" action="{{ enviar_mensagem_url|default('/aluno/mensagens/enviar', true) }}" method="post">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token|default('', true) }}">
                         <input type="hidden" name="contato_id" value="{{ conversa_ativa.id|default('', true) }}">
                         <input type="hidden" name="aluno_id" value="{{ aluno_id|default('', true) }}">
                         <input type="hidden" name="canal" value="{{ canal_mensagem|default('painel_aluno', true) }}">
@@ -201,14 +200,8 @@
                     <input type="hidden" name="aluno_id" value="{{ aluno_id|default('', true) }}">
                     <input type="hidden" name="contato_id_ativo" value="{{ conversa_ativa.id|default('', true) }}">
                     <input type="hidden" name="contato_nome_ativo" value="{{ conversa_ativa.nome|default('', true) }}">
-                    <input type="hidden" name="ultima_mensagem_id" value="{{ ultima_mensagem_id|default('', true) }}">
                     <input type="hidden" name="aluno_mensagens_url" value="{{ aluno_mensagens_url|default('/aluno/mensagens', true) }}">
-                    <input type="hidden" name="carregar_contatos_url" value="{{ carregar_contatos_url|default('/aluno/mensagens/contatos', true) }}">
-                    <input type="hidden" name="carregar_conversa_url" value="{{ carregar_conversa_url|default('/aluno/mensagens/conversa', true) }}">
                     <input type="hidden" name="enviar_mensagem_url" value="{{ enviar_mensagem_url|default('/aluno/mensagens/enviar', true) }}">
-                    <input type="hidden" name="polling_url" value="{{ polling_url|default('/aluno/mensagens/atualizar', true) }}">
-                    <input type="hidden" name="upload_url" value="{{ upload_url|default('/aluno/mensagens/upload', true) }}">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token|default('', true) }}">
                 </form>
             </section>
         </main>

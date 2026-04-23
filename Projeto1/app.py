@@ -186,6 +186,31 @@ def _is_valid_form_token(scope: str, token: str) -> bool:
     return session.get(f"csrf_{scope}") == token
 
 
+def _resolver_aluno_contexto(alunos: List[Dict[str, Any]], aluno_id_preferido: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    if not alunos:
+        return None
+
+    if aluno_id_preferido:
+        match = next((item for item in alunos if str(item.get("id")) == str(aluno_id_preferido)), None)
+        if match:
+            return match
+
+    user_id = session.get("user_id")
+    user_email = (session.get("user_email") or "").strip().lower()
+
+    if user_email:
+        match = next((item for item in alunos if str(item.get("email", "")).strip().lower() == user_email), None)
+        if match:
+            return match
+
+    if user_id:
+        match = next((item for item in alunos if str(item.get("auth_user_id", "")) == str(user_id)), None)
+        if match:
+            return match
+
+    return alunos[0]
+
+
 def _parse_exercicios_raw(raw: str) -> List[Dict[str, str]]:
     if not raw:
         return []
@@ -727,6 +752,124 @@ def enviar_mensagem():
         flash(f"Erro ao enviar mensagem: {result['error']}", "error")
 
     return redirect(url_for("mensagens", contato_id=contato_id))
+
+
+@app.route("/aluno/mensagens")
+def aluno_mensagens():
+    aluno_id_param = request.args.get("aluno_id")
+    contato_id = request.args.get("contato_id")
+
+    alunos_result = _select(TABLE_ALUNOS)
+    alunos_data = alunos_result["data"] if alunos_result["ok"] else []
+    aluno_ativo = _resolver_aluno_contexto(alunos_data, aluno_id_param)
+
+    contatos_result = _select(TABLE_USUARIOS)
+    contatos_raw = contatos_result["data"] if contatos_result["ok"] else []
+    contatos = [
+        {
+            "id": contato.get("id"),
+            "nome": contato.get("nome") or "Personal Trainer",
+            "email": contato.get("email") or "Sem email cadastrado",
+        }
+        for contato in contatos_raw
+    ]
+
+    conversa_ativa = None
+    if contato_id:
+        conversa_ativa = next((item for item in contatos if str(item.get("id")) == str(contato_id)), None)
+    if not conversa_ativa and contatos:
+        conversa_ativa = contatos[0]
+
+    mensagens_lista: List[Dict[str, Any]] = []
+    if aluno_ativo and aluno_ativo.get("id"):
+        filtros = {"aluno_id": aluno_ativo["id"]}
+        if conversa_ativa and conversa_ativa.get("id"):
+            filtros["profissional_id"] = conversa_ativa["id"]
+
+        mensagens_result = _select(TABLE_MENSAGENS, filters=filtros, order="created_at", desc=False)
+        mensagens_raw = mensagens_result["data"] if mensagens_result["ok"] else []
+        for item in mensagens_raw:
+            remetente = item.get("remetente") or "profissional"
+            autor = item.get("autor") or (
+                aluno_ativo.get("nome", "Aluno")
+                if remetente == "aluno"
+                else (conversa_ativa.get("nome", "Personal Trainer") if conversa_ativa else "Personal Trainer")
+            )
+            mensagens_lista.append(
+                {
+                    "id": item.get("id"),
+                    "remetente": remetente,
+                    "autor": autor,
+                    "texto": item.get("texto") or "",
+                    "horario": _format_time(item.get("created_at") or ""),
+                }
+            )
+
+    return render_template(
+        "aluno_mensagens.html",
+        pagina_ativa="mensagens",
+        marca_nome="CONFIE PERSONAL",
+        aluno_nome=(aluno_ativo.get("nome") if aluno_ativo else "Aluno"),
+        aluno_id=(aluno_ativo.get("id") if aluno_ativo else ""),
+        contatos=contatos,
+        conversa_ativa=conversa_ativa or {},
+        mensagens=mensagens_lista,
+        csrf_token=_ensure_form_token("aluno_mensagens"),
+    )
+
+
+@app.route("/aluno/mensagens/enviar", methods=["POST"])
+def enviar_mensagem_aluno():
+    aluno_id = (request.form.get("aluno_id") or "").strip()
+    contato_id = (request.form.get("contato_id") or "").strip()
+    texto = (request.form.get("mensagem") or "").strip()
+    csrf_token = request.form.get("csrf_token", "")
+
+    if not _is_valid_form_token("aluno_mensagens", csrf_token):
+        flash("Falha de segurança no envio. Atualize a página e tente novamente.", "error")
+        return redirect(url_for("aluno_mensagens", aluno_id=aluno_id, contato_id=contato_id))
+
+    if not aluno_id:
+        flash("Aluno inválido para envio da mensagem.", "error")
+        return redirect(url_for("aluno_mensagens"))
+
+    if not contato_id:
+        flash("Selecione um contato para enviar a mensagem.", "error")
+        return redirect(url_for("aluno_mensagens", aluno_id=aluno_id))
+
+    if not texto:
+        flash("Digite uma mensagem antes de enviar.", "error")
+        return redirect(url_for("aluno_mensagens", aluno_id=aluno_id, contato_id=contato_id))
+
+    if len(texto) > 2000:
+        flash("A mensagem ultrapassa o limite de 2000 caracteres.", "error")
+        return redirect(url_for("aluno_mensagens", aluno_id=aluno_id, contato_id=contato_id))
+
+    aluno_result = _select_one(TABLE_ALUNOS, aluno_id)
+    if not aluno_result["ok"] or not aluno_result["data"]:
+        flash("Aluno não encontrado para envio.", "error")
+        return redirect(url_for("aluno_mensagens"))
+
+    contato_result = _select_one(TABLE_USUARIOS, contato_id)
+    if not contato_result["ok"] or not contato_result["data"]:
+        flash("Contato inválido para envio.", "error")
+        return redirect(url_for("aluno_mensagens", aluno_id=aluno_id))
+
+    payload = {
+        "aluno_id": aluno_id,
+        "profissional_id": contato_id,
+        "remetente": "aluno",
+        "autor": aluno_result["data"].get("nome") or "Aluno",
+        "texto": texto,
+        "canal": request.form.get("canal") or "painel_aluno",
+    }
+    result = _insert(TABLE_MENSAGENS, payload)
+    if result["ok"]:
+        flash("Mensagem enviada.", "success")
+    else:
+        flash(f"Erro ao enviar mensagem: {result['error']}", "error")
+
+    return redirect(url_for("aluno_mensagens", aluno_id=aluno_id, contato_id=contato_id))
 
 
 @app.route("/anamnese")
