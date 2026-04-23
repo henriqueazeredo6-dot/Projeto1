@@ -2,6 +2,7 @@
 import os
 import secrets
 from datetime import datetime
+from functools import wraps
 from typing import Any, Dict, List, Optional
 
 from dotenv import load_dotenv
@@ -42,6 +43,15 @@ TABLE_USUARIOS = os.getenv("SUPABASE_TABLE_USUARIOS", "tb_usuario")
 supabase: Optional[Client] = None
 if SUPABASE_URL and SUPABASE_KEY:
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+PUBLIC_ENDPOINTS = {
+    "index",
+    "health",
+    "login",
+    "reenviar_confirmacao",
+    "cadastro",
+    "static",
+}
 
 
 def _is_ready() -> bool:
@@ -305,6 +315,37 @@ def _render_dashboard_context() -> Dict[str, Any]:
     }
 
 
+def login_required(view):
+    @wraps(view)
+    def wrapped_view(*args, **kwargs):
+        if session.get("user_id"):
+            return view(*args, **kwargs)
+
+        if request.path.startswith("/api/"):
+            return jsonify({"ok": False, "error": "Nao autenticado."}), 401
+
+        flash("Faca login para continuar.", "error")
+        return redirect(url_for("login"))
+
+    return wrapped_view
+
+
+@app.before_request
+def enforce_authentication():
+    endpoint = request.endpoint or ""
+    if endpoint in PUBLIC_ENDPOINTS or request.method == "OPTIONS":
+        return None
+
+    if session.get("user_id"):
+        return None
+
+    if request.path.startswith("/api/"):
+        return jsonify({"ok": False, "error": "Nao autenticado."}), 401
+
+    flash("Faca login para acessar esta pagina.", "error")
+    return redirect(url_for("login"))
+
+
 @app.route("/")
 def index():
     planos = [
@@ -368,7 +409,8 @@ def login():
             elif "invalid login credentials" in error_text_lower:
                 flash("Email ou senha invalidos. Se voce acabou de se cadastrar, confirme o email antes de entrar.", "error")
             else:
-                flash(f"Falha no login: {error_text}", "error")
+                app.logger.exception("Falha no login")
+                flash("Falha no login. Tente novamente em instantes.", "error")
             return redirect(url_for("login"))
 
     return render_template("Login.html")
@@ -389,7 +431,8 @@ def reenviar_confirmacao():
         supabase.auth.resend({"type": "signup", "email": email})
         flash("Se o email existir, enviamos um novo link de confirmacao. Verifique caixa de spam/lixo.", "success")
     except Exception as exc:
-        flash(f"Nao foi possivel reenviar a confirmacao: {exc}", "error")
+        app.logger.exception("Falha ao reenviar confirmacao")
+        flash("Nao foi possivel reenviar a confirmacao agora. Tente novamente.", "error")
     return redirect(url_for("login"))
 
 
@@ -444,7 +487,7 @@ def cadastro():
             user = getattr(auth_result, "user", None)
             user_id = user.id if user else None
 
-            _insert(
+            profile_result = _insert(
                 TABLE_USUARIOS,
                 {
                     "auth_user_id": user_id,
@@ -454,13 +497,24 @@ def cadastro():
                     "nascimento": nascimento,
                 },
             )
+            if not profile_result["ok"]:
+                app.logger.error("Falha ao criar perfil tb_usuario: %s", profile_result["error"])
+                if os.getenv("SUPABASE_SERVICE_KEY") and user_id:
+                    try:
+                        supabase.auth.admin.delete_user(user_id)
+                    except Exception:
+                        app.logger.exception("Falha ao reverter usuario auth apos erro de perfil")
+                flash("Falha ao concluir cadastro de perfil. Tente novamente.", "error")
+                return redirect(url_for("cadastro"))
+
             if needs_email_confirmation:
                 flash("Cadastro realizado. Verifique seu email para confirmar a conta antes de fazer login.", "success")
             else:
                 flash("Cadastro realizado. Agora faca login.", "success")
             return redirect(url_for("login"))
         except Exception as exc:
-            flash(f"Falha no cadastro: {exc}", "error")
+            app.logger.exception("Falha no cadastro")
+            flash("Falha no cadastro. Verifique os dados e tente novamente.", "error")
             return redirect(url_for("cadastro"))
 
     return render_template("Cadastro.html")
@@ -1085,6 +1139,11 @@ def agenda():
     )
 
 
+@app.route("/agenda/nova", methods=["GET"])
+def agenda_nova():
+    return redirect(url_for("agenda"))
+
+
 def _atualizar_status_agenda(agenda_id: str, status: str):
     result = _update(TABLE_AGENDA, agenda_id, {"status": status})
     if result["ok"]:
@@ -1219,7 +1278,22 @@ def evolucao():
     if aluno_id:
         aluno_selecionado = next((item for item in alunos if str(item.get("id")) == str(aluno_id)), None)
 
-    ultima_avaliacao = avaliacoes_data[0] if avaliacoes_data else None
+    ultima_avaliacao = avaliacoes_data[0] if avaliacoes_data else {}
+    historico = avaliacoes_data[1:] if len(avaliacoes_data) > 1 else []
+
+    resumo_atual = {
+        "peso": f"{ultima_avaliacao.get('peso')} KG" if ultima_avaliacao.get("peso") not in (None, "") else "0 KG",
+        "gordura": f"{ultima_avaliacao.get('gordura')}%" if ultima_avaliacao.get("gordura") not in (None, "") else "0%",
+        "altura": (
+            f"{ultima_avaliacao.get('altura')} CM"
+            if ultima_avaliacao.get("altura") not in (None, "")
+            else "0 CM"
+        ),
+        "imc": str(ultima_avaliacao.get("imc")) if ultima_avaliacao.get("imc") not in (None, "") else "-",
+        "classificacao": ultima_avaliacao.get("classificacao") or "Nao informada",
+        "data": ultima_avaliacao.get("data") or "",
+        "objetivo": (aluno_selecionado or {}).get("objetivo") or "Nao informado",
+    }
 
     return render_template(
         "evolucao.html",
@@ -1227,9 +1301,27 @@ def evolucao():
         alunos=alunos,
         aluno_selecionado=aluno_selecionado,
         ultima_avaliacao=ultima_avaliacao,
+        resumo_atual=resumo_atual,
         total_avaliacoes=len(avaliacoes_data),
-        historico=avaliacoes_data,
+        historico=historico,
     )
+
+
+@app.route("/mensagens")
+def mensagens():
+    flash("Tela de mensagens ainda em desenvolvimento.", "error")
+    return redirect(url_for("dashboard"))
+
+
+@app.route("/anamnese")
+def anamnese():
+    return redirect(url_for("avaliacoes"))
+
+
+@app.route("/financeiro")
+def financeiro():
+    flash("Tela de financeiro ainda em desenvolvimento.", "error")
+    return redirect(url_for("dashboard"))
 
 
 # API REST

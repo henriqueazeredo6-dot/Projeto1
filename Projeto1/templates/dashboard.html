@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CONFIE - Dashboard</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
     <style>
         .dashboard-stats {
@@ -381,7 +381,7 @@
                             <span class="dashboard-quick-text">Criar Treino</span>
                         </a>
 
-                        <a class="dashboard-quick-card" href="{{ agendar_aula_url|default('/agenda/nova', true) }}">
+                        <a class="dashboard-quick-card" href="{{ agendar_aula_url|default('/agenda', true) }}">
                             <div class="dashboard-quick-icon">
                                 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                     <rect x="4" y="5" width="16" height="15" rx="2" stroke="currentColor" stroke-width="1.9"/>
