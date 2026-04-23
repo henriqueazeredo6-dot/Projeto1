@@ -1,5 +1,6 @@
 ﻿import json
 import os
+import secrets
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
@@ -34,6 +35,7 @@ TABLE_EXERCICIOS = os.getenv("SUPABASE_TABLE_EXERCICIOS", "tb_exercicio")
 TABLE_TREINOS = os.getenv("SUPABASE_TABLE_TREINOS", "tb_treino")
 TABLE_AGENDA = os.getenv("SUPABASE_TABLE_AGENDA", "tb_agenda")
 TABLE_AVALIACOES = os.getenv("SUPABASE_TABLE_AVALIACOES", "tb_avaliacao")
+TABLE_MENSAGENS = os.getenv("SUPABASE_TABLE_MENSAGENS", "tb_mensagem")
 TABLE_USUARIOS = os.getenv("SUPABASE_TABLE_USUARIOS", "tb_usuario")
 
 supabase: Optional[Client] = None
@@ -166,6 +168,21 @@ def _classificacao_imc(imc: Optional[float]) -> str:
     if imc < 30:
         return "Sobrepeso"
     return "Obesidade"
+
+
+def _ensure_form_token(scope: str) -> str:
+    key = f"csrf_{scope}"
+    token = session.get(key)
+    if not token:
+        token = secrets.token_urlsafe(24)
+        session[key] = token
+    return token
+
+
+def _is_valid_form_token(scope: str, token: str) -> bool:
+    if not token:
+        return False
+    return session.get(f"csrf_{scope}") == token
 
 
 def _parse_exercicios_raw(raw: str) -> List[Dict[str, str]]:
@@ -612,6 +629,105 @@ def excluir_exercicio(exercicio_id: str):
     return redirect(url_for("exercicios"))
 
 
+@app.route("/mensagens")
+def mensagens():
+    contato_id = request.args.get("contato_id")
+    alunos_result = _select(TABLE_ALUNOS)
+    contatos_raw = alunos_result["data"] if alunos_result["ok"] else []
+
+    contatos = [
+        {
+            "id": contato.get("id"),
+            "nome": contato.get("nome") or "Aluno",
+            "email": contato.get("email") or "Sem email",
+        }
+        for contato in contatos_raw
+    ]
+
+    conversa_ativa = None
+    if contato_id:
+        conversa_ativa = next((item for item in contatos if str(item.get("id")) == str(contato_id)), None)
+    if not conversa_ativa and contatos:
+        conversa_ativa = contatos[0]
+
+    mensagens_lista: List[Dict[str, Any]] = []
+    if conversa_ativa and conversa_ativa.get("id"):
+        mensagens_result = _select(
+            TABLE_MENSAGENS,
+            filters={"aluno_id": conversa_ativa["id"]},
+            order="created_at",
+            desc=False,
+        )
+        mensagens_raw = mensagens_result["data"] if mensagens_result["ok"] else []
+        for item in mensagens_raw:
+            remetente = item.get("remetente") or "aluno"
+            autor = item.get("autor") or ("Voce" if remetente == "profissional" else conversa_ativa["nome"])
+            mensagens_lista.append(
+                {
+                    "id": item.get("id"),
+                    "remetente": remetente,
+                    "autor": autor,
+                    "texto": item.get("texto") or "",
+                    "horario": _format_time(item.get("created_at") or ""),
+                }
+            )
+
+    return render_template(
+        "mensagens.html",
+        pagina_ativa="mensagens",
+        logo_nome="CONFIE Personal",
+        profissional_nome=session.get("user_email", "Personal Trainer"),
+        contatos=contatos,
+        conversa_ativa=conversa_ativa or {},
+        mensagens=mensagens_lista,
+        csrf_token=_ensure_form_token("mensagens"),
+    )
+
+
+@app.route("/mensagens/enviar", methods=["POST"])
+def enviar_mensagem():
+    contato_id = (request.form.get("contato_id") or "").strip()
+    texto = (request.form.get("mensagem") or "").strip()
+    csrf_token = request.form.get("csrf_token", "")
+
+    if not _is_valid_form_token("mensagens", csrf_token):
+        flash("Falha de seguranca no envio. Atualize a pagina e tente novamente.", "error")
+        return redirect(url_for("mensagens", contato_id=contato_id))
+
+    if not contato_id:
+        flash("Selecione um contato para enviar a mensagem.", "error")
+        return redirect(url_for("mensagens"))
+
+    if not texto:
+        flash("Digite uma mensagem antes de enviar.", "error")
+        return redirect(url_for("mensagens", contato_id=contato_id))
+
+    if len(texto) > 2000:
+        flash("A mensagem ultrapassa o limite de 2000 caracteres.", "error")
+        return redirect(url_for("mensagens", contato_id=contato_id))
+
+    aluno_result = _select_one(TABLE_ALUNOS, contato_id)
+    if not aluno_result["ok"] or not aluno_result["data"]:
+        flash("Contato invalido para envio.", "error")
+        return redirect(url_for("mensagens"))
+
+    payload = {
+        "aluno_id": contato_id,
+        "profissional_id": request.form.get("profissional_id") or session.get("user_id"),
+        "remetente": "profissional",
+        "autor": session.get("user_email", "Personal Trainer"),
+        "texto": texto,
+        "canal": request.form.get("canal") or "painel",
+    }
+    result = _insert(TABLE_MENSAGENS, payload)
+    if result["ok"]:
+        flash("Mensagem enviada.", "success")
+    else:
+        flash(f"Erro ao enviar mensagem: {result['error']}", "error")
+
+    return redirect(url_for("mensagens", contato_id=contato_id))
+
+
 @app.route("/treinos")
 def treinos():
     aluno_id = request.args.get("aluno_id")
@@ -950,6 +1066,39 @@ def api_exercicio_id(exercicio_id: str):
         return jsonify(result), status_code
 
     result = _delete(TABLE_EXERCICIOS, exercicio_id)
+    status_code = 200 if result["ok"] else 400
+    return jsonify(result), status_code
+
+
+@app.route("/api/mensagens", methods=["GET", "POST"])
+def api_mensagens():
+    if request.method == "GET":
+        aluno_id = request.args.get("aluno_id")
+        filters = {"aluno_id": aluno_id} if aluno_id else None
+        result = _select(TABLE_MENSAGENS, filters=filters, order="created_at", desc=False)
+        status_code = 200 if result["ok"] else 400
+        return jsonify(result), status_code
+
+    payload = request.get_json(silent=True) or {}
+    result = _insert(TABLE_MENSAGENS, payload)
+    status_code = 201 if result["ok"] else 400
+    return jsonify(result), status_code
+
+
+@app.route("/api/mensagens/<mensagem_id>", methods=["GET", "PUT", "DELETE"])
+def api_mensagem_id(mensagem_id: str):
+    if request.method == "GET":
+        result = _select_one(TABLE_MENSAGENS, mensagem_id)
+        status_code = 200 if result["ok"] else 400
+        return jsonify(result), status_code
+
+    if request.method == "PUT":
+        payload = request.get_json(silent=True) or {}
+        result = _update(TABLE_MENSAGENS, mensagem_id, payload)
+        status_code = 200 if result["ok"] else 400
+        return jsonify(result), status_code
+
+    result = _delete(TABLE_MENSAGENS, mensagem_id)
     status_code = 200 if result["ok"] else 400
     return jsonify(result), status_code
 

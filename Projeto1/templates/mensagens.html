@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title|default('CONFIE - Mensagens', true) }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    {% set conversa_ativa = conversa_ativa|default({}, true) %}
+    {% set contatos_lista = contatos|default([], true) %}
+    {% set mensagens_lista = mensagens|default([], true) %}
+
+    <div class="dashboard-layout">
+        <aside class="dashboard-sidebar">
+            <div class="sidebar-brand">
+                <a class="sidebar-logo" href="{{ dashboard_url|default('/dashboard', true) }}">{{ logo_nome|default('CONFIE Personal', true) }}</a>
+                <p class="sidebar-user">{{ profissional_nome|default('Personal Trainer', true) }}</p>
+            </div>
+
+            <nav class="sidebar-nav" aria-label="Menu principal">
+                <a class="sidebar-link {% if pagina_ativa == 'dashboard' %}is-active{% endif %}" href="{{ dashboard_url|default('/dashboard', true) }}">Dashboard</a>
+                <a class="sidebar-link {% if pagina_ativa == 'alunos' %}is-active{% endif %}" href="{{ alunos_url|default('/alunos', true) }}">Alunos</a>
+                <a class="sidebar-link {% if pagina_ativa == 'exercicios' %}is-active{% endif %}" href="{{ exercicios_url|default('/exercicios', true) }}">Exercícios</a>
+                <a class="sidebar-link {% if pagina_ativa == 'treinos' %}is-active{% endif %}" href="{{ treinos_url|default('/treinos', true) }}">Treinos</a>
+                <a class="sidebar-link {% if pagina_ativa == 'agenda' %}is-active{% endif %}" href="{{ agenda_url|default('/agenda', true) }}">Agenda</a>
+                <a class="sidebar-link {% if pagina_ativa == 'mensagens' %}is-active{% endif %}" href="{{ mensagens_url|default('/mensagens', true) }}">Mensagens</a>
+                <a class="sidebar-link {% if pagina_ativa == 'avaliacoes' %}is-active{% endif %}" href="{{ avaliacoes_url|default('/avaliacoes', true) }}">Avaliações</a>
+                <a class="sidebar-link {% if pagina_ativa == 'evolucao' %}is-active{% endif %}" href="{{ evolucao_url|default('/evolucao', true) }}">Evolução</a>
+                <a class="sidebar-link {% if pagina_ativa == 'financeiro' %}is-active{% endif %}" href="{{ financeiro_url|default('/financeiro', true) }}">Financeiro</a>
+                <a class="sidebar-link" href="{{ logout_url|default('/logout', true) }}">Sair</a>
+            </nav>
+        </aside>
+
+        <main class="dashboard-main">
+            <header class="dashboard-header">
+                <div>
+                    <h1 class="dashboard-title">Mensagens</h1>
+                    <p class="dashboard-subtitle">Central de conversa com alunos</p>
+                </div>
+            </header>
+
+            {% with mensagens_flash = get_flashed_messages(with_categories=true) %}
+                {% if mensagens_flash %}
+                    {% for categoria, mensagem in mensagens_flash %}
+                    <section class="student-feedback {% if categoria == 'success' %}student-feedback-success{% else %}student-feedback-error{% endif %}" aria-label="Mensagem do sistema">
+                        <p>{{ mensagem }}</p>
+                    </section>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <section class="avaliacoes-layout" aria-label="Central de mensagens">
+                <section class="agenda-card" aria-label="Conversa ativa">
+                    {% if conversa_ativa and conversa_ativa.id %}
+                    <div class="agenda-card-header">
+                        <div>
+                            <h2>{{ conversa_ativa.nome|default('Aluno', true) }}</h2>
+                            <p class="agenda-time">{{ conversa_ativa.email|default('Sem email cadastrado', true) }}</p>
+                        </div>
+                        <span class="agenda-status agenda-status-pendente">Ativa</span>
+                    </div>
+
+                    <div class="agenda-list">
+                        {% for mensagem in mensagens_lista %}
+                        <article class="student-card">
+                            <div class="student-card-header">
+                                <div class="student-avatar">
+                                    {% if mensagem.remetente == 'profissional' %}P{% else %}A{% endif %}
+                                </div>
+                                <div class="student-meta">
+                                    <h2>{{ mensagem.autor|default('Mensagem', true) }}</h2>
+                                    <p>{{ mensagem.horario|default('--:--', true) }}</p>
+                                </div>
+                            </div>
+                            <div class="student-card-body">
+                                <p>{{ mensagem.texto }}</p>
+                            </div>
+                        </article>
+                        {% else %}
+                        <article class="student-card student-card-empty">
+                            <div class="student-meta">
+                                <h2>Sem mensagens</h2>
+                                <p>Esta conversa ainda não possui histórico.</p>
+                            </div>
+                        </article>
+                        {% endfor %}
+                    </div>
+
+                    <form class="student-form" action="{{ enviar_mensagem_url|default('/mensagens/enviar', true) }}" method="post">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token|default('', true) }}">
+                        <input type="hidden" name="contato_id" value="{{ conversa_ativa.id }}">
+                        <input type="hidden" name="profissional_id" value="{{ profissional_id|default('', true) }}">
+                        <input type="hidden" name="canal" value="{{ canal_mensagem|default('painel', true) }}">
+
+                        <div class="field">
+                            <label for="mensagem">Mensagem</label>
+                            <textarea id="mensagem" name="mensagem" rows="3" placeholder="Digite sua mensagem..." required></textarea>
+                        </div>
+
+                        <button class="button-block" type="submit">Enviar mensagem</button>
+                    </form>
+                    {% else %}
+                    <article class="student-card student-card-empty">
+                        <div class="student-meta">
+                            <h2>Selecione um contato</h2>
+                            <p>Escolha um aluno para visualizar e enviar mensagens.</p>
+                        </div>
+                    </article>
+                    {% endif %}
+                </section>
+
+                <aside class="agenda-card" aria-label="Contatos">
+                    <div class="agenda-card-header">
+                        <div>
+                            <h2>Contatos</h2>
+                            <p class="agenda-time">{{ contatos_lista|length }} contatos</p>
+                        </div>
+                    </div>
+
+                    <div class="agenda-list">
+                        {% for contato in contatos_lista %}
+                        <a class="student-card {% if conversa_ativa and contato.id == conversa_ativa.id %}student-feedback student-feedback-success{% endif %}" href="{{ mensagens_url|default('/mensagens', true) }}?contato_id={{ contato.id }}">
+                            <div class="student-card-header">
+                                <div class="student-avatar">{{ contato.nome[0]|upper if contato.nome else '?' }}</div>
+                                <div class="student-meta">
+                                    <h2>{{ contato.nome }}</h2>
+                                    <p>{{ contato.email }}</p>
+                                </div>
+                            </div>
+                        </a>
+                        {% else %}
+                        <article class="student-card student-card-empty">
+                            <div class="student-meta">
+                                <h2>Nenhum contato</h2>
+                                <p>Nenhum aluno encontrado para mensagens.</p>
+                            </div>
+                        </article>
+                        {% endfor %}
+                    </div>
+                </aside>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

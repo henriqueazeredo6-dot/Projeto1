@@ -5,6 +5,7 @@ Este projeto agora possui um backend completo em Flask integrado ao Supabase, co
 - Autenticacao (login/cadastro) usando Supabase Auth
 - CRUD de Alunos
 - CRUD de Exercicios
+- CRUD de Mensagens
 - CRUD de Treinos
 - CRUD de Agenda
 - CRUD de Avaliacoes
@@ -46,6 +47,8 @@ A aplicacao sobe em `http://localhost:5000`.
 - `GET /dashboard`
 - `GET/POST /alunos`
 - `GET/POST /exercicios`
+- `GET /mensagens`
+- `POST /mensagens/enviar`
 - `GET /treinos`
 - `GET/POST /agenda`
 - `GET/POST /avaliacoes`
@@ -57,6 +60,8 @@ A aplicacao sobe em `http://localhost:5000`.
 - `GET/PUT/DELETE /api/alunos/<id>`
 - `GET/POST /api/exercicios`
 - `GET/PUT/DELETE /api/exercicios/<id>`
+- `GET/POST /api/mensagens`
+- `GET/PUT/DELETE /api/mensagens/<id>`
 - `GET/POST /api/treinos`
 - `GET/PUT/DELETE /api/treinos/<id>`
 - `GET/POST /api/agenda`
