@@ -32,6 +32,18 @@ create table if not exists public.tb_treino (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.tb_exercicio (
+  id uuid primary key default gen_random_uuid(),
+  nome text not null,
+  grupo_muscular text,
+  dificuldade text default 'intermediario',
+  descricao text,
+  url_video text,
+  url_imagem text,
+  status text default 'ativo',
+  created_at timestamptz not null default now()
+);
+
 create table if not exists public.tb_agenda (
   id uuid primary key default gen_random_uuid(),
   aluno_id uuid references public.tb_aluno(id) on delete set null,
@@ -80,12 +92,14 @@ create table if not exists public.tb_avaliacao (
 );
 
 create index if not exists idx_tb_treino_aluno on public.tb_treino (aluno_id);
+create index if not exists idx_tb_exercicio_grupo on public.tb_exercicio (grupo_muscular);
 create index if not exists idx_tb_agenda_aluno on public.tb_agenda (aluno_id);
 create index if not exists idx_tb_avaliacao_aluno on public.tb_avaliacao (aluno_id);
 
 alter table public.tb_usuario enable row level security;
 alter table public.tb_aluno enable row level security;
 alter table public.tb_treino enable row level security;
+alter table public.tb_exercicio enable row level security;
 alter table public.tb_agenda enable row level security;
 alter table public.tb_avaliacao enable row level security;
 
@@ -101,6 +115,9 @@ begin
   end if;
   if not exists (select 1 from pg_policies where policyname = 'dev_full_tb_treino') then
     create policy dev_full_tb_treino on public.tb_treino for all using (true) with check (true);
+  end if;
+  if not exists (select 1 from pg_policies where policyname = 'dev_full_tb_exercicio') then
+    create policy dev_full_tb_exercicio on public.tb_exercicio for all using (true) with check (true);
   end if;
   if not exists (select 1 from pg_policies where policyname = 'dev_full_tb_agenda') then
     create policy dev_full_tb_agenda on public.tb_agenda for all using (true) with check (true);

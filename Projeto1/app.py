@@ -30,6 +30,7 @@ SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_KEY") or os.getenv("SUPABASE_KEY", "")
 
 TABLE_ALUNOS = os.getenv("SUPABASE_TABLE_ALUNOS", "tb_aluno")
+TABLE_EXERCICIOS = os.getenv("SUPABASE_TABLE_EXERCICIOS", "tb_exercicio")
 TABLE_TREINOS = os.getenv("SUPABASE_TABLE_TREINOS", "tb_treino")
 TABLE_AGENDA = os.getenv("SUPABASE_TABLE_AGENDA", "tb_agenda")
 TABLE_AVALIACOES = os.getenv("SUPABASE_TABLE_AVALIACOES", "tb_avaliacao")
@@ -473,6 +474,7 @@ def alunos():
         alunos_data = [aluno for aluno in alunos_data if str(aluno.get("status", "")).lower() == status]
 
     context = {
+        "pagina_ativa": "alunos",
         "alunos": alunos_data,
         "total_alunos": len(alunos_data),
         "filtros": {"busca": busca, "status": status},
@@ -518,6 +520,96 @@ def excluir_aluno(aluno_id: str):
     else:
         flash(f"Erro ao remover aluno: {result['error']}", "error")
     return redirect(url_for("alunos"))
+
+
+@app.route("/exercicios", methods=["GET", "POST"])
+def exercicios():
+    if request.method == "POST":
+        payload = {
+            "nome": request.form.get("nome"),
+            "grupo_muscular": request.form.get("grupo_muscular"),
+            "dificuldade": request.form.get("dificuldade"),
+            "descricao": request.form.get("descricao"),
+            "url_video": request.form.get("url_video"),
+            "url_imagem": request.form.get("url_imagem"),
+            "status": request.form.get("status", "ativo"),
+        }
+        result = _insert(TABLE_EXERCICIOS, payload)
+        if result["ok"]:
+            flash("Exercicio cadastrado com sucesso.", "success")
+        else:
+            flash(f"Erro ao cadastrar exercicio: {result['error']}", "error")
+        return redirect(url_for("exercicios"))
+
+    busca = (request.args.get("busca") or "").strip().lower()
+    grupo = (request.args.get("grupo") or "").strip().lower()
+    dificuldade = (request.args.get("dificuldade") or "").strip().lower()
+
+    result = _select(TABLE_EXERCICIOS)
+    exercicios_data = result["data"] if result["ok"] else []
+
+    if busca:
+        exercicios_data = [
+            item
+            for item in exercicios_data
+            if busca in str(item.get("nome", "")).lower()
+            or busca in str(item.get("grupo_muscular", "")).lower()
+            or busca in str(item.get("descricao", "")).lower()
+        ]
+
+    if grupo:
+        exercicios_data = [
+            item for item in exercicios_data if str(item.get("grupo_muscular", "")).lower() == grupo
+        ]
+
+    if dificuldade:
+        exercicios_data = [
+            item for item in exercicios_data if str(item.get("dificuldade", "")).lower() == dificuldade
+        ]
+
+    return render_template(
+        "exercicios.html",
+        pagina_ativa="exercicios",
+        exercicios=exercicios_data,
+        total_exercicios=len(exercicios_data),
+        filtros={"busca": busca, "grupo": grupo, "dificuldade": dificuldade},
+    )
+
+
+@app.route("/exercicios/<exercicio_id>/editar", methods=["POST", "GET"])
+def editar_exercicio(exercicio_id: str):
+    if request.method == "POST":
+        payload = {
+            "nome": request.form.get("nome"),
+            "grupo_muscular": request.form.get("grupo_muscular"),
+            "dificuldade": request.form.get("dificuldade"),
+            "descricao": request.form.get("descricao"),
+            "url_video": request.form.get("url_video"),
+            "url_imagem": request.form.get("url_imagem"),
+            "status": request.form.get("status"),
+        }
+        result = _update(TABLE_EXERCICIOS, exercicio_id, payload)
+        if result["ok"]:
+            flash("Exercicio atualizado.", "success")
+        else:
+            flash(f"Erro ao atualizar exercicio: {result['error']}", "error")
+        return redirect(url_for("exercicios"))
+
+    result = _select_one(TABLE_EXERCICIOS, exercicio_id)
+    if not result["ok"] or not result["data"]:
+        flash("Exercicio nao encontrado.", "error")
+        return redirect(url_for("exercicios"))
+    return jsonify(result["data"])
+
+
+@app.route("/exercicios/<exercicio_id>/excluir", methods=["POST"])
+def excluir_exercicio(exercicio_id: str):
+    result = _delete(TABLE_EXERCICIOS, exercicio_id)
+    if result["ok"]:
+        flash("Exercicio removido.", "success")
+    else:
+        flash(f"Erro ao remover exercicio: {result['error']}", "error")
+    return redirect(url_for("exercicios"))
 
 
 @app.route("/treinos")
@@ -827,6 +919,37 @@ def api_aluno_id(aluno_id: str):
         return jsonify(result), status_code
 
     result = _delete(TABLE_ALUNOS, aluno_id)
+    status_code = 200 if result["ok"] else 400
+    return jsonify(result), status_code
+
+
+@app.route("/api/exercicios", methods=["GET", "POST"])
+def api_exercicios():
+    if request.method == "GET":
+        result = _select(TABLE_EXERCICIOS)
+        status_code = 200 if result["ok"] else 400
+        return jsonify(result), status_code
+
+    payload = request.get_json(silent=True) or {}
+    result = _insert(TABLE_EXERCICIOS, payload)
+    status_code = 201 if result["ok"] else 400
+    return jsonify(result), status_code
+
+
+@app.route("/api/exercicios/<exercicio_id>", methods=["GET", "PUT", "DELETE"])
+def api_exercicio_id(exercicio_id: str):
+    if request.method == "GET":
+        result = _select_one(TABLE_EXERCICIOS, exercicio_id)
+        status_code = 200 if result["ok"] else 400
+        return jsonify(result), status_code
+
+    if request.method == "PUT":
+        payload = request.get_json(silent=True) or {}
+        result = _update(TABLE_EXERCICIOS, exercicio_id, payload)
+        status_code = 200 if result["ok"] else 400
+        return jsonify(result), status_code
+
+    result = _delete(TABLE_EXERCICIOS, exercicio_id)
     status_code = 200 if result["ok"] else 400
     return jsonify(result), status_code
 
