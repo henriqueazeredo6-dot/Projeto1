@@ -1,0 +1,126 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CONFIE - Plataforma para Personal Trainers</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="site-shell">
+        <section class="hero-landing">
+            <div class="hero-content">
+                <h1 class="display-title">
+                    Transforme<br>
+                    <span class="accent">seu treino</span>
+                </h1>
+                <p class="hero-copy">
+                    Plataforma completa para Personal Trainers gerenciarem alunos, treinos e agendas em um sÃ³ lugar
+                </p>
+                <div class="actions">
+                    <a class="button" href="/cadastro">ComeÃ§ar agora</a>
+                    <a class="button button-secondary" href="/login">Entrar</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-section intro-section">
+            <article class="intro-card">
+                <div class="intro-column intro-column-highlight">
+                    <p class="intro-label">ApresentaÃ§Ã£o</p>
+                    <h2 class="intro-name">Diogo Bezzi Jaeger</h2>
+                    <p class="intro-summary">
+                        Bacharel e licenciado em EducaÃ§Ã£o FÃ­sica desde 2014, com atuaÃ§Ã£o voltada para saÃºde, performance e acompanhamento individualizado.
+                    </p>
+
+                    <div class="intro-tags">
+                        <article class="intro-tag-card">
+                            <p class="intro-tag-label">Especialidades</p>
+                            <p class="intro-tag-value">MusculaÃ§Ã£o, Futebol, Futsal, NataÃ§Ã£o e GinÃ¡stica Laboral</p>
+                        </article>
+                        <article class="intro-tag-card">
+                            <p class="intro-tag-label">FormaÃ§Ã£o atual</p>
+                            <p class="intro-tag-value">Resistance Training Specialist (RTS)</p>
+                        </article>
+                    </div>
+                </div>
+
+                <div class="intro-column">
+                    <p class="intro-bio">
+                        Tenho especializaÃ§Ã£o em MusculaÃ§Ã£o e Futebol e Futsal, alÃ©m de cursos na Ã¡rea de Pilates, Funcional, NataÃ§Ã£o, GinÃ¡stica Laboral e Personal Training.
+                    </p>
+                    <p class="intro-bio">
+                        Possuo experiÃªncia como personal training, professor de nataÃ§Ã£o, futebol e futsal. JÃ¡ fui gestor esportivo e atuei em diversas academias.
+                    </p>
+                    <p class="intro-bio">
+                        Meu trabalho consiste em atender o aluno conforme seus objetivos e necessidades, visando a melhora da saÃºde geral e especÃ­fica.
+                    </p>
+                    <p class="intro-bio">
+                        Posso atuar em residÃªncias, academias, piscinas de condomÃ­nio e academias particulares.
+                    </p>
+                </div>
+            </article>
+        </section>
+
+        <section class="content-section">
+            <h2 class="section-title">Recursos poderosos</h2>
+            <div class="feature-grid">
+                <article class="feature-card">
+                    <div class="feature-icon">AL</div>
+                    <h3>GestÃ£o de alunos</h3>
+                    <p>Cadastre, acompanhe e gerencie todos os seus alunos em um Ãºnico lugar.</p>
+                </article>
+                <article class="feature-card">
+                    <div class="feature-icon">TR</div>
+                    <h3>Treinos personalizados</h3>
+                    <p>Crie planilhas de treino sob medida com banco de exercÃ­cios e vÃ­deos.</p>
+                </article>
+                <article class="feature-card">
+                    <div class="feature-icon">AG</div>
+                    <h3>Agenda inteligente</h3>
+                    <p>Sincronize horÃ¡rios e gerencie compromissos com mais facilidade.</p>
+                </article>
+                <article class="feature-card">
+                    <div class="feature-icon">EV</div>
+                    <h3>Acompanhamento</h3>
+                    <p>AvaliaÃ§Ãµes fÃ­sicas, fotos de progresso e anÃ¡lise de evoluÃ§Ã£o.</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="content-section">
+            <h2 class="section-title">{{ planos_titulo|default('Planos simples', true) }}</h2>
+            <div class="pricing-grid">
+                {% for plano in planos %}
+                <article class="plan-card">
+                    {% if plano.popular %}
+                    <span class="plan-badge">{{ plano.badge|default('Popular', true) }}</span>
+                    {% endif %}
+                    <h3 class="plan-name">{{ plano.nome }}</h3>
+                    <div class="price-line">
+                        <span class="price-value">{{ plano.preco }}</span>
+                        <span class="price-period">{{ plano.periodo|default('/mÃªs', true) }}</span>
+                    </div>
+                    <ul class="plan-list">
+                        {% for beneficio in plano.beneficios %}
+                        <li>{{ beneficio }}</li>
+                        {% endfor %}
+                    </ul>
+                    <a class="button{% if not plano.popular %} button-secondary{% endif %}" href="{{ plano.url|default('/cadastro', true) }}">ComeÃ§ar</a>
+                </article>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="content-section cta-section">
+            <h2 class="section-title">Pronto para transformar seus treinos?</h2>
+            <a class="button" href="/cadastro">ComeÃ§ar agora</a>
+        </section>
+
+        <footer class="landing-footer">
+            <p>Â© 2026 CONFIE Personal. Todos os direitos reservados.</p>
+        </footer>
+    </div>
+</body>
+</html>
+

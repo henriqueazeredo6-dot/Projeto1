@@ -1,0 +1,272 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title|default('CONFIE - AvaliaÃ§Ãµes', true) }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <aside class="dashboard-sidebar">
+            <div class="sidebar-brand">
+                <a class="sidebar-logo" href="{{ dashboard_url|default('/dashboard', true) }}">CONFIE PERSONAL</a>
+                <p class="sidebar-user">{{ profissional_nome|default('Personal Trainer', true) }}</p>
+            </div>
+
+            <nav class="sidebar-nav" aria-label="Menu principal">
+                <a class="sidebar-link {% if pagina_ativa == 'dashboard' %}is-active{% endif %}" href="{{ dashboard_url|default('/dashboard', true) }}">Dashboard</a>
+                <a class="sidebar-link {% if pagina_ativa == 'alunos' %}is-active{% endif %}" href="{{ alunos_url|default('/alunos', true) }}">Alunos</a>
+                <a class="sidebar-link {% if pagina_ativa == 'exercicios' %}is-active{% endif %}" href="{{ exercicios_url|default('/exercicios', true) }}">ExercÃ­cios</a>
+                <a class="sidebar-link {% if pagina_ativa == 'treinos' %}is-active{% endif %}" href="{{ treinos_url|default('/treinos', true) }}">Treinos</a>
+                <a class="sidebar-link {% if pagina_ativa == 'agenda' %}is-active{% endif %}" href="{{ agenda_url|default('/agenda', true) }}">Agenda</a>
+                <a class="sidebar-link {% if pagina_ativa == 'mensagens' %}is-active{% endif %}" href="{{ mensagens_url|default('/mensagens', true) }}">Mensagens</a>
+                <a class="sidebar-link {% if pagina_ativa == 'anamnese' %}is-active{% endif %}" href="{{ anamnese_url|default('/anamnese', true) }}">Anamnese</a>
+                <a class="sidebar-link {% if pagina_ativa == 'avaliacoes' %}is-active{% endif %}" href="{{ avaliacoes_url|default('/avaliacoes', true) }}">AvaliaÃ§Ãµes</a>
+                <a class="sidebar-link {% if pagina_ativa == 'evolucao' %}is-active{% endif %}" href="{{ evolucao_url|default('/evolucao', true) }}">EvoluÃ§Ã£o</a>
+                <a class="sidebar-link {% if pagina_ativa == 'financeiro' %}is-active{% endif %}" href="{{ financeiro_url|default('/financeiro', true) }}">Financeiro</a>
+                <a class="sidebar-link" href="{{ logout_url|default('/logout', true) }}">Sair</a>
+            </nav>
+        </aside>
+
+        <main class="dashboard-main">
+            <header class="dashboard-header">
+                <div>
+                    <p class="avaliacoes-kicker">{{ marca_nome|default('CONFIE PERSONAL', true) }}</p>
+                    <h1 class="dashboard-title">AvaliaÃ§Ãµes fÃ­sicas</h1>
+                    <p class="dashboard-subtitle">AvaliaÃ§Ãµes antropomÃ©tricas completas com leitura clara dos resultados e das medidas coletadas.</p>
+                </div>
+
+                <a class="button dashboard-add-button" href="#nova-avaliacao">Nova avaliaÃ§Ã£o</a>
+            </header>
+
+            {% if sucesso %}
+            <section class="student-feedback student-feedback-success" aria-label="Mensagem de sucesso">
+                <p>{{ sucesso }}</p>
+            </section>
+            {% endif %}
+
+            {% if erro %}
+            <section class="student-feedback student-feedback-error" aria-label="Mensagem de erro">
+                <p>{{ erro }}</p>
+            </section>
+            {% endif %}
+
+            <section class="avaliacoes-filter">
+                <form class="student-search-form" action="{{ avaliacoes_url|default('/avaliacoes', true) }}" method="get">
+                    <label for="aluno_id">Selecione o Aluno:</label>
+                    <select id="aluno_id" name="aluno_id" onchange="this.form.submit()">
+                        <option value="">Selecione um aluno</option>
+                        {% for aluno in alunos %}
+                        <option value="{{ aluno.id }}" {% if aluno_selecionado and aluno.id == aluno_selecionado.id %}selected{% endif %}>{{ aluno.nome }}</option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </section>
+
+            <section class="avaliacoes-layout">
+                <div class="avaliacoes-main">
+                    <section class="avaliacao-hero-card">
+                        <div class="avaliacao-hero-top">
+                            <div>
+                                <p class="avaliacao-kicker">Resultados da avaliaÃ§Ã£o</p>
+                                <h2>{{ avaliacao_atual.aluno_nome if avaliacao_atual else 'Sem aluno selecionado' }}</h2>
+                                <p class="avaliacao-hero-copy">
+                                    {{ avaliacao_descricao|default('Uma leitura mais elegante e rÃ¡pida da composiÃ§Ã£o corporal e das medidas coletadas.', true) }}
+                                </p>
+                            </div>
+
+                            {% if avaliacao_atual %}
+                            <div class="avaliacao-hero-meta">
+                                <p>{{ avaliacao_atual.data }}</p>
+                                <span class="avaliacao-pill">{{ avaliacao_atual.classificacao|default('Peso normal', true) }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="avaliacao-top-stats">
+                            <article class="avaliacao-stat-card">
+                                <p class="avaliacao-stat-label">Peso</p>
+                                <strong>{{ avaliacao_atual.peso|default('0 KG', true) }}</strong>
+                            </article>
+                            <article class="avaliacao-stat-card">
+                                <p class="avaliacao-stat-label">IMC</p>
+                                <strong>{{ avaliacao_atual.imc|default('0', true) }}</strong>
+                            </article>
+                            <article class="avaliacao-stat-card">
+                                <p class="avaliacao-stat-label">% Gordura</p>
+                                <strong>{{ avaliacao_atual.gordura|default('0%', true) }}</strong>
+                            </article>
+                            <article class="avaliacao-stat-card">
+                                <p class="avaliacao-stat-label">Massa magra</p>
+                                <strong>{{ avaliacao_atual.massa_magra|default('0 KG', true) }}</strong>
+                            </article>
+                        </div>
+                    </section>
+
+                    <section class="avaliacao-detail-grid">
+                        <article class="avaliacao-panel">
+                            <p class="avaliacao-kicker">Leitura corporal</p>
+                            <h3 class="avaliacao-panel-title">Destaques</h3>
+                            <div class="avaliacao-card-grid">
+                                <article class="avaliacao-mini-card">
+                                    <p class="avaliacao-mini-label">ClassificaÃ§Ã£o</p>
+                                    <strong>{{ avaliacao_atual.classificacao|default('Peso normal', true) }}</strong>
+                                </article>
+                                <article class="avaliacao-mini-card">
+                                    <p class="avaliacao-mini-label">% Gordura</p>
+                                    <strong>{{ avaliacao_atual.gordura_nivel|default('Excelente', true) }}</strong>
+                                </article>
+                                <article class="avaliacao-mini-card">
+                                    <p class="avaliacao-mini-label">Massa gorda</p>
+                                    <strong>{{ avaliacao_atual.massa_gorda|default('0 KG', true) }}</strong>
+                                </article>
+                                <article class="avaliacao-mini-card">
+                                    <p class="avaliacao-mini-label">Peso ideal</p>
+                                    <strong>{{ avaliacao_atual.peso_ideal|default('0 KG', true) }}</strong>
+                                </article>
+                                <article class="avaliacao-mini-card">
+                                    <p class="avaliacao-mini-label">RelaÃ§Ã£o C/Q</p>
+                                    <strong>{{ avaliacao_atual.relacao_cq|default('0', true) }}</strong>
+                                </article>
+                                <article class="avaliacao-mini-card">
+                                    <p class="avaliacao-mini-label">Î£ dobras</p>
+                                    <strong>{{ avaliacao_atual.soma_dobras|default('0 MM', true) }}</strong>
+                                </article>
+                            </div>
+                        </article>
+
+                        <article class="avaliacao-panel">
+                            <p class="avaliacao-kicker">Medidas coletadas</p>
+                            <h3 class="avaliacao-panel-title">Dobras e perÃ­metros</h3>
+                            <div class="avaliacao-card-grid">
+                                {% for medida in medidas|default([], true) %}
+                                <article class="avaliacao-mini-card">
+                                    <p class="avaliacao-mini-label">{{ medida.nome }}</p>
+                                    <strong>{{ medida.valor }}</strong>
+                                </article>
+                                {% endfor %}
+                            </div>
+                        </article>
+                    </section>
+                </div>
+
+                <aside class="avaliacao-history-panel">
+                    <p class="avaliacao-kicker">HistÃ³rico</p>
+                    <h3 class="avaliacao-panel-title">AvaliaÃ§Ãµes</h3>
+
+                    <div class="avaliacao-history-list">
+                        {% for item in historico %}
+                        <article class="avaliacao-history-card">
+                            <div class="avaliacao-history-top">
+                                <div>
+                                    <p class="avaliacao-mini-label">AvaliaÃ§Ã£o {{ loop.index }}</p>
+                                    <strong>{{ item.data }}</strong>
+                                </div>
+                                <span class="avaliacao-pill">{{ item.classificacao }}</span>
+                            </div>
+
+                            <div class="avaliacao-history-metrics">
+                                <p>Peso: <strong>{{ item.peso }}</strong></p>
+                                <p>IMC: <strong>{{ item.imc }}</strong></p>
+                                <p>Gordura: <strong>{{ item.gordura }}</strong></p>
+                                <p>Massa magra: <strong>{{ item.massa_magra }}</strong></p>
+                            </div>
+                        </article>
+                        {% else %}
+                        <article class="avaliacao-history-card">
+                            <p>Nenhuma avaliaÃ§Ã£o anterior encontrada.</p>
+                        </article>
+                        {% endfor %}
+                    </div>
+                </aside>
+            </section>
+
+            <section class="student-modal-wrap" id="nova-avaliacao" aria-label="Nova avaliaÃ§Ã£o fÃ­sica">
+                <a class="student-modal-overlay" href="{{ avaliacoes_url|default('/avaliacoes', true) }}" aria-label="Fechar modal"></a>
+                <div class="student-modal avaliacao-modal">
+                    <div class="student-modal-header">
+                        <h2>Nova avaliaÃ§Ã£o fÃ­sica</h2>
+                        <a class="student-modal-close" href="{{ avaliacoes_url|default('/avaliacoes', true) }}" aria-label="Fechar modal">x</a>
+                    </div>
+
+                    <form class="student-form" action="{{ criar_avaliacao_url|default('/avaliacoes', true) }}" method="post">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="avaliacao-form-grid">
+                            <div class="field">
+                                <label for="aluno_form_id">Aluno</label>
+                                <select id="aluno_form_id" name="aluno_id" required>
+                                    <option value="">Selecione um aluno</option>
+                                    {% for aluno in alunos %}
+                                    <option value="{{ aluno.id }}">{{ aluno.nome }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="field">
+                                <label for="sexo">Sexo</label>
+                                <select id="sexo" name="sexo" required>
+                                    <option value="Masculino">Masculino</option>
+                                    <option value="Feminino">Feminino</option>
+                                </select>
+                            </div>
+
+                            <div class="field">
+                                <label for="peso">Peso (kg)</label>
+                                <input id="peso" name="peso" type="number" step="0.01">
+                            </div>
+
+                            <div class="field">
+                                <label for="estatura">Estatura (cm)</label>
+                                <input id="estatura" name="estatura" type="number" step="0.01">
+                            </div>
+
+                            <div class="field">
+                                <label for="idade">Idade</label>
+                                <input id="idade" name="idade" type="number">
+                            </div>
+
+                            <div class="field">
+                                <label for="gordura">Percentual de gordura</label>
+                                <input id="gordura" name="gordura" type="number" step="0.01">
+                            </div>
+                        </div>
+
+                        <p class="avaliacao-form-section-title">Dobras cutÃ¢neas (mm)</p>
+                        <div class="avaliacao-form-grid">
+                            <div class="field"><label for="tricipital">Tricipital</label><input id="tricipital" name="tricipital" type="number" step="0.01"></div>
+                            <div class="field"><label for="subscapular">Subscapular</label><input id="subscapular" name="subscapular" type="number" step="0.01"></div>
+                            <div class="field"><label for="suprailiaca">Suprailiaca</label><input id="suprailiaca" name="suprailiaca" type="number" step="0.01"></div>
+                            <div class="field"><label for="abdominal">Abdominal</label><input id="abdominal" name="abdominal" type="number" step="0.01"></div>
+                            <div class="field"><label for="peitoral">Peitoral</label><input id="peitoral" name="peitoral" type="number" step="0.01"></div>
+                            <div class="field"><label for="coxa">Coxa</label><input id="coxa" name="coxa" type="number" step="0.01"></div>
+                            <div class="field"><label for="perna">Perna</label><input id="perna" name="perna" type="number" step="0.01"></div>
+                        </div>
+
+                        <p class="avaliacao-form-section-title">CircunferÃªncias (cm)</p>
+                        <div class="avaliacao-form-grid">
+                            <div class="field"><label for="braco_direito">BraÃ§o direito</label><input id="braco_direito" name="braco_direito" type="number" step="0.01"></div>
+                            <div class="field"><label for="peitoral_circ">Peitoral</label><input id="peitoral_circ" name="peitoral_circ" type="number" step="0.01"></div>
+                            <div class="field"><label for="cintura">Cintura</label><input id="cintura" name="cintura" type="number" step="0.01"></div>
+                            <div class="field"><label for="quadril">Quadril</label><input id="quadril" name="quadril" type="number" step="0.01"></div>
+                            <div class="field"><label for="coxa_direita">Coxa direita</label><input id="coxa_direita" name="coxa_direita" type="number" step="0.01"></div>
+                            <div class="field"><label for="perna_direita">Perna direita</label><input id="perna_direita" name="perna_direita" type="number" step="0.01"></div>
+                        </div>
+
+                        <div class="field">
+                            <label for="observacoes">ObservaÃ§Ãµes</label>
+                            <textarea id="observacoes" name="observacoes" rows="4" placeholder="ObservaÃ§Ãµes adicionais sobre a avaliaÃ§Ã£o..."></textarea>
+                        </div>
+
+                        <div class="avaliacao-modal-actions">
+                            <a class="button button-secondary" href="{{ avaliacoes_url|default('/avaliacoes', true) }}">Cancelar</a>
+                            <button type="submit">Salvar avaliaÃ§Ã£o</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
+

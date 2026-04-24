@@ -1,0 +1,197 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title|default('Dashboard do Aluno', true) }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="aluno-page page-aluno-dashboard">
+    {% set pagina_ativa = pagina_ativa|default('dashboard', true) %}
+    {% set treino_do_dia = treino_do_dia|default({}, true) %}
+    {% set treino_do_dia_id = treino_do_dia.id|default('', true) %}
+    {% set tem_treino_do_dia = treino_do_dia_id != '' %}
+    {% set total_checkins_resumo = total_checkins|default(checkins_totais|default(0, true), true)|int %}
+    {% set total_avaliacoes_resumo = total_avaliacoes|default(avaliacoes_totais|default(0, true), true)|int %}
+    {% set iniciar_treino_destino = iniciar_treino_url|default('/aluno/treinos/iniciar', true) %}
+    {% if tem_treino_do_dia %}
+        {% set iniciar_treino_destino = iniciar_treino_destino ~ '?treino_id=' ~ treino_do_dia_id %}
+    {% endif %}
+
+    <div class="dashboard-layout">
+        <aside class="dashboard-sidebar">
+            <div class="sidebar-brand">
+                <a class="sidebar-logo" href="{{ aluno_dashboard_url|default('/aluno/dashboard', true) }}">
+                    <span>{{ marca_nome|default('', true) }}</span>
+                </a>
+                <p class="sidebar-user">{{ aluno_nome|default('', true) }}</p>
+            </div>
+
+            <nav class="sidebar-nav" aria-label="Menu principal do aluno">
+                <a class="sidebar-link {% if pagina_ativa == 'dashboard' %}is-active{% endif %}" href="{{ aluno_dashboard_url|default('/aluno/dashboard', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M4 10.5L12 4L20 10.5V19A1 1 0 0 1 19 20H5A1 1 0 0 1 4 19V10.5Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                        <path d="M9 20V13H15V20" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Dashboard</span>
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'meu_treino' %}is-active{% endif %}" href="{{ aluno_treinos_url|default('/aluno/treinos', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M7 8L9 6L12 9L10 11L7 8Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                        <path d="M14 15L16 13L19 16L17 18L14 15Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                        <path d="M10 11L14 15" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                    </svg>
+                    <span>Meu Treino</span>
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'agenda' %}is-active{% endif %}" href="{{ aluno_agenda_url|default('/aluno/agenda', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <rect x="4" y="5" width="16" height="15" rx="2" stroke="currentColor" stroke-width="1.9"/>
+                        <path d="M8 3V7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M16 3V7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M4 10H20" stroke="currentColor" stroke-width="1.9"/>
+                    </svg>
+                    <span>Agendar Aula</span>
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'mensagens' %}is-active{% endif %}" href="{{ aluno_mensagens_url|default('/aluno/mensagens', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M20 11.5C20 16.2 16 20 11 20C9.7 20 8.5 19.8 7.4 19.3L4 20L4.8 16.9C4.3 15.9 4 14.7 4 13.5C4 8.8 8 5 13 5C17 5 20 7.9 20 11.5Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Mensagens</span>
+                </a>
+
+                <a class="sidebar-link {% if pagina_ativa == 'evolucao' %}is-active{% endif %}" href="{{ aluno_evolucao_url|default('/aluno/evolucao', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M4 16L9 11L13 15L20 8" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M20 12V8H16" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>EvoluÃ§Ã£o</span>
+                </a>
+
+                <a class="sidebar-link" href="{{ logout_url|default('/logout', true) }}">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M15 17L20 12L15 7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M20 12H9" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <path d="M9 21H5A2 2 0 0 1 3 19V5A2 2 0 0 1 5 3H9" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                    </svg>
+                    <span>Sair</span>
+                </a>
+            </nav>
+        </aside>
+
+        <main class="dashboard-main">
+            <header class="aluno-header">
+                <h1 class="aluno-main-title">Dashboard</h1>
+                <p class="aluno-main-subtitle">OlÃ¡{% if aluno_nome %}, {{ aluno_nome }}{% endif %}</p>
+            </header>
+
+            {% if sucesso %}
+            <section class="student-feedback student-feedback-success" aria-label="Mensagem de sucesso">
+                <p>{{ sucesso }}</p>
+            </section>
+            {% endif %}
+
+            {% if erro %}
+            <section class="student-feedback student-feedback-error" aria-label="Mensagem de erro">
+                <p>{{ erro }}</p>
+            </section>
+            {% endif %}
+
+            <section class="aluno-highlight-card ui-card{% if not tem_treino_do_dia %} aluno-highlight-empty{% endif %}" aria-label="Treino do dia">
+                {% if tem_treino_do_dia %}
+                <div class="aluno-highlight-head">
+                    <div>
+                        <p class="aluno-kicker">Treino do dia</p>
+                        <h2>{{ treino_do_dia.nome|default('Treino do dia', true) }}</h2>
+                    </div>
+                    <span class="aluno-highlight-count">{{ treino_do_dia.total_exercicios|default('0 exercÃ­cios', true) }}</span>
+                </div>
+
+                <div class="aluno-highlight-line">
+                    <strong>{{ treino_do_dia.exercicio_destaque|default('ExercÃ­cio principal', true) }}</strong>
+                    <span>{{ treino_do_dia.prescricao|default('Consulte os detalhes para iniciar', true) }}</span>
+                </div>
+
+                <a class="button ui-btn ui-btn-primary button-block aluno-start-button" href="{{ iniciar_treino_destino }}">
+                    Iniciar treino
+                </a>
+                {% else %}
+                <div class="aluno-highlight-head">
+                    <div>
+                        <p class="aluno-kicker">Treino do dia</p>
+                        <h2>Nenhum treino atribuÃ­do para hoje</h2>
+                    </div>
+                    <span class="aluno-highlight-count">0 exercÃ­cios</span>
+                </div>
+
+                <div class="aluno-highlight-line">
+                    <strong>Seu personal ainda nÃ£o vinculou um treino para esta data.</strong>
+                    <span>Volte depois ou abra "Meu Treino".</span>
+                </div>
+
+                <a class="button ui-btn ui-btn-secondary button-secondary button-block aluno-start-button" href="{{ aluno_treinos_url|default('/aluno/treinos', true) }}">
+                    Ver meus treinos
+                </a>
+                {% endif %}
+            </section>
+
+            <section class="aluno-stats-grid" aria-label="Indicadores do aluno">
+                <article class="aluno-stat-card ui-card">
+                    <div class="aluno-stat-head">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M7 8L9 6L12 9L10 11L7 8Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                            <path d="M14 15L16 13L19 16L17 18L14 15Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                            <path d="M10 11L14 15" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        </svg>
+                        <p>Treino do dia</p>
+                    </div>
+                    <strong>{% if tem_treino_do_dia %}AtribuÃ­do{% else %}Sem treino{% endif %}</strong>
+                    <span>
+                        {% if tem_treino_do_dia %}
+                            {{ treino_do_dia.total_exercicios|default(0, true) }} exercÃ­cios planejados
+                        {% else %}
+                            Aguardando novo treino
+                        {% endif %}
+                    </span>
+                </article>
+
+                <article class="aluno-stat-card ui-card">
+                    <div class="aluno-stat-head">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M20 7L10 17L5 12" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <p>Check-ins</p>
+                    </div>
+                    <strong>{{ total_checkins_resumo }}</strong>
+                    <span>Treinos finalizados</span>
+                </article>
+
+                <article class="aluno-stat-card ui-card">
+                    <div class="aluno-stat-head">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M4 16L9 11L13 15L20 8" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M20 12V8H16" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <p>AvaliaÃ§Ãµes</p>
+                    </div>
+                    <strong>{{ total_avaliacoes_resumo }}</strong>
+                    <span>Registros fÃ­sicos</span>
+                </article>
+            </section>
+
+            <section aria-label="Dados para integraÃ§Ã£o" hidden>
+                <form id="aluno-dashboard-contexto" class="ui-form">
+                    <input type="hidden" name="aluno_id" value="{{ aluno_id|default('', true) }}">
+                    <input type="hidden" name="treino_dia_id" value="{{ treino_do_dia_id }}">
+                    <input type="hidden" name="dia_referencia" value="{{ dia_referencia|default('', true) }}">
+                    <input type="hidden" name="meu_treino_url" value="{{ aluno_treinos_url|default('/aluno/treinos', true) }}">
+                    <input type="hidden" name="iniciar_treino_url_base" value="{{ iniciar_treino_url|default('/aluno/treinos/iniciar', true) }}">
+                </form>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
+

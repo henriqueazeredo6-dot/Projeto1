@@ -1,0 +1,75 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% set marca_nome_login = marca_nome|default('', true)|trim %}
+    {% set login_title_padrao = 'Entrar' %}
+    {% if marca_nome_login %}
+        {% set login_title_padrao = marca_nome_login ~ ' - Entrar' %}
+    {% endif %}
+    <title>{{ page_title|default(login_title_padrao, true) }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="page-login">
+    {% set csrf_form_token = form_csrf_token|default('', true) %}
+    {% if csrf_token is defined %}
+        {% set csrf_form_token = csrf_token %}
+    {% endif %}
+    <main class="auth-layout">
+        <section class="auth-brand">
+            <div class="brand-block">
+                <h1 class="brand-title">{{ marca_nome_login|default('Sua Marca', true) }}</h1>
+                <p class="brand-copy">Gestão profissional para personal training</p>
+            </div>
+        </section>
+
+        <section class="auth-panel ui-card">
+            <div class="auth-panel-inner">
+                <h2>Entrar</h2>
+                <p class="auth-subtitle">Acesse sua conta</p>
+
+                {% if sucesso %}
+                <section class="student-feedback student-feedback-success" aria-label="Mensagem de sucesso">
+                    <p>{{ sucesso }}</p>
+                </section>
+                {% endif %}
+
+                {% if erro %}
+                <section class="student-feedback student-feedback-error" aria-label="Mensagem de erro">
+                    <p>{{ erro }}</p>
+                </section>
+                {% endif %}
+
+                <form class="ui-form" action="{{ login_url|default(url_for('login'), true) }}" method="post">
+                    {% if csrf_form_token %}
+                    <input type="hidden" name="csrf_token" value="{{ csrf_form_token if csrf_form_token is string else csrf_form_token() }}">
+                    {% endif %}
+                    <input type="hidden" name="next" value="{{ next_url|default('', true) }}">
+
+                    <div class="field">
+                        <label for="email">Email</label>
+                        <input id="email" name="email" type="email" placeholder="seu@email.com" value="{{ form.email if form is defined else '' }}" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="senha">Senha</label>
+                        <input id="senha" name="senha" type="password" placeholder="********" required>
+                    </div>
+
+                    <div class="checkbox-row">
+                        <input type="checkbox" id="lembrar" name="lembrar" value="1" {% if form is defined and form.lembrar %}checked{% endif %}>
+                        <label for="lembrar">Manter conectado neste dispositivo</label>
+                    </div>
+
+                    <button class="button ui-btn ui-btn-primary button-block" type="submit">Entrar</button>
+                </form>
+
+                <p class="link-row">Não tem uma conta? <a href="{{ cadastro_url|default(url_for('cadastro'), true) }}">Cadastre-se</a></p>
+                <a class="back-link" href="{{ home_url|default(url_for('index'), true) }}">Voltar para home</a>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
+

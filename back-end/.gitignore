@@ -1,0 +1,11 @@
+.venv/
+.deps/
+__pycache__/
+*.pyc
+*.pyo
+.env
+*.log
+site.out.log
+site.err.log
+server.out.log
+server.err.log

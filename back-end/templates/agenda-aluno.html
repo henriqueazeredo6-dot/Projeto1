@@ -1,0 +1,127 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title|default('CONFIE - Agenda do Aluno', true) }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <aside class="dashboard-sidebar">
+            <div class="sidebar-brand">
+                <a class="sidebar-logo" href="{{ dashboard_url|default('/dashboard', true) }}">CONFIE PERSONAL</a>
+                <p class="sidebar-user">{{ aluno_nome|default('Aluno', true) }}</p>
+            </div>
+
+            <nav class="sidebar-nav" aria-label="Menu do aluno">
+                <a class="sidebar-link {% if pagina_ativa == 'dashboard' %}is-active{% endif %}" href="{{ dashboard_url|default('/dashboard', true) }}">Dashboard</a>
+                <a class="sidebar-link {% if pagina_ativa == 'meu_treino' %}is-active{% endif %}" href="{{ meu_treino_url|default('/meu-treino', true) }}">Meu Treino</a>
+                <a class="sidebar-link {% if pagina_ativa == 'agenda' %}is-active{% endif %}" href="{{ agenda_aluno_url|default('/agenda', true) }}">Agendar Aula</a>
+                <a class="sidebar-link {% if pagina_ativa == 'mensagens' %}is-active{% endif %}" href="{{ mensagens_url|default('/mensagens', true) }}">Mensagens</a>
+                <a class="sidebar-link {% if pagina_ativa == 'evolucao' %}is-active{% endif %}" href="{{ evolucao_url|default('/evolucao', true) }}">EvoluÃ§Ã£o</a>
+                <a class="sidebar-link" href="{{ logout_url|default('/logout', true) }}">Sair</a>
+            </nav>
+        </aside>
+
+        <main class="dashboard-main">
+            <header class="dashboard-header">
+                <div>
+                    <h1 class="dashboard-title">Agenda</h1>
+                    <p class="dashboard-subtitle">{{ agendamentos|length }} compromissos agendados</p>
+                </div>
+            </header>
+
+            {% if sucesso %}
+            <section class="student-feedback student-feedback-success" aria-label="Mensagem de sucesso">
+                <p>{{ sucesso }}</p>
+            </section>
+            {% endif %}
+
+            {% if erro %}
+            <section class="student-feedback student-feedback-error" aria-label="Mensagem de erro">
+                <p>{{ erro }}</p>
+            </section>
+            {% endif %}
+
+            <section class="agenda-aluno-section" aria-label="HorÃ¡rios disponÃ­veis">
+                <div class="agenda-aluno-heading">
+                    <div>
+                        <p class="avaliacao-kicker">Marcar aula</p>
+                        <h2>HorÃ¡rios disponÃ­veis</h2>
+                    </div>
+                    <p>Escolha um horÃ¡rio livre para solicitar sua prÃ³xima aula.</p>
+                </div>
+
+                <div class="agenda-slots-grid">
+                    {% for horario in horarios_disponiveis %}
+                    <article class="agenda-slot-card">
+                        <div class="agenda-slot-top">
+                            <span class="agenda-slot-icon" aria-hidden="true">+</span>
+                            <span class="agenda-status agenda-status-pendente">DisponÃ­vel</span>
+                        </div>
+                        <h3>{{ horario.data }}</h3>
+                        <p class="agenda-time">{{ horario.inicio }} - {{ horario.termino }}</p>
+                        <p class="agenda-student">{{ horario.tipo|default('Aula personal', true) }}</p>
+
+                        <form action="{{ marcar_aula_url|default('/agenda/marcar', true) }}" method="post">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="horario_id" value="{{ horario.id }}">
+                            <input type="hidden" name="inicio" value="{{ horario.inicio_iso|default('', true) }}">
+                            <input type="hidden" name="termino" value="{{ horario.termino_iso|default('', true) }}">
+                            <button class="button-block" type="submit">Marcar aula</button>
+                        </form>
+                    </article>
+                    {% else %}
+                    <article class="agenda-card agenda-card-empty agenda-aluno-empty">
+                        <h2>Nenhum horÃ¡rio disponÃ­vel</h2>
+                        <p>Assim que novos horÃ¡rios forem liberados pelo personal, eles aparecerÃ£o aqui.</p>
+                    </article>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <section class="agenda-aluno-section" aria-label="Agendamentos existentes">
+                <div class="agenda-aluno-heading">
+                    <div>
+                        <p class="avaliacao-kicker">Meus horÃ¡rios</p>
+                        <h2>Agendamentos existentes</h2>
+                    </div>
+                </div>
+
+                <div class="agenda-list">
+                    {% for agendamento in agendamentos %}
+                    <article class="agenda-card">
+                        <div class="agenda-card-header">
+                            <div>
+                                <h2>{{ agendamento.titulo|default('Aula Personal', true) }}</h2>
+                                <p class="agenda-time">{{ agendamento.data }} Â· {{ agendamento.inicio }} - {{ agendamento.termino }}</p>
+                            </div>
+                            <span class="agenda-status agenda-status-{{ agendamento.status_classe|default('pendente', true) }}">
+                                {{ agendamento.status|default('Agendado', true) }}
+                            </span>
+                        </div>
+
+                        <p class="agenda-student">{{ agendamento.observacoes|default('Aula marcada com seu personal.', true) }}</p>
+
+                        {% if agendamento.pode_cancelar %}
+                        <form class="agenda-aluno-cancel" action="{{ cancelar_agendamento_url_base|default('/agenda/cancelar', true) }}/{{ agendamento.id }}" method="post">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button class="student-action" type="submit">Cancelar aula</button>
+                        </form>
+                        {% endif %}
+                    </article>
+                    {% else %}
+                    <article class="agenda-card agenda-card-empty agenda-aluno-empty">
+                        <div class="agenda-empty-icon" aria-hidden="true"></div>
+                        <h2>Nenhuma aula agendada</h2>
+                        <p>Agende sua primeira aula escolhendo um dos horÃ¡rios disponÃ­veis acima.</p>
+                    </article>
+                    {% endfor %}
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
+

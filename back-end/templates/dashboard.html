@@ -1,0 +1,190 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title|default('Dashboard', true) }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="personal-page page-dashboard">
+    {% set pagina_ativa = pagina_ativa|default('dashboard', true) %}
+    {% set marca_logo_url_valor = marca_logo_url|default('', true) %}
+    {% set total_alunos_resumo = total_alunos|default(0, true) %}
+    {% set total_sessoes_resumo = total_sessoes|default(0, true) %}
+    {% set total_receita_resumo = total_receita|default('R$ 0,00', true) %}
+    {% set total_checkins_resumo = total_checkins|default(0, true) %}
+    {% set adicionar_aluno_destino = adicionar_aluno_url|default('/alunos/novo', true) %}
+    <div class="dashboard-layout">
+        <aside class="dashboard-sidebar">
+            <div class="sidebar-brand">
+                <a class="sidebar-logo" href="{{ dashboard_url|default('/dashboard', true) }}">
+                    {% if marca_logo_url_valor %}
+                    <img src="{{ marca_logo_url_valor }}" alt="{{ marca_nome|default('Marca', true) }}" class="sidebar-logo-image">
+                    {% else %}
+                    <span>{{ marca_nome|default('', true) }}</span>
+                    {% endif %}
+                </a>
+                <p class="sidebar-user">{{ profissional_nome|default('', true) }}</p>
+            </div>
+
+            <nav class="sidebar-nav" aria-label="Menu principal">
+                <a class="sidebar-link {% if pagina_ativa == 'dashboard' %}is-active{% endif %}" href="{{ dashboard_url|default('/dashboard', true) }}">Dashboard</a>
+                <a class="sidebar-link {% if pagina_ativa == 'alunos' %}is-active{% endif %}" href="{{ alunos_url|default('/alunos', true) }}">Alunos</a>
+                <a class="sidebar-link {% if pagina_ativa == 'exercicios' %}is-active{% endif %}" href="{{ exercicios_url|default('/exercicios', true) }}">ExercÃ­cios</a>
+                <a class="sidebar-link {% if pagina_ativa == 'treinos' %}is-active{% endif %}" href="{{ treinos_url|default('/treinos', true) }}">Treinos</a>
+                <a class="sidebar-link {% if pagina_ativa == 'agenda' %}is-active{% endif %}" href="{{ agenda_url|default('/agenda', true) }}">Agenda</a>
+                <a class="sidebar-link {% if pagina_ativa == 'mensagens' %}is-active{% endif %}" href="{{ mensagens_url|default('/mensagens', true) }}">Mensagens</a>
+                <a class="sidebar-link {% if pagina_ativa == 'anamnese' %}is-active{% endif %}" href="{{ anamnese_url|default('/anamnese', true) }}">Anamnese</a>
+                <a class="sidebar-link {% if pagina_ativa == 'observacoes' %}is-active{% endif %}" href="{{ observacoes_url|default('/observacoes', true) }}">ObservaÃ§Ãµes</a>
+                <a class="sidebar-link {% if pagina_ativa == 'avaliacoes' %}is-active{% endif %}" href="{{ avaliacoes_url|default('/avaliacoes', true) }}">AvaliaÃ§Ãµes</a>
+                <a class="sidebar-link {% if pagina_ativa == 'evolucao' %}is-active{% endif %}" href="{{ evolucao_url|default('/evolucao', true) }}">EvoluÃ§Ã£o</a>
+                <a class="sidebar-link {% if pagina_ativa == 'financeiro' %}is-active{% endif %}" href="{{ financeiro_url|default('/financeiro', true) }}">Financeiro</a>
+                <a class="sidebar-link {% if pagina_ativa == 'configuracoes' %}is-active{% endif %}" href="{{ configuracoes_url|default('/configuracoes', true) }}">ConfiguraÃ§Ãµes</a>
+                <a class="sidebar-link" href="{{ logout_url|default('/logout', true) }}">Sair</a>
+            </nav>
+        </aside>
+
+        <main class="dashboard-main">
+            <header class="dashboard-header">
+                <div>
+                    <h1 class="dashboard-title">Dashboard</h1>
+                    <p class="dashboard-subtitle">Bem-vindo{% if profissional_nome %}, {{ profissional_nome }}{% endif %}</p>
+                </div>
+
+                <a class="button ui-btn ui-btn-primary dashboard-add-button" href="{{ adicionar_aluno_destino }}">
+                    + Adicionar aluno
+                </a>
+            </header>
+
+            {% if sucesso %}
+            <section class="student-feedback student-feedback-success" aria-label="Mensagem de sucesso">
+                <p>{{ sucesso }}</p>
+            </section>
+            {% endif %}
+
+            {% if erro %}
+            <section class="student-feedback student-feedback-error" aria-label="Mensagem de erro">
+                <p>{{ erro }}</p>
+            </section>
+            {% endif %}
+
+            <section class="dashboard-stats" aria-label="Indicadores principais">
+                <article class="dashboard-stat-card ui-card">
+                    <div class="dashboard-stat-top">
+                        <div class="dashboard-stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="M16 21V19A4 4 0 0 0 12 15H8A4 4 0 0 0 4 19V21" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                                <circle cx="10" cy="7" r="4" stroke="currentColor" stroke-width="1.9"/>
+                                <path d="M20 8V14" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                                <path d="M23 11H17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <p class="dashboard-stat-label">Alunos</p>
+                    </div>
+                    <strong class="dashboard-stat-value">{{ total_alunos_resumo }}</strong>
+                    <p class="dashboard-stat-note">{{ alunos_descricao|default('Total cadastrados', true) }}</p>
+                </article>
+
+                <article class="dashboard-stat-card ui-card">
+                    <div class="dashboard-stat-top">
+                        <div class="dashboard-stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <rect x="4" y="5" width="16" height="15" rx="2" stroke="currentColor" stroke-width="1.9"/>
+                                <path d="M8 3V7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                                <path d="M16 3V7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                                <path d="M4 10H20" stroke="currentColor" stroke-width="1.9"/>
+                            </svg>
+                        </div>
+                        <p class="dashboard-stat-label">SessÃµes</p>
+                    </div>
+                    <strong class="dashboard-stat-value">{{ total_sessoes_resumo }}</strong>
+                    <p class="dashboard-stat-note">{{ sessoes_descricao|default('Aulas concluÃ­das', true) }}</p>
+                </article>
+
+                <article class="dashboard-stat-card ui-card">
+                    <div class="dashboard-stat-top">
+                        <div class="dashboard-stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="M12 3V21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                <path d="M15 7.2C15 6 13.7 5.2 12 5.2C10.3 5.2 9 6 9 7.2C9 8.4 10.3 9.2 12 9.2C13.7 9.2 15 10 15 11.2C15 12.4 13.7 13.2 12 13.2C10.3 13.2 9 14 9 15.2C9 16.4 10.3 17.2 12 17.2C13.7 17.2 15 16.4 15 15.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <p class="dashboard-stat-label">Receita</p>
+                    </div>
+                    <strong class="dashboard-stat-value">{{ total_receita_resumo }}</strong>
+                    <p class="dashboard-stat-note">{{ receita_descricao|default('Total recebido', true) }}</p>
+                </article>
+
+                <article class="dashboard-stat-card ui-card">
+                    <div class="dashboard-stat-top">
+                        <div class="dashboard-stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="M3 13H7L10 6L14 19L17 13H21" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <p class="dashboard-stat-label">Check-ins</p>
+                    </div>
+                    <strong class="dashboard-stat-value">
+                        {{ total_checkins_resumo }}
+                        {% if variacao_checkins %}
+                        <span class="dashboard-stat-growth">{{ variacao_checkins }}</span>
+                        {% endif %}
+                    </strong>
+                    <p class="dashboard-stat-note">{{ checkins_descricao|default('Check-ins registrados', true) }}</p>
+                </article>
+            </section>
+
+            <section class="dashboard-quick-section" aria-label="AÃ§Ãµes rÃ¡pidas">
+                <div class="dashboard-panel ui-card">
+                    <h2 class="dashboard-panel-title">AÃ§Ãµes rÃ¡pidas</h2>
+
+                    <div class="dashboard-quick-grid">
+                        <a class="dashboard-quick-card dashboard-quick-card-primary ui-card" href="{{ adicionar_aluno_destino }}">
+                            <div class="dashboard-quick-icon">
+                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path d="M16 21V19A4 4 0 0 0 12 15H8A4 4 0 0 0 4 19V21" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                                    <circle cx="10" cy="7" r="4" stroke="currentColor" stroke-width="1.9"/>
+                                    <path d="M20 8V14" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                                    <path d="M23 11H17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                            <span class="dashboard-quick-text">Adicionar aluno</span>
+                        </a>
+
+                        <a class="dashboard-quick-card ui-card" href="{{ criar_treino_url|default('/treinos/novo', true) }}">
+                            <div class="dashboard-quick-icon">
+                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path d="M3 13H7L10 6L14 19L17 13H21" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <span class="dashboard-quick-text">Criar treino</span>
+                        </a>
+
+                        <a class="dashboard-quick-card ui-card" href="{{ agendar_aula_url|default('/agenda/nova', true) }}">
+                            <div class="dashboard-quick-icon">
+                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <rect x="4" y="5" width="16" height="15" rx="2" stroke="currentColor" stroke-width="1.9"/>
+                                    <path d="M8 3V7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                                    <path d="M16 3V7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                                    <path d="M4 10H20" stroke="currentColor" stroke-width="1.9"/>
+                                </svg>
+                            </div>
+                            <span class="dashboard-quick-text">Agendar aula</span>
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <section aria-label="Dados para integraÃ§Ã£o" hidden>
+                <form id="dashboard-filters" class="ui-form">
+                    <input type="hidden" name="profissional_id" value="{{ profissional_id|default('', true) }}">
+                    <input type="hidden" name="empresa_id" value="{{ empresa_id|default('', true) }}">
+                    <input type="hidden" name="periodo_inicio" value="{{ periodo_inicio|default('', true) }}">
+                    <input type="hidden" name="periodo_fim" value="{{ periodo_fim|default('', true) }}">
+                </form>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
+

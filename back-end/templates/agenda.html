@@ -1,0 +1,147 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title|default('CONFIE - Agenda', true) }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <aside class="dashboard-sidebar">
+            <div class="sidebar-brand">
+                <a class="sidebar-logo" href="{{ dashboard_url|default('/dashboard', true) }}">CONFIE PERSONAL</a>
+                <p class="sidebar-user">{{ profissional_nome|default('Personal Trainer', true) }}</p>
+            </div>
+
+            <nav class="sidebar-nav" aria-label="Menu principal">
+                <a class="sidebar-link {% if pagina_ativa == 'dashboard' %}is-active{% endif %}" href="{{ dashboard_url|default('/dashboard', true) }}">Dashboard</a>
+                <a class="sidebar-link {% if pagina_ativa == 'alunos' %}is-active{% endif %}" href="{{ alunos_url|default('/alunos', true) }}">Alunos</a>
+                <a class="sidebar-link {% if pagina_ativa == 'exercicios' %}is-active{% endif %}" href="{{ exercicios_url|default('/exercicios', true) }}">ExercÃ­cios</a>
+                <a class="sidebar-link {% if pagina_ativa == 'treinos' %}is-active{% endif %}" href="{{ treinos_url|default('/treinos', true) }}">Treinos</a>
+                <a class="sidebar-link {% if pagina_ativa == 'agenda' %}is-active{% endif %}" href="{{ agenda_url|default('/agenda', true) }}">Agenda</a>
+                <a class="sidebar-link {% if pagina_ativa == 'mensagens' %}is-active{% endif %}" href="{{ mensagens_url|default('/mensagens', true) }}">Mensagens</a>
+                <a class="sidebar-link {% if pagina_ativa == 'anamnese' %}is-active{% endif %}" href="{{ anamnese_url|default('/anamnese', true) }}">Anamnese</a>
+                <a class="sidebar-link {% if pagina_ativa == 'avaliacoes' %}is-active{% endif %}" href="{{ avaliacoes_url|default('/avaliacoes', true) }}">AvaliaÃ§Ãµes</a>
+                <a class="sidebar-link {% if pagina_ativa == 'evolucao' %}is-active{% endif %}" href="{{ evolucao_url|default('/evolucao', true) }}">EvoluÃ§Ã£o</a>
+                <a class="sidebar-link {% if pagina_ativa == 'financeiro' %}is-active{% endif %}" href="{{ financeiro_url|default('/financeiro', true) }}">Financeiro</a>
+                <a class="sidebar-link" href="{{ logout_url|default('/logout', true) }}">Sair</a>
+            </nav>
+        </aside>
+
+        <main class="dashboard-main">
+            <header class="dashboard-header">
+                <div>
+                    <h1 class="dashboard-title">Agenda</h1>
+                    <p class="dashboard-subtitle">{{ compromissos|length }} compromissos agendados</p>
+                    <p class="agenda-date-heading">{{ data_referencia|default('03/04/2026', true) }}</p>
+                </div>
+
+                <a class="button dashboard-add-button" href="#nova-aula">Agendar aula</a>
+            </header>
+
+            {% if sucesso %}
+            <section class="student-feedback student-feedback-success" aria-label="Mensagem de sucesso">
+                <p>{{ sucesso }}</p>
+            </section>
+            {% endif %}
+
+            {% if erro %}
+            <section class="student-feedback student-feedback-error" aria-label="Mensagem de erro">
+                <p>{{ erro }}</p>
+            </section>
+            {% endif %}
+
+            <section class="agenda-list" aria-label="Compromissos">
+                {% for compromisso in compromissos %}
+                <article class="agenda-card">
+                    <div class="agenda-card-header">
+                        <div>
+                            <h2>{{ compromisso.titulo }}</h2>
+                            <p class="agenda-time">{{ compromisso.inicio }} - {{ compromisso.termino }}</p>
+                        </div>
+                        <span class="agenda-status agenda-status-{{ compromisso.status_classe|default('pendente', true) }}">
+                            {{ compromisso.status }}
+                        </span>
+                    </div>
+
+                    <p class="agenda-student">{{ compromisso.tipo|default('Aula', true) }}</p>
+
+                    <div class="agenda-actions">
+                        <form action="{{ confirmar_url_base|default('/agenda/confirmar', true) }}/{{ compromisso.id }}" method="post">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button class="student-action" type="submit">Confirmar</button>
+                        </form>
+
+                        <form action="{{ concluir_url_base|default('/agenda/concluir', true) }}/{{ compromisso.id }}" method="post">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button class="student-action" type="submit">Concluir</button>
+                        </form>
+
+                        <form action="{{ cancelar_url_base|default('/agenda/cancelar', true) }}/{{ compromisso.id }}" method="post">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button class="student-action" type="submit">Cancelar</button>
+                        </form>
+
+                        <a class="student-action" href="{{ compromisso.google_calendar_url|default('#', true) }}">Google Calendar</a>
+                    </div>
+                </article>
+                {% else %}
+                <article class="agenda-card agenda-card-empty">
+                    <h2>Nenhum compromisso</h2>
+                    <p>VocÃª ainda nÃ£o possui aulas agendadas para esta data.</p>
+                </article>
+                {% endfor %}
+            </section>
+
+            <section class="student-modal-wrap" id="nova-aula" aria-label="Agendar nova aula">
+                <a class="student-modal-overlay" href="{{ agenda_url|default('/agenda', true) }}" aria-label="Fechar modal"></a>
+                <div class="student-modal agenda-modal">
+                    <div class="student-modal-header">
+                        <h2>Nova aula</h2>
+                        <a class="student-modal-close" href="{{ agenda_url|default('/agenda', true) }}" aria-label="Fechar modal">x</a>
+                    </div>
+
+                    <form class="student-form" action="{{ criar_aula_url|default('/agenda', true) }}" method="post">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="field">
+                            <label for="titulo">TÃ­tulo</label>
+                            <input id="titulo" name="titulo" type="text" placeholder="Ex: Treino personalizado" required>
+                        </div>
+
+                        <div class="field">
+                            <label for="aluno_id">Aluno</label>
+                            <select id="aluno_id" name="aluno_id" required>
+                                <option value="">Selecione um aluno</option>
+                                {% for aluno in alunos %}
+                                <option value="{{ aluno.id }}">{{ aluno.nome }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="agenda-form-row">
+                            <div class="field">
+                                <label for="inicio">InÃ­cio</label>
+                                <input id="inicio" name="inicio" type="datetime-local" required>
+                            </div>
+
+                            <div class="field">
+                                <label for="termino">TÃ©rmino</label>
+                                <input id="termino" name="termino" type="datetime-local" required>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label for="observacoes">ObservaÃ§Ãµes</label>
+                            <textarea id="observacoes" name="observacoes" rows="4" placeholder="ObservaÃ§Ãµes sobre a aula..."></textarea>
+                        </div>
+
+                        <button class="button-block" type="submit">Agendar aula</button>
+                    </form>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
+
