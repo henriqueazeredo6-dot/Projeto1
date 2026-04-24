@@ -40,6 +40,9 @@ TABLE_EXECUCOES = os.getenv("SUPABASE_TABLE_EXECUCOES", "tb_execucao_treino")
 BRAND_NAME = os.getenv("BRAND_NAME", "CONFIE PERSONAL")
 BRAND_LOGO_URL = os.getenv("BRAND_LOGO_URL", "")
 DEFAULT_PORT = int(os.getenv("PORT", "5000"))
+DEV_BYPASS_AUTH = os.getenv("DEV_BYPASS_AUTH", "0").strip().lower() in {"1", "true", "yes", "on"}
+DEV_PERSONAL_ID = "11111111-1111-1111-1111-111111111111"
+DEV_ALUNO_ID = "22222222-2222-2222-2222-222222222222"
 
 supabase: Optional[Client] = None
 supabase_admin: Optional[Client] = None
@@ -338,6 +341,42 @@ def _clear_session() -> None:
     session.clear()
 
 
+def _is_student_path(path: str) -> bool:
+    return path == "/aluno" or path.startswith("/aluno/") or path in {"/agenda-aluno", "/evolucao-aluno"}
+
+
+def _dev_user_for_path(path: str) -> Dict[str, Any]:
+    if _is_student_path(path):
+        return {
+            "id": DEV_ALUNO_ID,
+            "email": "aluno.teste@confie.local",
+            "nome": "Aluno Teste",
+            "tipo_conta": "Aluno",
+            "auth_user_id": "dev-auth-aluno",
+        }
+    return {
+        "id": DEV_PERSONAL_ID,
+        "email": "personal.teste@confie.local",
+        "nome": "Personal Teste",
+        "tipo_conta": "Personal Trainer",
+        "auth_user_id": "dev-auth-personal",
+    }
+
+
+def _ensure_dev_session() -> None:
+    if not DEV_BYPASS_AUTH or request.endpoint == "static":
+        return
+    current = _session_user()
+    expected = _dev_user_for_path(request.path)
+    if current["email"] != expected["email"] or current["tipo_conta"] != expected["tipo_conta"]:
+        _set_session_user(expected)
+
+
+@app.before_request
+def _apply_dev_auth_bypass():
+    _ensure_dev_session()
+
+
 def _find_user_by_email(email: str) -> Dict[str, Any]:
     return _select_first_by(TABLE_USUARIOS, "email", email.strip().lower())
 
@@ -345,24 +384,48 @@ def _find_user_by_email(email: str) -> Dict[str, Any]:
 def _current_user_row() -> Optional[Dict[str, Any]]:
     email = (session.get("user_email") or "").strip().lower()
     if not email:
-        return None
+        return _dev_user_for_path(request.path) if DEV_BYPASS_AUTH else None
     result = _find_user_by_email(email)
-    return result["data"] if result["ok"] else None
+    if result["ok"] and result["data"]:
+        return result["data"]
+    return _dev_user_for_path(request.path) if DEV_BYPASS_AUTH else None
 
 
 def _current_student_row() -> Optional[Dict[str, Any]]:
     current = _session_user()
     if not current["email"]:
+        if DEV_BYPASS_AUTH:
+            return {
+                "id": DEV_ALUNO_ID,
+                "nome": "Aluno Teste",
+                "email": "aluno.teste@confie.local",
+                "telefone": "",
+                "objetivo": "Testar as telas",
+                "status": "ativo",
+                "plano": "Teste",
+            }
         return None
     by_email = _select_first_by(TABLE_ALUNOS, "email", current["email"])
     if by_email["ok"] and by_email["data"]:
         return by_email["data"]
+    if DEV_BYPASS_AUTH:
+        return {
+            "id": DEV_ALUNO_ID,
+            "nome": current["nome"] or "Aluno Teste",
+            "email": current["email"] or "aluno.teste@confie.local",
+            "telefone": "",
+            "objetivo": "Testar as telas",
+            "status": "ativo",
+            "plano": "Teste",
+        }
     return None
 
 
 def login_required(view):
     @wraps(view)
     def wrapped(*args, **kwargs):
+        if DEV_BYPASS_AUTH:
+            _ensure_dev_session()
         if not session.get("user_email"):
             flash("Entre na plataforma para continuar.", "error")
             return redirect(url_for("login"))
@@ -375,6 +438,8 @@ def role_required(*allowed_roles: str):
     def decorator(view):
         @wraps(view)
         def wrapped(*args, **kwargs):
+            if DEV_BYPASS_AUTH:
+                _ensure_dev_session()
             current_role = (session.get("user_role") or "").strip().lower()
             if current_role not in [role.lower() for role in allowed_roles]:
                 flash("Voce nao tem permissao para acessar esta area.", "error")
@@ -854,6 +919,9 @@ def index():
 @app.route("/cadastro", methods=["GET", "POST"])
 @app.route("/Cadastro.html", methods=["GET", "POST"])
 def cadastro():
+    if DEV_BYPASS_AUTH:
+        flash("Modo teste ativo: cadastro e login foram desativados temporariamente para facilitar a validacao das telas.", "info")
+        return redirect(url_for("dashboard"))
     if request.method == "POST":
         nome = request.form.get("nome", "").strip()
         email = request.form.get("email", "").strip().lower()
@@ -925,6 +993,9 @@ def cadastro():
 @app.route("/login", methods=["GET", "POST"])
 @app.route("/Login.html", methods=["GET", "POST"])
 def login():
+    if DEV_BYPASS_AUTH:
+        flash("Modo teste ativo: voce entrou automaticamente sem precisar fazer login.", "info")
+        return redirect(url_for("dashboard"))
     if request.method == "POST":
         email = request.form.get("email", "").strip().lower()
         senha = request.form.get("senha", "").strip()
