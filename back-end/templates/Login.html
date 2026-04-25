@@ -65,6 +65,11 @@
                     <button class="button ui-btn ui-btn-primary button-block" type="submit">Entrar</button>
                 </form>
 
+                <div class="auth-dev-entry">
+                    <p class="auth-dev-label">Precisa apenas testar as telas?</p>
+                    <a class="button button-secondary button-block" href="{{ url_for('abrir_como_desenvolvedor') }}">Abrir como desenvolvedor</a>
+                </div>
+
                 <p class="link-row">Não tem uma conta? <a href="{{ cadastro_url|default(url_for('cadastro'), true) }}">Cadastre-se</a></p>
                 <a class="back-link" href="{{ home_url|default(url_for('index'), true) }}">Voltar para home</a>
             </div>

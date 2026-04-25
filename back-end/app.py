@@ -1063,6 +1063,18 @@ def logout():
     return redirect(url_for("login"))
 
 
+@app.get("/abrir-como-desenvolvedor")
+def abrir_como_desenvolvedor():
+    if not DEV_BYPASS_AUTH:
+        flash("O modo desenvolvedor esta desativado neste ambiente.", "error")
+        return redirect(url_for("login"))
+    perfil = (request.args.get("perfil", "personal") or "personal").strip().lower()
+    destino = "/aluno/dashboard" if perfil == "aluno" else "/dashboard"
+    _set_session_user(_dev_user_for_path(destino))
+    flash("Modo desenvolvedor ativo. Login liberado temporariamente para teste das telas.", "info")
+    return redirect(url_for("aluno_dashboard" if perfil == "aluno" else "dashboard"))
+
+
 @app.get("/dashboard")
 @login_required
 @role_required("Personal Trainer", "Admin", "Professor")

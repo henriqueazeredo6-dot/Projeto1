@@ -506,6 +506,21 @@ select:focus {
     margin-top: 1.3rem;
 }
 
+.auth-dev-entry {
+    margin-top: 1rem;
+}
+
+.auth-dev-label {
+    margin-bottom: 0.75rem;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.88rem;
+}
+
+.auth-dev-entry .button-block {
+    margin-top: 0;
+}
+
 .link-row,
 .back-link {
     text-align: center;

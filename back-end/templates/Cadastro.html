@@ -3,24 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CONFIE - Plataforma para Personal Trainers - Cadastro</title>
+    {% set marca_nome_cadastro = marca_nome|default('CONFIE Personal', true) %}
+    <title>{{ marca_nome_cadastro }} - Cadastro</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
+<body class="page-cadastro">
     <main class="auth-layout">
         <section class="auth-brand">
             <div class="brand-block">
-                <h1 class="brand-title">CONFIE Personal</h1>
-                <p class="brand-copy">GestÃ£o Profissional de Personal Training</p>
+                <h1 class="brand-title">{{ marca_nome_cadastro }}</h1>
+                <p class="brand-copy">Gestão profissional de personal training</p>
             </div>
         </section>
 
-        <section class="auth-panel">
+        <section class="auth-panel ui-card">
             <div class="auth-panel-inner">
                 <h2>Cadastro</h2>
                 <p class="auth-subtitle">Crie sua conta gratuita</p>
 
-                <form>
+                {% if sucesso %}
+                <section class="student-feedback student-feedback-success" aria-label="Mensagem de sucesso">
+                    <p>{{ sucesso }}</p>
+                </section>
+                {% endif %}
+
+                {% if erro %}
+                <section class="student-feedback student-feedback-error" aria-label="Mensagem de erro">
+                    <p>{{ erro }}</p>
+                </section>
+                {% endif %}
+
+                {% set csrf_form_token = form_csrf_token|default('', true) %}
+                {% if csrf_token is defined %}
+                    {% set csrf_form_token = csrf_token %}
+                {% endif %}
+
+                <form class="ui-form" action="{{ cadastro_url|default(url_for('cadastro'), true) }}" method="post">
+                    {% if csrf_form_token %}
+                    <input type="hidden" name="csrf_token" value="{{ csrf_form_token if csrf_form_token is string else csrf_form_token() }}">
+                    {% endif %}
                     <div class="field">
                         <label for="nome">Nome completo</label>
                         <input id="nome" name="nome" type="text" placeholder="Seu nome" required>
@@ -46,24 +67,29 @@
 
                     <div class="field">
                         <label for="senha">Senha</label>
-                        <input id="senha" name="senha" type="password" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" required>
+                        <input id="senha" name="senha" type="password" placeholder="********" required>
                     </div>
 
                     <div class="field">
                         <label for="confirmar-senha">Confirmar senha</label>
-                        <input id="confirmar-senha" name="confirmar-senha" type="password" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" required>
+                        <input id="confirmar-senha" name="confirmar-senha" type="password" placeholder="********" required>
                     </div>
 
                     <div class="checkbox-row">
                         <input type="checkbox" id="termos" required>
-                        <label for="termos">Eu aceito os <a href="#">Termos e CondiÃ§Ãµes</a> e a <a href="#">PolÃ­tica de Privacidade</a></label>
+                        <label for="termos">Eu aceito os <a href="#">Termos e Condições</a> e a <a href="#">Política de Privacidade</a></label>
                     </div>
 
-                    <button class="button-block" type="submit">âŸ Criar conta</button>
+                    <button class="button ui-btn ui-btn-primary button-block" type="submit">Criar conta</button>
                 </form>
 
-                <p class="link-row">JÃ¡ tem uma conta? <a href="Login.html">FaÃ§a login</a></p>
-                <a class="back-link" href="index.html">â† Voltar para home</a>
+                <div class="auth-dev-entry">
+                    <p class="auth-dev-label">Quer apenas validar as telas agora?</p>
+                    <a class="button button-secondary button-block" href="{{ url_for('abrir_como_desenvolvedor') }}">Abrir como desenvolvedor</a>
+                </div>
+
+                <p class="link-row">Já tem uma conta? <a href="{{ login_url|default(url_for('login'), true) }}">Faça login</a></p>
+                <a class="back-link" href="{{ home_url|default(url_for('index'), true) }}">Voltar para home</a>
             </div>
         </section>
     </main>
