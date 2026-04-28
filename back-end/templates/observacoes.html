@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ page_title|default('CONFIE - ObservaÃ§Ãµes', true) }}</title>
+    <title>{{ page_title|default('CONFIE - Observações', true) }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -20,16 +20,16 @@
             <nav class="sidebar-nav" aria-label="Menu principal">
                 <a class="sidebar-link {% if pagina_ativa == 'dashboard' %}is-active{% endif %}" href="{{ dashboard_url|default('/dashboard', true) }}">Dashboard</a>
                 <a class="sidebar-link {% if pagina_ativa == 'alunos' %}is-active{% endif %}" href="{{ alunos_url|default('/alunos', true) }}">Alunos</a>
-                <a class="sidebar-link {% if pagina_ativa == 'exercicios' %}is-active{% endif %}" href="{{ exercicios_url|default('/exercicios', true) }}">ExercÃ­cios</a>
+                <a class="sidebar-link {% if pagina_ativa == 'exercicios' %}is-active{% endif %}" href="{{ exercicios_url|default('/exercicios', true) }}">Exercícios</a>
                 <a class="sidebar-link {% if pagina_ativa == 'treinos' %}is-active{% endif %}" href="{{ treinos_url|default('/treinos', true) }}">Treinos</a>
                 <a class="sidebar-link {% if pagina_ativa == 'agenda' %}is-active{% endif %}" href="{{ agenda_url|default('/agenda', true) }}">Agenda</a>
                 <a class="sidebar-link {% if pagina_ativa == 'mensagens' %}is-active{% endif %}" href="{{ mensagens_url|default('/mensagens', true) }}">Mensagens</a>
                 <a class="sidebar-link {% if pagina_ativa == 'anamnese' %}is-active{% endif %}" href="{{ anamnese_url|default('/anamnese', true) }}">Anamnese</a>
-                <a class="sidebar-link {% if pagina_ativa == 'observacoes' %}is-active{% endif %}" href="{{ observacoes_url|default('/observacoes', true) }}">ObservaÃ§Ãµes</a>
-                <a class="sidebar-link {% if pagina_ativa == 'avaliacoes' %}is-active{% endif %}" href="{{ avaliacoes_url|default('/avaliacoes', true) }}">AvaliaÃ§Ãµes</a>
-                <a class="sidebar-link {% if pagina_ativa == 'evolucao' %}is-active{% endif %}" href="{{ evolucao_url|default('/evolucao', true) }}">EvoluÃ§Ã£o</a>
+                <a class="sidebar-link {% if pagina_ativa == 'observacoes' %}is-active{% endif %}" href="{{ observacoes_url|default('/observacoes', true) }}">Observações</a>
+                <a class="sidebar-link {% if pagina_ativa == 'avaliacoes' %}is-active{% endif %}" href="{{ avaliacoes_url|default('/avaliacoes', true) }}">Avaliações</a>
+                <a class="sidebar-link {% if pagina_ativa == 'evolucao' %}is-active{% endif %}" href="{{ evolucao_url|default('/evolucao', true) }}">Evolução</a>
                 <a class="sidebar-link {% if pagina_ativa == 'financeiro' %}is-active{% endif %}" href="{{ financeiro_url|default('/financeiro', true) }}">Financeiro</a>
-                <a class="sidebar-link {% if pagina_ativa == 'configuracoes' %}is-active{% endif %}" href="{{ configuracoes_url|default('/configuracoes', true) }}">ConfiguraÃ§Ãµes</a>
+                <a class="sidebar-link {% if pagina_ativa == 'configuracoes' %}is-active{% endif %}" href="{{ configuracoes_url|default('/configuracoes', true) }}">Configurações</a>
                 <a class="sidebar-link" href="{{ logout_url|default('/logout', true) }}">Sair</a>
             </nav>
         </aside>
@@ -37,8 +37,8 @@
         <main class="dashboard-main">
             <header class="dashboard-header">
                 <div>
-                    <h1 class="dashboard-title">ObservaÃ§Ãµes de treino</h1>
-                    <p class="dashboard-subtitle">Grave e organize anotaÃ§Ãµes rÃ¡pidas por aluno para apoiar o prÃ³ximo treino.</p>
+                    <h1 class="dashboard-title">Observações de treino</h1>
+                    <p class="dashboard-subtitle">Grave e organize anotações rápidas por aluno para apoiar o próximo treino.</p>
                 </div>
             </header>
 
@@ -54,7 +54,7 @@
             </section>
             {% endif %}
 
-            <section class="dashboard-panel" aria-label="FormulÃ¡rio de observaÃ§Ãµes" style="margin-top: 1rem;">
+            <section class="dashboard-panel" aria-label="Formulário de observações" style="margin-top: 1rem;">
                 <form class="student-form" action="{{ salvar_observacao_url|default('/observacoes', true) }}" method="post">
                     {% if csrf_token is defined %}
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -79,28 +79,28 @@
 
                     <div class="field">
                         <div class="observacoes-label-actions">
-                            <label for="observacao_transcrita">ObservaÃ§Ã£o transcrita</label>
+                            <label for="observacao_transcrita">Observação transcrita</label>
                             <div class="observacoes-inline-actions">
                                 <button type="submit" name="acao" value="gravar">Gravar</button>
                                 <button class="button-secondary" type="submit" name="acao" value="organizar">Organizar</button>
                             </div>
                         </div>
-                        <textarea id="observacao_transcrita" name="observacao_transcrita" rows="7" placeholder="Detalhes da sessÃ£o, dor, compensaÃ§Ã£o, tÃ©cnica..." required>{{ form.observacao_transcrita if form is defined else '' }}</textarea>
+                        <textarea id="observacao_transcrita" name="observacao_transcrita" rows="7" placeholder="Detalhes da sessão, dor, compensação, técnica..." required>{{ form.observacao_transcrita if form is defined else '' }}</textarea>
                     </div>
 
                     <div class="field">
-                        <label for="proximo_ajuste">Ajuste para o prÃ³ximo treino</label>
-                        <textarea id="proximo_ajuste" name="proximo_ajuste" rows="4" placeholder="Qual ajuste serÃ¡ aplicado na prÃ³xima sessÃ£o">{{ form.proximo_ajuste if form is defined else '' }}</textarea>
+                        <label for="proximo_ajuste">Ajuste para o próximo treino</label>
+                        <textarea id="proximo_ajuste" name="proximo_ajuste" rows="4" placeholder="Qual ajuste será aplicado na próxima sessão">{{ form.proximo_ajuste if form is defined else '' }}</textarea>
                     </div>
 
                     <div class="observacoes-save-row">
-                        <button type="submit">Salvar observaÃ§Ã£o</button>
+                        <button type="submit">Salvar observação</button>
                     </div>
                 </form>
             </section>
 
-            <section class="dashboard-panel" aria-label="HistÃ³rico de observaÃ§Ãµes" style="margin-top: 1rem;">
-                <h2 class="dashboard-panel-title">HistÃ³rico</h2>
+            <section class="dashboard-panel" aria-label="Histórico de observações" style="margin-top: 1rem;">
+                <h2 class="dashboard-panel-title">Histórico</h2>
 
                 {% for item in historico_lista %}
                 <article class="observacoes-history-card">
@@ -109,17 +109,17 @@
                     <p><strong>Foco:</strong> {{ item.foco_treino|default('-', true) }}</p>
                     <p>{{ item.observacao_transcrita|default('-', true) }}</p>
                     {% if item.proximo_ajuste %}
-                    <p><strong>PrÃ³ximo ajuste:</strong> {{ item.proximo_ajuste }}</p>
+                    <p><strong>Próximo ajuste:</strong> {{ item.proximo_ajuste }}</p>
                     {% endif %}
                 </article>
                 {% else %}
                 <article class="observacoes-history-card">
-                    <p class="observacoes-history-date">Nenhuma observaÃ§Ã£o registrada ainda.</p>
+                    <p class="observacoes-history-date">Nenhuma observação registrada ainda.</p>
                 </article>
                 {% endfor %}
             </section>
 
-            <section aria-label="Dados para integraÃ§Ã£o" hidden>
+            <section aria-label="Dados para integração" hidden>
                 <form id="observacoes-contexto">
                     <input type="hidden" name="profissional_id" value="{{ profissional_id|default('', true) }}">
                     <input type="hidden" name="empresa_id" value="{{ empresa_id|default('', true) }}">

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -67,7 +67,7 @@
                         <path d="M4 16L9 11L13 15L20 8" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
                         <path d="M20 12V8H16" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
-                    <span>EvoluÃ§Ã£o</span>
+                    <span>Evolução</span>
                 </a>
 
                 <a class="sidebar-link" href="{{ logout_url|default('/logout', true) }}">
@@ -84,7 +84,7 @@
         <main class="dashboard-main">
             <header class="aluno-header">
                 <h1 class="aluno-main-title">Dashboard</h1>
-                <p class="aluno-main-subtitle">OlÃ¡{% if aluno_nome %}, {{ aluno_nome }}{% endif %}</p>
+                <p class="aluno-main-subtitle">Olá{% if aluno_nome %}, {{ aluno_nome }}{% endif %}</p>
             </header>
 
             {% if sucesso %}
@@ -106,11 +106,11 @@
                         <p class="aluno-kicker">Treino do dia</p>
                         <h2>{{ treino_do_dia.nome|default('Treino do dia', true) }}</h2>
                     </div>
-                    <span class="aluno-highlight-count">{{ treino_do_dia.total_exercicios|default('0 exercÃ­cios', true) }}</span>
+                    <span class="aluno-highlight-count">{{ treino_do_dia.total_exercicios|default('0 exercícios', true) }}</span>
                 </div>
 
                 <div class="aluno-highlight-line">
-                    <strong>{{ treino_do_dia.exercicio_destaque|default('ExercÃ­cio principal', true) }}</strong>
+                    <strong>{{ treino_do_dia.exercicio_destaque|default('Exercício principal', true) }}</strong>
                     <span>{{ treino_do_dia.prescricao|default('Consulte os detalhes para iniciar', true) }}</span>
                 </div>
 
@@ -121,13 +121,13 @@
                 <div class="aluno-highlight-head">
                     <div>
                         <p class="aluno-kicker">Treino do dia</p>
-                        <h2>Nenhum treino atribuÃ­do para hoje</h2>
+                        <h2>Nenhum treino atribuído para hoje</h2>
                     </div>
-                    <span class="aluno-highlight-count">0 exercÃ­cios</span>
+                    <span class="aluno-highlight-count">0 exercícios</span>
                 </div>
 
                 <div class="aluno-highlight-line">
-                    <strong>Seu personal ainda nÃ£o vinculou um treino para esta data.</strong>
+                    <strong>Seu personal ainda não vinculou um treino para esta data.</strong>
                     <span>Volte depois ou abra "Meu Treino".</span>
                 </div>
 
@@ -147,10 +147,10 @@
                         </svg>
                         <p>Treino do dia</p>
                     </div>
-                    <strong>{% if tem_treino_do_dia %}AtribuÃ­do{% else %}Sem treino{% endif %}</strong>
+                    <strong>{% if tem_treino_do_dia %}Atribuído{% else %}Sem treino{% endif %}</strong>
                     <span>
                         {% if tem_treino_do_dia %}
-                            {{ treino_do_dia.total_exercicios|default(0, true) }} exercÃ­cios planejados
+                            {{ treino_do_dia.total_exercicios|default(0, true) }} exercícios planejados
                         {% else %}
                             Aguardando novo treino
                         {% endif %}
@@ -174,14 +174,14 @@
                             <path d="M4 16L9 11L13 15L20 8" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
                             <path d="M20 12V8H16" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
-                        <p>AvaliaÃ§Ãµes</p>
+                        <p>Avaliações</p>
                     </div>
                     <strong>{{ total_avaliacoes_resumo }}</strong>
-                    <span>Registros fÃ­sicos</span>
+                    <span>Registros físicos</span>
                 </article>
             </section>
 
-            <section aria-label="Dados para integraÃ§Ã£o" hidden>
+            <section aria-label="Dados para integração" hidden>
                 <form id="aluno-dashboard-contexto" class="ui-form">
                     <input type="hidden" name="aluno_id" value="{{ aluno_id|default('', true) }}">
                     <input type="hidden" name="treino_dia_id" value="{{ treino_do_dia_id }}">

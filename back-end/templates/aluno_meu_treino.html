@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -80,7 +80,7 @@
                         <path d="M4 16L9 11L13 15L20 8" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
                         <path d="M20 12V8H16" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
-                    <span>EvoluÃ§Ã£o</span>
+                    <span>Evolução</span>
                 </a>
 
                 <a class="sidebar-link" href="{{ logout_url|default('/logout', true) }}">
@@ -100,7 +100,7 @@
                 <p class="aluno-main-subtitle">
                     {{ total_treinos_resumo }} treino
                     {% if total_treinos_resumo != 1 %}s{% endif %}
-                    {% if total_treinos_resumo == 1 %}disponÃ­vel{% else %}disponÃ­veis{% endif %}
+                    {% if total_treinos_resumo == 1 %}disponível{% else %}disponíveis{% endif %}
                 </p>
             </header>
 
@@ -135,8 +135,8 @@
                     {% set treino_iniciar_destino = iniciar_treino_base ~ '?treino_id=' ~ treino_id %}
                 {% endif %}
                 {% set treino_total_exercicios = treino.total_exercicios|default(treino.exercicios_total|default(0, true), true) %}
-                {% set treino_series_resumo = treino.series_resumo|default(treino.series|default(treino.total_series|default('NÃ£o informado', true), true), true) %}
-                {% set treino_status_resumo = treino.status|default(treino.status_execucao|default('NÃ£o informado', true), true) %}
+                {% set treino_series_resumo = treino.series_resumo|default(treino.series|default(treino.total_series|default('Não informado', true), true), true) %}
+                {% set treino_status_resumo = treino.status|default(treino.status_execucao|default('Não informado', true), true) %}
                 <article class="aluno-treino-card ui-card">
                     <div class="aluno-treino-head">
                         <div class="aluno-treino-title-wrap">
@@ -165,8 +165,8 @@
                     </div>
 
                     <p class="aluno-treino-meta">
-                        {{ treino_total_exercicios }} exercÃ­cios Â·
-                        SÃ©ries: {{ treino_series_resumo }} Â·
+                        {{ treino_total_exercicios }} exercícios ·
+                        Séries: {{ treino_series_resumo }} ·
                         Status: {{ treino_status_resumo }}
                     </p>
 
@@ -175,7 +175,7 @@
                         Iniciar treino
                     </a>
                     {% else %}
-                    <span class="button ui-btn ui-btn-primary button-block aluno-start-button is-disabled" aria-disabled="true">Treino indisponÃ­vel</span>
+                    <span class="button ui-btn ui-btn-primary button-block aluno-start-button is-disabled" aria-disabled="true">Treino indisponível</span>
                     {% endif %}
                 </article>
                 {% else %}
@@ -200,7 +200,7 @@
             <a
                 class="aluno-side-nav aluno-side-nav-right{% if not treino_proximo_destino %} is-disabled{% endif %}"
                 href="{{ treino_proximo_destino if treino_proximo_destino else retorno_treinos_destino }}"
-                aria-label="PrÃ³ximo treino"
+                aria-label="Próximo treino"
                 {% if not treino_proximo_destino %}aria-disabled="true" tabindex="-1"{% endif %}
             >
                 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -208,7 +208,7 @@
                 </svg>
             </a>
 
-            <section aria-label="Dados para integraÃ§Ã£o" hidden>
+            <section aria-label="Dados para integração" hidden>
                 <form id="aluno-meu-treino-contexto" class="ui-form">
                     <input type="hidden" name="aluno_id" value="{{ aluno_id|default('', true) }}">
                     <input type="hidden" name="treino_id_ativo" value="{{ treino_ativo_id|default('', true) }}">
