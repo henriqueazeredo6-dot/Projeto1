@@ -583,6 +583,25 @@ def _trainings(aluno_id: Optional[str] = None) -> List[Dict[str, Any]]:
                 "video_url": _first(row, "video_url", default=""),
             }
         )
+    if DEV_BYPASS_AUTH and aluno_id == DEV_ALUNO_ID and not normalized:
+        aluno_ref = alunos_por_id.get(DEV_ALUNO_ID, {"nome": "Aluno"})
+        exercises = _parse_exercises("Agachamento - 3x12\nSupino - 3x12\nRemada - 3x12")
+        normalized.append(
+            {
+                "id": "demo-treino-1",
+                "nome": "Treino exemplo",
+                "aluno_id": DEV_ALUNO_ID,
+                "aluno_nome": aluno_ref.get("nome", "Aluno"),
+                "status": _human_status("ativo"),
+                "grupo_muscular": "Corpo todo",
+                "observacoes": "Treino de demonstracao para visualizacao.",
+                "exercicios_raw": "Agachamento - 3x12\nSupino - 3x12\nRemada - 3x12",
+                "exercicios_lista": exercises,
+                "total_exercicios": len(exercises),
+                "atualizado_em": _fmt_date(datetime.utcnow().isoformat()),
+                "video_url": "",
+            }
+        )
     return normalized
 
 
@@ -991,6 +1010,7 @@ def cadastro():
 
 
 @app.route("/login", methods=["GET", "POST"])
+@app.route("/login.html", methods=["GET", "POST"])
 @app.route("/Login.html", methods=["GET", "POST"])
 def login():
     if DEV_BYPASS_AUTH:
@@ -1001,7 +1021,7 @@ def login():
         senha = request.form.get("senha", "").strip()
         if not email or not senha:
             flash("Informe email e senha.", "error")
-            return render_template("Login.html", **_common_brand_context())
+            return render_template("login.html", **_common_brand_context())
 
         user_data: Optional[Dict[str, Any]] = None
 
@@ -1010,7 +1030,7 @@ def login():
             row = result["data"] if result["ok"] else None
             if not row or not row.get("senha_hash") or not check_password_hash(row["senha_hash"], senha):
                 flash("Email ou senha invalidos.", "error")
-                return render_template("Login.html", **_common_brand_context())
+                return render_template("login.html", **_common_brand_context())
             user_data = row
         else:
             try:
@@ -1036,11 +1056,11 @@ def login():
                         user_data = {"id": "", "auth_user_id": getattr(auth_user, "id", ""), "nome": email.split("@")[0], "email": email, "tipo_conta": "Personal Trainer"}
             except Exception as exc:
                 flash(f"Email ou senha invalidos: {exc}", "error")
-                return render_template("Login.html", **_common_brand_context())
+                return render_template("login.html", **_common_brand_context())
 
         if not user_data:
             flash("Nao foi possivel localizar o perfil desse usuario.", "error")
-            return render_template("Login.html", **_common_brand_context())
+            return render_template("login.html", **_common_brand_context())
 
         user_payload = {
             "id": user_data.get("id", ""),
@@ -1053,7 +1073,7 @@ def login():
         role = str(user_payload["tipo_conta"]).strip().lower()
         return redirect(url_for("aluno_dashboard" if role == "aluno" else "dashboard"))
 
-    return render_template("Login.html", **_common_brand_context())
+    return render_template("login.html", **_common_brand_context())
 
 
 @app.route("/logout", methods=["GET", "POST"])
