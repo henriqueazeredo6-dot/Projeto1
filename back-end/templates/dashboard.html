@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -30,16 +30,16 @@
             <nav class="sidebar-nav" aria-label="Menu principal">
                 <a class="sidebar-link {% if pagina_ativa == 'dashboard' %}is-active{% endif %}" href="{{ dashboard_url|default('/dashboard', true) }}">Dashboard</a>
                 <a class="sidebar-link {% if pagina_ativa == 'alunos' %}is-active{% endif %}" href="{{ alunos_url|default('/alunos', true) }}">Alunos</a>
-                <a class="sidebar-link {% if pagina_ativa == 'exercicios' %}is-active{% endif %}" href="{{ exercicios_url|default('/exercicios', true) }}">ExercÃ­cios</a>
+                <a class="sidebar-link {% if pagina_ativa == 'exercicios' %}is-active{% endif %}" href="{{ exercicios_url|default('/exercicios', true) }}">Exercícios</a>
                 <a class="sidebar-link {% if pagina_ativa == 'treinos' %}is-active{% endif %}" href="{{ treinos_url|default('/treinos', true) }}">Treinos</a>
                 <a class="sidebar-link {% if pagina_ativa == 'agenda' %}is-active{% endif %}" href="{{ agenda_url|default('/agenda', true) }}">Agenda</a>
                 <a class="sidebar-link {% if pagina_ativa == 'mensagens' %}is-active{% endif %}" href="{{ mensagens_url|default('/mensagens', true) }}">Mensagens</a>
                 <a class="sidebar-link {% if pagina_ativa == 'anamnese' %}is-active{% endif %}" href="{{ anamnese_url|default('/anamnese', true) }}">Anamnese</a>
-                <a class="sidebar-link {% if pagina_ativa == 'observacoes' %}is-active{% endif %}" href="{{ observacoes_url|default('/observacoes', true) }}">ObservaÃ§Ãµes</a>
-                <a class="sidebar-link {% if pagina_ativa == 'avaliacoes' %}is-active{% endif %}" href="{{ avaliacoes_url|default('/avaliacoes', true) }}">AvaliaÃ§Ãµes</a>
-                <a class="sidebar-link {% if pagina_ativa == 'evolucao' %}is-active{% endif %}" href="{{ evolucao_url|default('/evolucao', true) }}">EvoluÃ§Ã£o</a>
+                <a class="sidebar-link {% if pagina_ativa == 'observacoes' %}is-active{% endif %}" href="{{ observacoes_url|default('/observacoes', true) }}">Observações</a>
+                <a class="sidebar-link {% if pagina_ativa == 'avaliacoes' %}is-active{% endif %}" href="{{ avaliacoes_url|default('/avaliacoes', true) }}">Avaliações</a>
+                <a class="sidebar-link {% if pagina_ativa == 'evolucao' %}is-active{% endif %}" href="{{ evolucao_url|default('/evolucao', true) }}">Evolução</a>
                 <a class="sidebar-link {% if pagina_ativa == 'financeiro' %}is-active{% endif %}" href="{{ financeiro_url|default('/financeiro', true) }}">Financeiro</a>
-                <a class="sidebar-link {% if pagina_ativa == 'configuracoes' %}is-active{% endif %}" href="{{ configuracoes_url|default('/configuracoes', true) }}">ConfiguraÃ§Ãµes</a>
+                <a class="sidebar-link {% if pagina_ativa == 'configuracoes' %}is-active{% endif %}" href="{{ configuracoes_url|default('/configuracoes', true) }}">Configurações</a>
                 <a class="sidebar-link" href="{{ logout_url|default('/logout', true) }}">Sair</a>
             </nav>
         </aside>
@@ -95,10 +95,10 @@
                                 <path d="M4 10H20" stroke="currentColor" stroke-width="1.9"/>
                             </svg>
                         </div>
-                        <p class="dashboard-stat-label">SessÃµes</p>
+                        <p class="dashboard-stat-label">Sessões</p>
                     </div>
                     <strong class="dashboard-stat-value">{{ total_sessoes_resumo }}</strong>
-                    <p class="dashboard-stat-note">{{ sessoes_descricao|default('Aulas concluÃ­das', true) }}</p>
+                    <p class="dashboard-stat-note">{{ sessoes_descricao|default('Aulas concluídas', true) }}</p>
                 </article>
 
                 <article class="dashboard-stat-card ui-card">
@@ -134,9 +134,9 @@
                 </article>
             </section>
 
-            <section class="dashboard-quick-section" aria-label="AÃ§Ãµes rÃ¡pidas">
+            <section class="dashboard-quick-section" aria-label="Ações rápidas">
                 <div class="dashboard-panel ui-card">
-                    <h2 class="dashboard-panel-title">AÃ§Ãµes rÃ¡pidas</h2>
+                    <h2 class="dashboard-panel-title">Ações rápidas</h2>
 
                     <div class="dashboard-quick-grid">
                         <a class="dashboard-quick-card dashboard-quick-card-primary ui-card" href="{{ adicionar_aluno_destino }}">
@@ -175,7 +175,7 @@
                 </div>
             </section>
 
-            <section aria-label="Dados para integraÃ§Ã£o" hidden>
+            <section aria-label="Dados para integração" hidden>
                 <form id="dashboard-filters" class="ui-form">
                     <input type="hidden" name="profissional_id" value="{{ profissional_id|default('', true) }}">
                     <input type="hidden" name="empresa_id" value="{{ empresa_id|default('', true) }}">
@@ -185,6 +185,21 @@
             </section>
         </main>
     </div>
+    <script>
+        (function () {
+            var quickCards = document.querySelectorAll('.dashboard-quick-card');
+
+            quickCards.forEach(function (card) {
+                card.addEventListener('click', function () {
+                    quickCards.forEach(function (item) {
+                        item.classList.remove('dashboard-quick-card-primary');
+                    });
+
+                    card.classList.add('dashboard-quick-card-primary');
+                });
+            });
+        })();
+    </script>
 </body>
 </html>
 

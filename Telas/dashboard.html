@@ -185,5 +185,20 @@
             </section>
         </main>
     </div>
+    <script>
+        (function () {
+            var quickCards = document.querySelectorAll('.dashboard-quick-card');
+
+            quickCards.forEach(function (card) {
+                card.addEventListener('click', function () {
+                    quickCards.forEach(function (item) {
+                        item.classList.remove('dashboard-quick-card-primary');
+                    });
+
+                    card.classList.add('dashboard-quick-card-primary');
+                });
+            });
+        })();
+    </script>
 </body>
 </html>
