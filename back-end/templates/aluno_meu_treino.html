@@ -83,7 +83,7 @@
                     <span>Evolução</span>
                 </a>
 
-                <a class="sidebar-link" href="{{ logout_url|default('/logout', true) }}">
+                <a class="sidebar-link" href="{{ home_url|default(url_for('index'), true) }}">
                     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                         <path d="M15 17L20 12L15 7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
                         <path d="M20 12H9" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
