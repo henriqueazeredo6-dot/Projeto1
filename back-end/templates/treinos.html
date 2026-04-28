@@ -37,7 +37,7 @@
                 <a class="sidebar-link {% if pagina_ativa == 'evolucao' %}is-active{% endif %}" href="{{ evolucao_url|default('/evolucao', true) }}">Evolução</a>
                 <a class="sidebar-link {% if pagina_ativa == 'financeiro' %}is-active{% endif %}" href="{{ financeiro_url|default('/financeiro', true) }}">Financeiro</a>
                 <a class="sidebar-link {% if pagina_ativa == 'configuracoes' %}is-active{% endif %}" href="{{ configuracoes_url|default('/configuracoes', true) }}">Configurações</a>
-                <a class="sidebar-link" href="{{ logout_url|default('/logout', true) }}">Sair</a>
+                <a class="sidebar-link" href="{{ home_url|default(url_for('index'), true) }}">Sair</a>
             </nav>
         </aside>
 
