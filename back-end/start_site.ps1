@@ -18,11 +18,26 @@ if ($existing) {
 }
 
 $proc = Start-Process -FilePath $python -ArgumentList 'app.py' -WorkingDirectory $project -RedirectStandardOutput $logOut -RedirectStandardError $logErr -PassThru
-Start-Sleep -Seconds 2
+$deadline = (Get-Date).AddSeconds(30)
+$ok = $false
 
-$ok = Test-NetConnection -ComputerName 127.0.0.1 -Port 5000 -InformationLevel Quiet
+while ((Get-Date) -lt $deadline) {
+  if ($proc.HasExited) {
+    break
+  }
+
+  if (Test-NetConnection -ComputerName 127.0.0.1 -Port 5000 -InformationLevel Quiet) {
+    $ok = $true
+    break
+  }
+
+  Start-Sleep -Seconds 1
+}
+
 if ($ok) {
   Write-Output "Servidor iniciado com sucesso em http://127.0.0.1:5000 (PID: $($proc.Id))."
+} elseif ($proc.HasExited) {
+  Write-Output "Servidor encerrou antes de responder na porta 5000 (PID: $($proc.Id)). Verifique logs: $logErr"
 } else {
-  Write-Output "Servidor iniciou (PID: $($proc.Id)), mas porta 5000 ainda nao respondeu. Verifique logs: $logErr"
+  Write-Output "Servidor iniciou (PID: $($proc.Id)), mas porta 5000 nao respondeu em 30 segundos. Verifique logs: $logErr"
 }

@@ -11,7 +11,7 @@
     {% set pagamentos_lista = pagamentos|default([], true) %}
     {% set planos_lista = planos|default([], true) %}
     {% set marca_logo_url_valor = marca_logo_url|default('', true) %}
-    {% set abrir_novo_plano_url = novo_plano_url|default('/financeiro/planos/novo', true) %}
+    {% set abrir_novo_plano_url = abrir_novo_plano_url|default(novo_plano_url|default('/financeiro#novo-plano', true), true) %}
     {% set csrf_form_token = form_csrf_token|default('', true) %}
     {% if csrf_token is defined %}
         {% set csrf_form_token = csrf_token %}
