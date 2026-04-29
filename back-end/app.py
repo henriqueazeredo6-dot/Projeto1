@@ -1,14 +1,20 @@
 import os
 import secrets
+from pathlib import Path
 from datetime import datetime
 from functools import wraps
 from typing import Any, Dict, List, Optional
 
 from dotenv import load_dotenv
 from flask import Flask, flash, get_flashed_messages, redirect, render_template, request, session, url_for
+from google.auth.transport.requests import Request as GoogleAuthRequest
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import Flow
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 from supabase import Client, create_client
 from werkzeug.security import check_password_hash, generate_password_hash
-from paths import BASE_DIR, ENV_FILE, STATIC_DIR, TEMPLATES_DIR
+from paths import BASE_DIR, ENV_FILE, STATIC_DIR, TEMPLATES_DIR, TOKENS_DIR
 
 
 load_dotenv(ENV_FILE)
@@ -43,13 +49,25 @@ DEFAULT_PORT = int(os.getenv("PORT", "5000"))
 DEV_BYPASS_AUTH = os.getenv("DEV_BYPASS_AUTH", "0").strip().lower() in {"1", "true", "yes", "on"}
 DEV_PERSONAL_ID = "11111111-1111-1111-1111-111111111111"
 DEV_ALUNO_ID = "22222222-2222-2222-2222-222222222222"
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "").strip()
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "").strip()
+GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", f"http://127.0.0.1:{DEFAULT_PORT}/google-calendar/callback").strip()
+GOOGLE_CALENDAR_SCOPES = [
+    scope.strip()
+    for scope in os.getenv("GOOGLE_CALENDAR_SCOPES", "https://www.googleapis.com/auth/calendar.readonly").split(",")
+    if scope.strip()
+]
 
 supabase: Optional[Client] = None
 supabase_admin: Optional[Client] = None
 if SUPABASE_URL and SUPABASE_KEY:
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 if SUPABASE_URL and SUPABASE_SERVICE_KEY:
-    supabase_admin = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+    try:
+        supabase_admin = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+    except Exception as exc:
+        app.logger.warning("SUPABASE_SERVICE_KEY invalida ou incompativel: %s", exc)
+        supabase_admin = None
 
 _LOCAL_PASSWORD_SUPPORT: Optional[bool] = None
 
@@ -163,7 +181,7 @@ def _select_one(table: str, row_id: str) -> Dict[str, Any]:
 
 def _select_first_by(table: str, field: str, value: Any) -> Dict[str, Any]:
     def _op():
-        return _client().table(table).select("*").eq(field, value).limit(1).execute()
+        return _admin_client().table(table).select("*").eq(field, value).limit(1).execute()
 
     result = _run_query(_op)
     if result["ok"]:
@@ -341,6 +359,181 @@ def _clear_session() -> None:
     session.clear()
 
 
+def _google_calendar_enabled() -> bool:
+    return bool(GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET and GOOGLE_REDIRECT_URI)
+
+
+def _google_token_file(email: str) -> Path:
+    safe_email = "".join(ch if ch.isalnum() else "_" for ch in (email or "user").lower())
+    return TOKENS_DIR / f"google_calendar_{safe_email}.json"
+
+
+def _google_client_config() -> Dict[str, Any]:
+    return {
+        "web": {
+            "client_id": GOOGLE_CLIENT_ID,
+            "client_secret": GOOGLE_CLIENT_SECRET,
+            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+            "token_uri": "https://oauth2.googleapis.com/token",
+            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+            "redirect_uris": [GOOGLE_REDIRECT_URI],
+        }
+    }
+
+
+def _google_oauth_flow(state: Optional[str] = None) -> Flow:
+    flow = Flow.from_client_config(_google_client_config(), scopes=GOOGLE_CALENDAR_SCOPES, state=state)
+    flow.redirect_uri = GOOGLE_REDIRECT_URI
+    return flow
+
+
+def _save_google_credentials(email: str, credentials: Credentials) -> None:
+    if not email:
+        return
+    TOKENS_DIR.mkdir(parents=True, exist_ok=True)
+    _google_token_file(email).write_text(credentials.to_json(), encoding="utf-8")
+
+
+def _load_google_credentials(email: str) -> Optional[Credentials]:
+    if not _google_calendar_enabled() or not email:
+        return None
+    token_file = _google_token_file(email)
+    if not token_file.exists():
+        return None
+    try:
+        credentials = Credentials.from_authorized_user_file(str(token_file), GOOGLE_CALENDAR_SCOPES)
+        if credentials and credentials.expired and credentials.refresh_token:
+            credentials.refresh(GoogleAuthRequest())
+            _save_google_credentials(email, credentials)
+        return credentials if credentials and credentials.valid else None
+    except Exception as exc:
+        app.logger.warning("Nao foi possivel carregar token do Google Calendar: %s", exc)
+        return None
+
+
+def _delete_google_credentials(email: str) -> None:
+    if not email:
+        return
+    token_file = _google_token_file(email)
+    if token_file.exists():
+        token_file.unlink()
+
+
+def _google_event_dt(value: str) -> Optional[datetime]:
+    if not value:
+        return None
+    text = str(value).strip()
+    if not text:
+        return None
+    try:
+        if text.endswith("Z"):
+            text = text.replace("Z", "+00:00")
+        return datetime.fromisoformat(text)
+    except ValueError:
+        try:
+            return datetime.strptime(text, "%Y-%m-%d")
+        except ValueError:
+            return None
+
+
+def _fmt_google_event_label(start_value: str, end_value: str) -> str:
+    start_dt = _google_event_dt(start_value)
+    end_dt = _google_event_dt(end_value)
+    if not start_dt:
+        return "Horario nao informado"
+    if "T" not in str(start_value):
+        return f"{start_dt.strftime('%d/%m/%Y')} (dia todo)"
+    if end_dt:
+        return f"{start_dt.strftime('%d/%m/%Y %H:%M')} - {end_dt.strftime('%H:%M')}"
+    return start_dt.strftime("%d/%m/%Y %H:%M")
+
+
+def _google_calendar_context() -> Dict[str, Any]:
+    current = _session_user()
+    email = current.get("email", "")
+    base_context = {
+        "enabled": _google_calendar_enabled(),
+        "connected": False,
+        "events": [],
+        "calendar_count": 0,
+        "error": "",
+        "connect_url": url_for("google_calendar_connect"),
+        "disconnect_url": url_for("google_calendar_disconnect"),
+    }
+    if not base_context["enabled"]:
+        base_context["error"] = "Configure GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET e GOOGLE_REDIRECT_URI para conectar o Google Calendar."
+        return base_context
+
+    credentials = _load_google_credentials(email)
+    if not credentials:
+        return base_context
+
+    try:
+        service = build("calendar", "v3", credentials=credentials, cache_discovery=False)
+        calendar_items: List[Dict[str, Any]] = []
+        page_token = None
+        while True:
+            response = service.calendarList().list(pageToken=page_token).execute()
+            calendar_items.extend(response.get("items", []))
+            page_token = response.get("nextPageToken")
+            if not page_token:
+                break
+
+        now = datetime.utcnow().isoformat() + "Z"
+        collected_events: List[Dict[str, Any]] = []
+        for calendar_item in calendar_items:
+            calendar_id = calendar_item.get("id")
+            if not calendar_id:
+                continue
+            events_response = service.events().list(
+                calendarId=calendar_id,
+                timeMin=now,
+                singleEvents=True,
+                orderBy="startTime",
+                maxResults=50,
+            ).execute()
+            calendar_name = calendar_item.get("summaryOverride") or calendar_item.get("summary") or "Google Calendar"
+            for event in events_response.get("items", []):
+                start_value = event.get("start", {}).get("dateTime") or event.get("start", {}).get("date") or ""
+                end_value = event.get("end", {}).get("dateTime") or event.get("end", {}).get("date") or ""
+                sort_dt = _google_event_dt(start_value) or datetime.max
+                collected_events.append(
+                    {
+                        "id": event.get("id", ""),
+                        "titulo": event.get("summary") or "Evento sem titulo",
+                        "calendar_nome": calendar_name,
+                        "intervalo": _fmt_google_event_label(start_value, end_value),
+                        "local": event.get("location", ""),
+                        "descricao": event.get("description", ""),
+                        "link": event.get("htmlLink", ""),
+                        "organizador": event.get("organizer", {}).get("displayName") or event.get("organizer", {}).get("email", ""),
+                        "status": event.get("status", "confirmed"),
+                        "status_classe": "cancelado" if event.get("status") == "cancelled" else "confirmado",
+                        "sort_dt": sort_dt,
+                    }
+                )
+
+        collected_events.sort(key=lambda item: item["sort_dt"])
+        for event in collected_events:
+            event.pop("sort_dt", None)
+
+        base_context.update(
+            {
+                "connected": True,
+                "events": collected_events[:100],
+                "calendar_count": len(calendar_items),
+            }
+        )
+        return base_context
+    except HttpError as exc:
+        base_context["error"] = f"Falha ao consultar o Google Calendar: {exc}"
+        return base_context
+    except Exception as exc:
+        app.logger.exception("Erro ao carregar eventos do Google Calendar")
+        base_context["error"] = f"Nao foi possivel carregar os eventos do Google Calendar: {exc}"
+        return base_context
+
+
 def _is_student_path(path: str) -> bool:
     return path == "/aluno" or path.startswith("/aluno/") or path in {"/agenda-aluno", "/evolucao-aluno"}
 
@@ -379,6 +572,27 @@ def _apply_dev_auth_bypass():
 
 def _find_user_by_email(email: str) -> Dict[str, Any]:
     return _select_first_by(TABLE_USUARIOS, "email", email.strip().lower())
+
+
+def _local_auth_schema_message() -> str:
+    return (
+        "A tabela tb_usuario precisa ter a coluna senha_hash do tipo text. "
+        "No Supabase, rode: alter table public.tb_usuario add column if not exists senha_hash text;"
+    )
+
+
+def _auth_write_error_message(error: Optional[str]) -> str:
+    if not error:
+        return "Nao foi possivel criar a conta."
+    lowered = error.lower()
+    if "row-level security" in lowered or "42501" in lowered:
+        return (
+            "O Supabase bloqueou o cadastro por RLS. Preencha SUPABASE_SERVICE_KEY no .env "
+            "com a service_role key do projeto ou crie uma policy de insert para tb_usuario."
+        )
+    if "invalid input syntax for type uuid" in lowered and "senha_hash" in lowered:
+        return "A coluna senha_hash esta com tipo errado. Ela precisa ser text, nao uuid."
+    return error
 
 
 def _current_user_row() -> Optional[Dict[str, Any]]:
@@ -942,6 +1156,11 @@ def cadastro():
         flash("Modo teste ativo: cadastro e login foram desativados temporariamente para facilitar a validacao das telas.", "info")
         return redirect(url_for("dashboard"))
     if request.method == "POST":
+        csrf_error = _require_csrf()
+        if csrf_error:
+            flash(csrf_error, "error")
+            return render_template("Cadastro.html", **_common_brand_context())
+
         nome = request.form.get("nome", "").strip()
         email = request.form.get("email", "").strip().lower()
         senha = request.form.get("senha", "").strip()
@@ -955,56 +1174,25 @@ def cadastro():
             flash("As senhas nao conferem.", "error")
         elif not _ready():
             flash("Supabase nao configurado neste computador.", "error")
+        elif not _table_has_local_passwords():
+            flash(_local_auth_schema_message(), "error")
         else:
             existing = _find_user_by_email(email)
             if existing["ok"] and existing["data"]:
                 flash("Ja existe uma conta com esse email.", "error")
             else:
-                auth_user_id = ""
-                if _table_has_local_passwords():
-                    payload = {
-                        "nome": nome,
-                        "email": email,
-                        "senha_hash": generate_password_hash(senha),
-                        "tipo_conta": tipo_conta,
-                        "nascimento": nascimento,
-                    }
-                    created = _insert(TABLE_USUARIOS, payload)
-                    if created["ok"]:
-                        flash("Cadastro realizado com sucesso. Agora voce ja pode entrar.", "success")
-                        return redirect(url_for("login"))
-                    flash(created["error"] or "Nao foi possivel criar a conta.", "error")
-                else:
-                    try:
-                        auth_response = _client().auth.sign_up(
-                            {
-                                "email": email,
-                                "password": senha,
-                                "options": {
-                                    "data": {"nome": nome, "tipo_conta": tipo_conta, "nascimento": nascimento},
-                                    "email_redirect_to": url_for("login", _external=True),
-                                },
-                            }
-                        )
-                        auth_user_id = getattr(getattr(auth_response, "user", None), "id", "") or ""
-                    except Exception as exc:
-                        flash(f"Nao foi possivel cadastrar no Supabase Auth: {exc}", "error")
-                        return render_template("Cadastro.html", **_common_brand_context())
-
-                    profile_result = _insert(
-                        TABLE_USUARIOS,
-                        {
-                            "auth_user_id": auth_user_id,
-                            "nome": nome,
-                            "email": email,
-                            "tipo_conta": tipo_conta,
-                            "nascimento": nascimento,
-                        },
-                    )
-                    if profile_result["ok"]:
-                        flash("Cadastro realizado. Confirme seu email no Supabase e depois faca login.", "success")
-                        return redirect(url_for("login"))
-                    flash(profile_result["error"] or "Conta criada no Auth, mas houve erro ao salvar o perfil.", "error")
+                payload = {
+                    "nome": nome,
+                    "email": email,
+                    "senha_hash": generate_password_hash(senha),
+                    "tipo_conta": tipo_conta,
+                    "nascimento": nascimento,
+                }
+                created = _insert(TABLE_USUARIOS, payload)
+                if created["ok"]:
+                    flash("Cadastro realizado com sucesso. Agora voce ja pode entrar.", "success")
+                    return redirect(url_for("login"))
+                flash(_auth_write_error_message(created["error"]), "error")
 
     return render_template("Cadastro.html", **_common_brand_context())
 
@@ -1017,50 +1205,43 @@ def login():
         flash("Modo teste ativo: voce entrou automaticamente sem precisar fazer login.", "info")
         return redirect(url_for("dashboard"))
     if request.method == "POST":
+        csrf_error = _require_csrf()
+        if csrf_error:
+            flash(csrf_error, "error")
+            return render_template("Login.html", **_common_brand_context())
+
         email = request.form.get("email", "").strip().lower()
         senha = request.form.get("senha", "").strip()
         if not email or not senha:
             flash("Informe email e senha.", "error")
-            return render_template("login.html", **_common_brand_context())
+            return render_template("Login.html", **_common_brand_context())
 
         user_data: Optional[Dict[str, Any]] = None
 
-        if _table_has_local_passwords():
-            result = _find_user_by_email(email)
-            row = result["data"] if result["ok"] else None
-            if not row or not row.get("senha_hash") or not check_password_hash(row["senha_hash"], senha):
-                flash("Email ou senha invalidos.", "error")
-                return render_template("login.html", **_common_brand_context())
-            user_data = row
-        else:
-            try:
-                auth_response = _client().auth.sign_in_with_password({"email": email, "password": senha})
-                auth_user = getattr(auth_response, "user", None)
-                result = _find_user_by_email(email)
-                user_data = result["data"] if result["ok"] else None
-                if not user_data:
-                    created = _insert(
-                        TABLE_USUARIOS,
-                        {
-                            "auth_user_id": getattr(auth_user, "id", ""),
-                            "nome": getattr(getattr(auth_user, "user_metadata", {}), "get", lambda _k, _d="": "")("nome", "")
-                            if auth_user
-                            else "",
-                            "email": email,
-                            "tipo_conta": "Personal Trainer",
-                        },
-                    )
-                    if created["ok"] and created["data"]:
-                        user_data = created["data"][0]
-                    else:
-                        user_data = {"id": "", "auth_user_id": getattr(auth_user, "id", ""), "nome": email.split("@")[0], "email": email, "tipo_conta": "Personal Trainer"}
-            except Exception as exc:
-                flash(f"Email ou senha invalidos: {exc}", "error")
-                return render_template("login.html", **_common_brand_context())
+        if not _table_has_local_passwords():
+            flash(_local_auth_schema_message(), "error")
+            return render_template("Login.html", **_common_brand_context())
+
+        result = _find_user_by_email(email)
+        row = result["data"] if result["ok"] else None
+        if not row:
+            flash("Email ou senha invalidos.", "error")
+            return render_template("Login.html", **_common_brand_context())
+
+        senha_hash = row.get("senha_hash")
+        if not senha_hash:
+            flash("Este usuario ainda nao possui senha cadastrada. Crie uma nova conta ou atualize a coluna senha_hash.", "error")
+            return render_template("Login.html", **_common_brand_context())
+
+        if not check_password_hash(str(senha_hash), senha):
+            flash("Email ou senha invalidos.", "error")
+            return render_template("Login.html", **_common_brand_context())
+
+        user_data = row
 
         if not user_data:
             flash("Nao foi possivel localizar o perfil desse usuario.", "error")
-            return render_template("login.html", **_common_brand_context())
+            return render_template("Login.html", **_common_brand_context())
 
         user_payload = {
             "id": user_data.get("id", ""),
@@ -1073,7 +1254,7 @@ def login():
         role = str(user_payload["tipo_conta"]).strip().lower()
         return redirect(url_for("aluno_dashboard" if role == "aluno" else "dashboard"))
 
-    return render_template("login.html", **_common_brand_context())
+    return render_template("Login.html", **_common_brand_context())
 
 
 @app.route("/logout", methods=["GET", "POST"])
@@ -1093,6 +1274,61 @@ def abrir_como_desenvolvedor():
     _set_session_user(_dev_user_for_path(destino))
     flash("Modo desenvolvedor ativo. Login liberado temporariamente para teste das telas.", "info")
     return redirect(url_for("aluno_dashboard" if perfil == "aluno" else "dashboard"))
+
+
+@app.get("/google-calendar/connect")
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def google_calendar_connect():
+    if not _google_calendar_enabled():
+        flash("Google Calendar nao configurado neste ambiente.", "error")
+        return redirect(url_for("agenda"))
+    flow = _google_oauth_flow()
+    authorization_url, state = flow.authorization_url(
+        access_type="offline",
+        include_granted_scopes="true",
+        prompt="consent",
+    )
+    session["google_oauth_state"] = state
+    return redirect(authorization_url)
+
+
+@app.get("/google-calendar/callback")
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def google_calendar_callback():
+    if not _google_calendar_enabled():
+        flash("Google Calendar nao configurado neste ambiente.", "error")
+        return redirect(url_for("agenda"))
+    state = session.get("google_oauth_state")
+    if not state:
+        flash("A autorizacao do Google expirou. Tente conectar novamente.", "error")
+        return redirect(url_for("agenda"))
+    try:
+        flow = _google_oauth_flow(state=state)
+        flow.fetch_token(authorization_response=request.url)
+        current = _session_user()
+        _save_google_credentials(current.get("email", ""), flow.credentials)
+        session.pop("google_oauth_state", None)
+        flash("Google Calendar conectado com sucesso.", "success")
+    except Exception as exc:
+        app.logger.exception("Erro ao concluir OAuth do Google Calendar")
+        flash(f"Nao foi possivel concluir a conexao com o Google Calendar: {exc}", "error")
+    return redirect(url_for("agenda"))
+
+
+@app.post("/google-calendar/disconnect")
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def google_calendar_disconnect():
+    csrf_error = _require_csrf()
+    if csrf_error:
+        flash(csrf_error, "error")
+        return redirect(url_for("agenda"))
+    _delete_google_credentials(_session_user().get("email", ""))
+    session.pop("google_oauth_state", None)
+    flash("Google Calendar desconectado.", "success")
+    return redirect(url_for("agenda"))
 
 
 @app.get("/dashboard")
@@ -1309,12 +1545,14 @@ def agenda():
         return redirect(url_for("agenda"))
 
     compromissos = _schedule_rows()
+    google_calendar = _google_calendar_context()
     for compromisso in compromissos:
         compromisso["pode_cancelar"] = compromisso["status_classe"] in {"agendado", "confirmado", "pendente"}
     total_compromissos = len([item for item in compromissos if item["status_classe"] != "cancelado"])
     return render_template(
         "agenda.html",
         compromissos=compromissos,
+        google_calendar=google_calendar,
         alunos=_students(),
         total_compromissos=total_compromissos,
         data_referencia=_fmt_date(datetime.now().date().isoformat()),

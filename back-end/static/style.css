@@ -1538,6 +1538,102 @@ select:focus {
     gap: 0.9rem;
 }
 
+.agenda-google-panel {
+    margin-top: 1.2rem;
+    padding: 1.15rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(17, 17, 22, 0.96);
+}
+
+.agenda-google-panel-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.agenda-google-eyebrow {
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    font-size: 0.72rem;
+}
+
+.agenda-google-title {
+    margin-top: 0.45rem;
+    font-family: var(--title-font);
+    font-size: 1.55rem;
+    text-transform: uppercase;
+}
+
+.agenda-google-copy,
+.agenda-google-helper,
+.agenda-google-meta,
+.agenda-google-card p {
+    color: var(--muted);
+}
+
+.agenda-google-copy {
+    margin-top: 0.5rem;
+    max-width: 54rem;
+}
+
+.agenda-google-actions form {
+    margin: 0;
+}
+
+.agenda-google-helper {
+    margin-top: 0.9rem;
+}
+
+.agenda-google-list {
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.8rem;
+}
+
+.agenda-google-card {
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.agenda-google-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.8rem;
+}
+
+.agenda-google-card-top h3 {
+    font-family: var(--title-font);
+    font-size: 1.05rem;
+    text-transform: uppercase;
+}
+
+.agenda-google-card-top p {
+    margin-top: 0.35rem;
+}
+
+.agenda-google-interval {
+    margin-top: 0.85rem;
+    color: #ffffff;
+}
+
+.agenda-google-meta {
+    margin-top: 0.45rem;
+}
+
+.agenda-google-link {
+    margin-top: 0.85rem;
+    display: inline-flex;
+}
+
+.agenda-google-card-empty {
+    grid-column: 1 / -1;
+}
+
 .agenda-card {
     border: 1px solid rgba(255, 255, 255, 0.08);
     background: rgba(17, 17, 22, 0.96);
@@ -3337,6 +3433,10 @@ textarea:focus {
         grid-template-columns: 1fr 1fr;
     }
 
+    .agenda-google-list {
+        grid-template-columns: 1fr;
+    }
+
     .dashboard-stats {
         grid-template-columns: 1fr 1fr;
     }
@@ -3637,6 +3737,7 @@ textarea:focus {
     }
 
     .agenda-card-header,
+    .agenda-google-panel-top,
     .avaliacao-hero-top,
     .avaliacao-history-top {
         flex-direction: column;

@@ -19,8 +19,17 @@ Este projeto agora possui um backend completo em Flask integrado ao Supabase, co
 ```env
 SUPABASE_URL=...
 SUPABASE_KEY=...
+SUPABASE_SERVICE_KEY=...
 FLASK_SECRET_KEY=...
 ```
+
+Para cadastro e login local, a tabela `tb_usuario` precisa ter a coluna:
+
+```sql
+senha_hash text
+```
+
+Como o backend salva usuarios diretamente em `tb_usuario`, mantenha a RLS ligada e use `SUPABASE_SERVICE_KEY` no `.env` do backend. Essa chave deve ficar apenas no servidor e nunca deve ir para o frontend.
 
 ## 2) Instalar dependencias
 
@@ -38,6 +47,33 @@ python app.py
 ```
 
 A aplicacao sobe em `http://localhost:5000`.
+
+## Google Calendar na agenda
+
+Para permitir que o personal visualize os eventos do proprio Google Calendar dentro da tela de agenda:
+
+1. No Google Cloud Console, habilite a Google Calendar API.
+2. Crie credenciais OAuth 2.0 do tipo Web application.
+3. Adicione a URI de redirecionamento autorizada:
+
+```text
+http://127.0.0.1:5000/google-calendar/callback
+```
+
+4. Preencha no `.env`:
+
+```env
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+GOOGLE_REDIRECT_URI=http://127.0.0.1:5000/google-calendar/callback
+GOOGLE_CALENDAR_SCOPES=https://www.googleapis.com/auth/calendar.readonly
+```
+
+5. Reinicie o servidor e use o botao `Conectar Google Calendar` na tela `Agenda`.
+
+Observacao:
+- os tokens OAuth ficam em `.tokens/` e nao entram no Git
+- a tela mostra os eventos futuros das agendas conectadas ao Google do personal
 
 ## Portabilidade
 

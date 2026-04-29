@@ -52,6 +52,72 @@
             </section>
             {% endif %}
 
+            <section class="agenda-google-panel" aria-label="Google Calendar">
+                <div class="agenda-google-panel-top">
+                    <div>
+                        <p class="agenda-google-eyebrow">Google Calendar</p>
+                        <h2 class="agenda-google-title">Agenda externa do personal</h2>
+                        <p class="agenda-google-copy">
+                            Visualize os eventos das agendas conectadas ao Google do personal sem sair da plataforma.
+                        </p>
+                    </div>
+
+                    <div class="agenda-google-actions">
+                        {% if google_calendar.connected %}
+                        <form action="{{ google_calendar.disconnect_url }}" method="post">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button class="button button-secondary" type="submit">Desconectar Google</button>
+                        </form>
+                        {% else %}
+                        <a class="button" href="{{ google_calendar.connect_url }}">Conectar Google Calendar</a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if not google_calendar.enabled %}
+                <p class="agenda-google-helper">{{ google_calendar.error }}</p>
+                {% elif google_calendar.error %}
+                <p class="agenda-google-helper">{{ google_calendar.error }}</p>
+                {% elif google_calendar.connected %}
+                <p class="agenda-google-helper">{{ google_calendar.calendar_count }} agenda(s) conectada(s) e {{ google_calendar.events|length }} evento(s) carregado(s).</p>
+
+                <div class="agenda-google-list">
+                    {% for evento in google_calendar.events %}
+                    <article class="agenda-google-card">
+                        <div class="agenda-google-card-top">
+                            <div>
+                                <h3>{{ evento.titulo }}</h3>
+                                <p>{{ evento.calendar_nome }}</p>
+                            </div>
+                            <span class="agenda-status agenda-status-{{ evento.status_classe }}">{{ evento.status }}</span>
+                        </div>
+
+                        <p class="agenda-google-interval">{{ evento.intervalo }}</p>
+
+                        {% if evento.local %}
+                        <p class="agenda-google-meta">Local: {{ evento.local }}</p>
+                        {% endif %}
+
+                        {% if evento.organizador %}
+                        <p class="agenda-google-meta">Organizador: {{ evento.organizador }}</p>
+                        {% endif %}
+
+                        {% if evento.link %}
+                        <a class="student-action agenda-google-link" href="{{ evento.link }}" target="_blank" rel="noopener noreferrer">Abrir no Google Calendar</a>
+                        {% endif %}
+                    </article>
+                    {% else %}
+                    <article class="agenda-google-card agenda-google-card-empty">
+                        <h3>Nenhum evento futuro</h3>
+                        <p>O Google Calendar foi conectado, mas não há eventos futuros para mostrar agora.</p>
+                    </article>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="agenda-google-helper">Conecte o Google Calendar para visualizar os eventos da agenda do personal.</p>
+                {% endif %}
+            </section>
+
             <section class="agenda-list" aria-label="Compromissos">
                 {% for compromisso in compromissos %}
                 <article class="agenda-card">
@@ -83,7 +149,7 @@
                             <button class="student-action" type="submit">Cancelar</button>
                         </form>
 
-                        <a class="student-action" href="{{ compromisso.google_calendar_url|default('#', true) }}">Google Calendar</a>
+                        <a class="student-action" href="{{ compromisso.google_calendar_url|default('#', true) }}" target="_blank" rel="noopener noreferrer">Google Calendar</a>
                     </div>
                 </article>
                 {% else %}
