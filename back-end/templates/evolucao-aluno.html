@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ page_title|default('CONFIE - Minha EvoluÃ§Ã£o', true) }}</title>
+    <title>{{ page_title|default('CONFIE - Minha Evolução', true) }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -19,7 +19,7 @@
                 <a class="sidebar-link {% if pagina_ativa == 'meu_treino' %}is-active{% endif %}" href="{{ meu_treino_url|default('/meu-treino', true) }}">Meu Treino</a>
                 <a class="sidebar-link {% if pagina_ativa == 'agenda' %}is-active{% endif %}" href="{{ agenda_aluno_url|default('/agenda', true) }}">Agendar Aula</a>
                 <a class="sidebar-link {% if pagina_ativa == 'mensagens' %}is-active{% endif %}" href="{{ mensagens_url|default('/mensagens', true) }}">Mensagens</a>
-                <a class="sidebar-link {% if pagina_ativa == 'evolucao' %}is-active{% endif %}" href="{{ evolucao_aluno_url|default('/evolucao', true) }}">EvoluÃ§Ã£o</a>
+                <a class="sidebar-link {% if pagina_ativa == 'evolucao' %}is-active{% endif %}" href="{{ evolucao_aluno_url|default('/evolucao', true) }}">Evolução</a>
                 <a class="sidebar-link" href="{{ logout_url|default('/logout', true) }}">Sair</a>
             </nav>
         </aside>
@@ -27,9 +27,9 @@
         <main class="dashboard-main">
             <header class="dashboard-header">
                 <div>
-                    <p class="avaliacoes-kicker">Minha evoluÃ§Ã£o</p>
+                    <p class="avaliacoes-kicker">Minha evolução</p>
                     <h1 class="dashboard-title">Acompanhe seu progresso</h1>
-                    <p class="dashboard-subtitle">Visualize os dados mais recentes das suas avaliaÃ§Ãµes fÃ­sicas.</p>
+                    <p class="dashboard-subtitle">Visualize os dados mais recentes das suas avaliações físicas.</p>
                 </div>
             </header>
 
@@ -45,7 +45,7 @@
             </section>
             {% endif %}
 
-            <section class="evolucao-top-stats" aria-label="Indicadores da evoluÃ§Ã£o">
+            <section class="evolucao-top-stats" aria-label="Indicadores da evolução">
                 <article class="avaliacao-stat-card">
                     <p class="avaliacao-stat-label">Peso</p>
                     <strong>{{ resumo_atual.peso|default('0 KG', true) }}</strong>
@@ -65,9 +65,9 @@
                 </article>
 
                 <article class="avaliacao-stat-card">
-                    <p class="avaliacao-stat-label">AvaliaÃ§Ãµes</p>
+                    <p class="avaliacao-stat-label">Avaliações</p>
                     <strong>{{ total_avaliacoes|default(0, true) }}</strong>
-                    <span class="evolucao-stat-note">AvaliaÃ§Ãµes cadastradas</span>
+                    <span class="evolucao-stat-note">Avaliações cadastradas</span>
                 </article>
             </section>
 
@@ -76,7 +76,7 @@
                     <article class="avaliacao-panel evolucao-panel">
                         <div class="evolucao-panel-head">
                             <div>
-                                <p class="avaliacao-kicker">Resumo da avaliaÃ§Ã£o</p>
+                                <p class="avaliacao-kicker">Resumo da avaliação</p>
                                 <h2 class="avaliacao-panel-title">Dados principais</h2>
                             </div>
 
@@ -88,15 +88,15 @@
                         <div class="avaliacao-card-grid">
                             <article class="avaliacao-mini-card">
                                 <p class="avaliacao-mini-label">Objetivo</p>
-                                <strong>{{ resumo_atual.objetivo|default('NÃ£o informado', true) }}</strong>
+                                <strong>{{ resumo_atual.objetivo|default('Não informado', true) }}</strong>
                             </article>
                             <article class="avaliacao-mini-card">
                                 <p class="avaliacao-mini-label">IMC</p>
-                                <strong>{{ resumo_atual.imc|default('â€”', true) }}</strong>
+                                <strong>{{ resumo_atual.imc|default('—', true) }}</strong>
                             </article>
                             <article class="avaliacao-mini-card">
-                                <p class="avaliacao-mini-label">ClassificaÃ§Ã£o</p>
-                                <strong>{{ resumo_atual.classificacao|default('NÃ£o informada', true) }}</strong>
+                                <p class="avaliacao-mini-label">Classificação</p>
+                                <strong>{{ resumo_atual.classificacao|default('Não informada', true) }}</strong>
                             </article>
                             <article class="avaliacao-mini-card">
                                 <p class="avaliacao-mini-label">Data</p>
@@ -109,7 +109,7 @@
                         <div class="evolucao-panel-head">
                             <div>
                                 <p class="avaliacao-kicker">Comparativo</p>
-                                <h2 class="avaliacao-panel-title">VariaÃ§Ã£o recente</h2>
+                                <h2 class="avaliacao-panel-title">Variação recente</h2>
                             </div>
                         </div>
 
@@ -139,7 +139,7 @@
                         <div class="evolucao-panel-head">
                             <div>
                                 <p class="avaliacao-kicker">Resumo recente</p>
-                                <h2 class="avaliacao-panel-title">Ãšltima avaliaÃ§Ã£o</h2>
+                                <h2 class="avaliacao-panel-title">Última avaliação</h2>
                             </div>
                             <span class="avaliacao-pill">Mais recente</span>
                         </div>
@@ -159,21 +159,21 @@
                             </article>
                             <article class="avaliacao-mini-card">
                                 <p class="avaliacao-mini-label">IMC</p>
-                                <strong>{{ ultima_avaliacao.imc|default('â€”', true) }}</strong>
+                                <strong>{{ ultima_avaliacao.imc|default('—', true) }}</strong>
                             </article>
                         </div>
                     </article>
 
                     <article class="avaliacao-history-panel evolucao-side-card">
-                        <p class="avaliacao-kicker">HistÃ³rico</p>
-                        <h2 class="avaliacao-panel-title">AvaliaÃ§Ãµes</h2>
+                        <p class="avaliacao-kicker">Histórico</p>
+                        <h2 class="avaliacao-panel-title">Avaliações</h2>
 
                         <div class="evolucao-history-list">
                             {% for item in historico %}
                             <article class="evolucao-history-item">
                                 <div class="evolucao-history-dot" aria-hidden="true"></div>
                                 <div class="evolucao-history-copy">
-                                    <p class="avaliacao-mini-label">AvaliaÃ§Ã£o {{ loop.index }}</p>
+                                    <p class="avaliacao-mini-label">Avaliação {{ loop.index }}</p>
                                     <strong>{{ item.data }}</strong>
                                     <p>{{ item.resumo|default(item.classificacao, true) }}</p>
                                 </div>
@@ -181,8 +181,8 @@
                             {% else %}
                             <article class="evolucao-history-item evolucao-history-item-empty">
                                 <div class="evolucao-history-copy">
-                                    <strong>Nenhuma avaliaÃ§Ã£o</strong>
-                                    <p>Quando seu personal cadastrar avaliaÃ§Ãµes, elas aparecerÃ£o aqui.</p>
+                                    <strong>Nenhuma avaliação</strong>
+                                    <p>Quando seu personal cadastrar avaliações, elas aparecerão aqui.</p>
                                 </div>
                             </article>
                             {% endfor %}
