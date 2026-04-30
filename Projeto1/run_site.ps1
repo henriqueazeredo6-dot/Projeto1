@@ -1,7 +1,11 @@
-﻿$project = 'C:\Users\crisp\OneDrive\Documentos\Nova pasta\Confie_personal2\Projeto1\Projeto1'
-$python = 'C:\Program Files\LibreOffice\program\python.exe'
+﻿$project = Split-Path -Parent $MyInvocation.MyCommand.Path
+$venvPython = Join-Path $project '.venv\Scripts\python.exe'
+
+if (Test-Path -LiteralPath $venvPython) {
+  $python = $venvPython
+} else {
+  $python = 'python'
+}
 
 Set-Location $project
-$env:PYTHONPATH = (Join-Path $project '.deps')
-
 & $python app.py

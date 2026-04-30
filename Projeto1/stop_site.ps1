@@ -1,7 +1,7 @@
-﻿$project = 'C:\Users\crisp\OneDrive\Documentos\Nova pasta\Confie_personal2\Projeto1\Projeto1'
+﻿$project = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 $targets = Get-CimInstance Win32_Process | Where-Object {
-  $_.CommandLine -like "*runpy.run_path('app.py'*" -and $_.CommandLine -like "*$project*"
+  $_.CommandLine -like "*app.py*" -and $_.CommandLine -like "*$project*"
 }
 
 if (-not $targets) {

@@ -883,6 +883,7 @@ select:focus {
     border: 1px solid rgba(255, 255, 255, 0.08);
     background: rgba(17, 17, 22, 0.96);
     overflow: hidden;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.01);
 }
 
 .exercicios-card-media {
@@ -960,6 +961,12 @@ select:focus {
     color: #d4d7de;
     font-size: 0.82rem;
     text-transform: uppercase;
+    text-decoration: none;
+}
+
+.exercicios-action:hover {
+    border-color: rgba(255, 90, 10, 0.36);
+    color: var(--text);
 }
 
 .exercicios-action svg {
@@ -3848,6 +3855,7 @@ textarea:focus {
 
 /* Menu */
 .page-dashboard .sidebar-nav,
+.page-exercicios .sidebar-nav,
 .page-financeiro .sidebar-nav,
 .page-aluno-dashboard .sidebar-nav,
 .page-aluno-meu-treino .sidebar-nav,
@@ -3859,6 +3867,8 @@ textarea:focus {
 .page-dashboard .dashboard-stat-card.ui-card,
 .page-dashboard .dashboard-panel.ui-card,
 .page-dashboard .dashboard-quick-card.ui-card,
+.page-exercicios .exercicios-card.ui-card,
+.page-exercicios .exercicios-empty-panel.ui-card,
 .page-financeiro .financeiro-stat-card.ui-card,
 .page-financeiro .financeiro-plan-card.ui-card,
 .page-treinos .treinos-panel.ui-card,
@@ -3894,6 +3904,7 @@ textarea:focus {
 /* Mobile */
 @media (max-width: 760px) {
     .page-dashboard .dashboard-add-button.ui-btn,
+    .page-exercicios .dashboard-add-button.ui-btn,
     .page-financeiro .dashboard-add-button.ui-btn,
     .page-treinos .dashboard-add-button.ui-btn {
         width: 100%;

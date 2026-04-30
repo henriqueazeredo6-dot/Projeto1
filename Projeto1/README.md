@@ -1,4 +1,4 @@
-﻿# Confie Personal - Backend Flask + Supabase
+# Confie Personal - Backend Flask + Supabase
 
 Este projeto agora possui um backend completo em Flask integrado ao Supabase, com:
 
@@ -34,7 +34,6 @@ pip install -r requirements.txt
 ## 3) Rodar aplicacao
 
 ```bash
-cd Projeto1
 python app.py
 ```
 
@@ -80,4 +79,3 @@ A aplicacao sobe em `http://localhost:5000`.
 
 As politicas RLS no SQL estao abertas para facilitar desenvolvimento.
 Antes de publicar em producao, restrinja as politicas por usuario (`auth.uid()`).
-

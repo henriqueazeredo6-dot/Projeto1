@@ -1,4 +1,4 @@
-﻿# Confie Personal - Backend Flask + Supabase
+# Confie Personal - Backend Flask + Supabase
 
 Este projeto agora possui um backend completo em Flask integrado ao Supabase, com:
 
@@ -90,7 +90,7 @@ Para o projeto rodar em qualquer computador apos o clone:
 Para evitar caminhos absolutos no futuro:
 
 - sempre importe caminhos de `paths.py` quando precisar acessar arquivos locais
-- nunca escreva algo como `C:\...` ou `/Users/...` no codigo
+- nunca escreva caminhos absolutos locais no codigo
 - use `project_path(...)` para montar subpastas do projeto
 - rode a checagem antes de subir alteracoes
 
@@ -131,4 +131,3 @@ No PowerShell:
 
 As politicas RLS no SQL estao abertas para facilitar desenvolvimento.
 Antes de publicar em producao, restrinja as politicas por usuario (`auth.uid()`).
-

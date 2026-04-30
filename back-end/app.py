@@ -17,7 +17,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from paths import BASE_DIR, ENV_FILE, STATIC_DIR, TEMPLATES_DIR, TOKENS_DIR
 
 
-load_dotenv(ENV_FILE)
+load_dotenv(ENV_FILE, override=True)
 app = Flask(
     __name__,
     template_folder=str(TEMPLATES_DIR),
