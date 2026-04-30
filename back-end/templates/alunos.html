@@ -17,12 +17,16 @@
             <nav class="sidebar-nav" aria-label="Menu principal">
                 <a class="sidebar-link {% if pagina_ativa == 'dashboard' %}is-active{% endif %}" href="{{ dashboard_url|default('/dashboard', true) }}">Dashboard</a>
                 <a class="sidebar-link {% if pagina_ativa == 'alunos' %}is-active{% endif %}" href="{{ alunos_url|default('/alunos', true) }}">Alunos</a>
-                <a class="sidebar-link {% if pagina_ativa == 'exercicios' %}is-active{% endif %}" href="{{ exercicios_url|default('/exercicios', true) }}">Exercicios</a>
+                <a class="sidebar-link {% if pagina_ativa == 'exercicios' %}is-active{% endif %}" href="{{ exercicios_url|default('/exercicios', true) }}">Exercícios</a>
                 <a class="sidebar-link {% if pagina_ativa == 'treinos' %}is-active{% endif %}" href="{{ treinos_url|default('/treinos', true) }}">Treinos</a>
                 <a class="sidebar-link {% if pagina_ativa == 'agenda' %}is-active{% endif %}" href="{{ agenda_url|default('/agenda', true) }}">Agenda</a>
                 <a class="sidebar-link {% if pagina_ativa == 'mensagens' %}is-active{% endif %}" href="{{ mensagens_url|default('/mensagens', true) }}">Mensagens</a>
-                <a class="sidebar-link {% if pagina_ativa == 'avaliacoes' %}is-active{% endif %}" href="{{ avaliacoes_url|default('/avaliacoes', true) }}">Avaliacoes</a>
+                <a class="sidebar-link {% if pagina_ativa == 'anamnese' %}is-active{% endif %}" href="{{ anamnese_url|default('/anamnese', true) }}">Anamnese</a>
+                <a class="sidebar-link {% if pagina_ativa == 'observacoes' %}is-active{% endif %}" href="{{ observacoes_url|default('/observacoes', true) }}">Observações</a>
+                <a class="sidebar-link {% if pagina_ativa == 'avaliacoes' %}is-active{% endif %}" href="{{ avaliacoes_url|default('/avaliacoes', true) }}">Avaliações</a>
+                <a class="sidebar-link {% if pagina_ativa == 'evolucao' %}is-active{% endif %}" href="{{ evolucao_url|default('/evolucao', true) }}">Evolução</a>
                 <a class="sidebar-link {% if pagina_ativa == 'financeiro' %}is-active{% endif %}" href="{{ financeiro_url|default('/financeiro', true) }}">Financeiro</a>
+                <a class="sidebar-link {% if pagina_ativa == 'configuracoes' %}is-active{% endif %}" href="{{ configuracoes_url|default('/configuracoes', true) }}">Configurações</a>
                 <a class="sidebar-link" href="{{ logout_url|default('/logout', true) }}">Sair</a>
             </nav>
         </aside>
@@ -62,7 +66,7 @@
                             <option value="">Todos os status</option>
                             <option value="ativo" {% if filtros is defined and filtros.status == 'ativo' %}selected{% endif %}>Ativos</option>
                             <option value="inativo" {% if filtros is defined and filtros.status == 'inativo' %}selected{% endif %}>Inativos</option>
-                            <option value="avaliacao" {% if filtros is defined and filtros.status == 'avaliacao' %}selected{% endif %}>Avaliacao pendente</option>
+                            <option value="avaliacao" {% if filtros is defined and filtros.status == 'avaliacao' %}selected{% endif %}>Avaliação pendente</option>
                         </select>
                         <button class="button button-secondary" type="submit">Filtrar</button>
                     </div>
@@ -81,9 +85,9 @@
                     </div>
 
                     <div class="student-card-body">
-                        <p><strong>Objetivo:</strong> {{ aluno.objetivo|default('Nao informado', true) }}</p>
+                        <p><strong>Objetivo:</strong> {{ aluno.objetivo|default('Não informado', true) }}</p>
                         <p><strong>Status:</strong> {{ aluno.status|default('Ativo', true) }}</p>
-                        <p><strong>Plano:</strong> {{ aluno.plano|default('Nao definido', true) }}</p>
+                        <p><strong>Plano:</strong> {{ aluno.plano|default('Não definido', true) }}</p>
                     </div>
 
                     <div class="student-card-actions">
@@ -140,7 +144,7 @@
                             <select id="status" name="status">
                                 <option value="ativo" {% if form is not defined or form.status == 'ativo' %}selected{% endif %}>Ativo</option>
                                 <option value="inativo" {% if form is defined and form.status == 'inativo' %}selected{% endif %}>Inativo</option>
-                                <option value="avaliacao" {% if form is defined and form.status == 'avaliacao' %}selected{% endif %}>Avaliacao pendente</option>
+                                <option value="avaliacao" {% if form is defined and form.status == 'avaliacao' %}selected{% endif %}>Avaliação pendente</option>
                             </select>
                         </div>
 

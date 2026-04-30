@@ -693,7 +693,7 @@ def _personal_context(pagina_ativa: str) -> Dict[str, Any]:
         "evolucao_url": url_for("evolucao"),
         "financeiro_url": url_for("financeiro"),
         "exercicios_url": url_for("exercicios"),
-        "configuracoes_url": url_for("dashboard"),
+        "configuracoes_url": url_for("configuracoes"),
         "logout_url": url_for("logout"),
     }
 
@@ -2213,9 +2213,13 @@ def evolucao_aluno():
 @app.get("/configuracoes")
 @login_required
 def configuracoes():
-    flash("Tela de configuracoes ainda nao foi separada. Voce foi redirecionado ao dashboard.", "info")
     role = str(session.get("user_role", "")).strip().lower()
-    return redirect(url_for("aluno_dashboard" if role == "aluno" else "dashboard"))
+    if role == "aluno":
+        return redirect(url_for("aluno_dashboard"))
+    return render_template(
+        "configuracoes.html",
+        **_personal_context("configuracoes"),
+    )
 
 
 if __name__ == "__main__":
