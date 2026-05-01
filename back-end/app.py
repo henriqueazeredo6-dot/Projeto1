@@ -671,6 +671,7 @@ def _common_brand_context() -> Dict[str, Any]:
         "marca_logo_url_valor": BRAND_LOGO_URL,
         "brand_name": BRAND_NAME,
         "brand_logo_url": BRAND_LOGO_URL,
+        "home_url": "/index.html",
     }
 
 
@@ -694,7 +695,7 @@ def _personal_context(pagina_ativa: str) -> Dict[str, Any]:
         "financeiro_url": url_for("financeiro"),
         "exercicios_url": url_for("exercicios"),
         "configuracoes_url": url_for("configuracoes"),
-        "logout_url": url_for("logout"),
+        "logout_url": "/index.html",
     }
 
 
@@ -718,7 +719,7 @@ def _student_context(pagina_ativa: str) -> Dict[str, Any]:
         "aluno_mensagens_url": url_for("aluno_mensagens"),
         "evolucao_url": url_for("evolucao_aluno"),
         "evolucao_aluno_url": url_for("evolucao_aluno"),
-        "logout_url": url_for("logout"),
+        "logout_url": "/index.html",
     }
 
 
@@ -1261,7 +1262,7 @@ def login():
 def logout():
     _clear_session()
     flash("Sessao encerrada.", "success")
-    return redirect(url_for("login"))
+    return redirect("/index.html")
 
 
 @app.get("/abrir-como-desenvolvedor")

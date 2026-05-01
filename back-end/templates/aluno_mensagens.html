@@ -61,7 +61,7 @@
                         <path d="M4 16L9 11L13 15L20 8" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
                         <path d="M20 12V8H16" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
-                    <span>Evolucao</span>
+                    <span>Evolução</span>
                 </a>
 
                 <a class="sidebar-link" href="{{ logout_url|default('/logout', true) }}">
@@ -122,7 +122,7 @@
                         <div class="mensagens-thread-empty">
                             <div class="mensagens-empty-state">
                                 <h2>Nenhum contato</h2>
-                                <p class="mensagens-empty-copy">Ainda nao existe nenhum contato disponivel para conversa.</p>
+                                <p class="mensagens-empty-copy">Ainda não existe nenhum contato disponível para conversa.</p>
                             </div>
                         </div>
                         {% endfor %}
@@ -156,7 +156,7 @@
                         <div class="mensagens-thread-empty">
                             <div class="mensagens-empty-state">
                                 <h2>Sem mensagens</h2>
-                                <p class="mensagens-empty-copy">Essa conversa ainda nao possui historico. Envie a primeira mensagem para iniciar o contato.</p>
+                                <p class="mensagens-empty-copy">Essa conversa ainda não possui histórico. Envie a primeira mensagem para iniciar o contato.</p>
                             </div>
                         </div>
                         {% endfor %}
@@ -190,14 +190,14 @@
                     <div class="mensagens-thread-body mensagens-thread-empty">
                         <div class="mensagens-empty-state">
                             <h2>Selecione um contato</h2>
-                            <p class="mensagens-empty-copy">Escolha uma conversa para comecar.</p>
+                            <p class="mensagens-empty-copy">Escolha uma conversa para começar.</p>
                         </div>
                     </div>
                     {% endif %}
                 </section>
             </section>
 
-            <section aria-label="Dados para integracao" hidden>
+            <section aria-label="Dados para integração" hidden>
                 <form id="aluno-mensagens-contexto">
                     <input type="hidden" name="aluno_id" value="{{ aluno_id|default('', true) }}">
                     <input type="hidden" name="contato_id_ativo" value="{{ conversa_ativa.id|default('', true) }}">
