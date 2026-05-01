@@ -121,6 +121,7 @@
                             </a>
 
                             <form action="{{ excluir_exercicio_url_base|default('/exercicios/excluir', true) }}/{{ exercicio.id }}" method="post">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button class="exercicios-action exercicios-action-danger" type="submit" aria-label="Excluir exercicio">
                                     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                         <path d="M5 7H19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
@@ -163,6 +164,7 @@
             </div>
 
             <form class="student-form" action="{{ salvar_exercicio_url|default('/exercicios/salvar', true) }}" method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="exercicio_id" value="{{ exercicio_edicao.id|default('', true) }}">
                 <input type="hidden" name="profissional_id" value="{{ profissional_id|default('', true) }}">
 
@@ -215,4 +217,3 @@
     </section>
 </body>
 </html>
-
