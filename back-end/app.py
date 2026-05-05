@@ -4,6 +4,7 @@ from pathlib import Path
 from datetime import datetime
 from functools import wraps
 from typing import Any, Dict, List, Optional
+from uuid import UUID
 
 from dotenv import load_dotenv
 from flask import Flask, flash, get_flashed_messages, redirect, render_template, request, session, url_for
@@ -156,7 +157,7 @@ def _select(
     limit: Optional[int] = None,
 ) -> Dict[str, Any]:
     def _op():
-        query = _client().table(table).select("*")
+        query = _admin_client().table(table).select("*")
         if filters:
             for key, value in filters.items():
                 query = query.eq(key, value)
@@ -171,7 +172,7 @@ def _select(
 
 def _select_one(table: str, row_id: str) -> Dict[str, Any]:
     def _op():
-        return _client().table(table).select("*").eq("id", row_id).limit(1).execute()
+        return _admin_client().table(table).select("*").eq("id", row_id).limit(1).execute()
 
     result = _run_query(_op)
     if result["ok"]:
@@ -192,6 +193,13 @@ def _select_first_by(table: str, field: str, value: Any) -> Dict[str, Any]:
 def _insert(table: str, payload: Dict[str, Any]) -> Dict[str, Any]:
     payload = _clean_payload(payload)
 
+    def _op():
+        return _admin_client().table(table).insert(payload).execute()
+
+    return _run_query(_op)
+
+
+def _insert_raw(table: str, payload: Dict[str, Any]) -> Dict[str, Any]:
     def _op():
         return _admin_client().table(table).insert(payload).execute()
 
@@ -255,6 +263,15 @@ def _to_int(value: Any) -> Optional[int]:
         return None
 
 
+def _to_uuid_or_none(value: Any) -> Optional[str]:
+    if not value:
+        return None
+    try:
+        return str(UUID(str(value)))
+    except (TypeError, ValueError):
+        return None
+
+
 def _fmt_date(value: Any) -> str:
     if not value:
         return ""
@@ -294,6 +311,15 @@ def _fmt_hour_range(start: Any, end: Any) -> str:
             return text[:5]
 
     return f"{_hour(start)} - {_hour(end)}"
+
+
+def _fmt_time(value: Any) -> str:
+    if not value:
+        return "--:--"
+    text = str(value)
+    if "T" in text:
+        text = text.split("T", 1)[1]
+    return text[:5] if text else "--:--"
 
 
 def _currency(value: Any) -> str:
@@ -745,7 +771,7 @@ def _students() -> List[Dict[str, Any]]:
                 "data_nascimento": _fmt_date(_first(row, "data_nascimento", "nascimento")),
                 "objetivo": _first(row, "objetivo", "goal", default="Nao informado"),
                 "status": _human_status(_first(row, "status", default="ativo")),
-                "plano": _first(row, "plano", default="Nao definido"),
+                "plano": _first(row, "plano", "plano_descricao", default="Nao definido"),
                 "avatar_iniciais": _initials(name),
             }
         )
@@ -785,16 +811,16 @@ def _trainings(aluno_id: Optional[str] = None) -> List[Dict[str, Any]]:
             {
                 **row,
                 "id": row.get("id", ""),
-                "nome": _first(row, "nome", "name", default="Treino"),
+                "nome": _first(row, "nome", "name", "descricao", default="Treino"),
                 "aluno_id": _first(row, "aluno_id", default=""),
                 "aluno_nome": _first(row, "aluno_nome", default=aluno_ref.get("nome", "Aluno")),
                 "status": _human_status(_first(row, "status", default="ativo")),
                 "grupo_muscular": _first(row, "grupo_muscular", default="Treino personalizado"),
-                "observacoes": _first(row, "observacoes", "notes", default=""),
+                "observacoes": _first(row, "observacoes", "observacao", "notes", default=""),
                 "exercicios_raw": _first(row, "exercicios_raw", "exercicios", default=""),
                 "exercicios_lista": exercises,
                 "total_exercicios": _to_int(_first(row, "total_exercicios", default=len(exercises))) or len(exercises),
-                "atualizado_em": _fmt_date(_first(row, "updated_at", "created_at")),
+                "atualizado_em": _fmt_date(_first(row, "updated_at", "created_at", "data_criacao")),
                 "video_url": _first(row, "video_url", default=""),
             }
         )
@@ -827,16 +853,19 @@ def _schedule_rows() -> List[Dict[str, Any]]:
     for row in rows:
         aluno_ref = alunos_por_id.get(_first(row, "aluno_id", default=""), {})
         status = _slug_status(_first(row, "status", default="pendente"))
-        title = _first(row, "titulo", "nome", "title", default="Aula")
-        start = _first(row, "inicio", "data_hora_inicio", "data_hora", "start_time", "starts_at", default="")
+        title = _first(row, "titulo", "nome", "title", "observacao", default="Aula")
+        start = _first(row, "inicio", "data_hora_inicio", "data_hora", "start_time", "starts_at", "data", default="")
         end = _first(row, "termino", "data_hora_fim", "end_time", "ends_at", default="")
+        if start and row.get("hora") and "T" not in str(start):
+            start = f"{start}T{str(row.get('hora'))[:5]}"
         google_calendar_url = _first(row, "google_calendar_url", default="")
         if not google_calendar_url and start:
             start_raw = str(start).replace("-", "").replace(":", "").replace("T", "").split(".")[0]
             end_raw = str(end or start).replace("-", "").replace(":", "").replace("T", "").split(".")[0]
             google_calendar_url = f"https://calendar.google.com/calendar/render?action=TEMPLATE&text={title}&dates={start_raw}/{end_raw}"
-        hours = _fmt_hour_range(start, end)
-        start_hour, end_hour = hours.split(" - ")
+        start_hour = _fmt_time(start)
+        end_hour = _fmt_time(end)
+        hours = start_hour if end_hour == "--:--" else f"{start_hour} - {end_hour}"
         normalized.append(
             {
                 **row,
@@ -856,7 +885,7 @@ def _schedule_rows() -> List[Dict[str, Any]]:
                 "data": _fmt_date(start),
                 "hora": hours,
                 "tipo": _first(row, "tipo", "category", default="Aula"),
-                "observacoes": _first(row, "observacoes", "notes", default=""),
+                "observacoes": _first(row, "observacoes", "observacao", "notes", default=""),
                 "google_calendar_url": google_calendar_url,
             }
         )
@@ -944,7 +973,7 @@ def _assessments(aluno_id: Optional[str] = None) -> List[Dict[str, Any]]:
                 "peso": f"{_first(row, 'peso', default='0')} kg",
                 "altura": f"{_first(row, 'estatura', 'altura', default='0')} cm",
                 "data": _fmt_date(_first(row, "created_at", "data_avaliacao")),
-                "observacoes": _first(row, "observacoes", default=""),
+                "observacoes": _first(row, "observacoes", "observacao", default=""),
                 "historico_label": f"Avaliacao {_first(row, 'numero', default='1')}",
                 "status_label": metrics["classificacao"],
                 "resumo": metrics["classificacao"],
@@ -966,9 +995,10 @@ def _exercises() -> List[Dict[str, Any]]:
                 **row,
                 "id": row.get("id", ""),
                 "nome": _first(row, "nome", "name", default="Exercicio"),
-                "grupo_muscular": _first(row, "grupo_muscular", default="Nao informado"),
+                "grupo_muscular": _first(row, "grupo_muscular", "grupo_muscular_id", default="Nao informado"),
                 "descricao": _first(row, "descricao", "description", default=""),
                 "imagem_url": _first(row, "imagem_url", default=""),
+                "video_url": _first(row, "video_url", "link_execucao", default=""),
             }
         )
     return normalized
@@ -1373,12 +1403,14 @@ def alunos():
         payload = {
             "nome": request.form.get("nome"),
             "email": request.form.get("email"),
-            "telefone": request.form.get("telefone"),
             "objetivo": request.form.get("objetivo"),
-            "status": request.form.get("status"),
-            "plano": request.form.get("plano"),
+            "data_nascimento": request.form.get("data_nascimento") or request.form.get("nascimento"),
+            "experiencias_anteriores": request.form.get("experiencias_anteriores"),
+            "restricoes_fisicas": request.form.get("restricoes_fisicas"),
+            "plano_id": request.form.get("plano_id") or None,
+            "auth_user_id": request.form.get("auth_user_id") or None,
         }
-        result = _insert(TABLE_ALUNOS, payload)
+        result = _insert_raw(TABLE_ALUNOS, payload)
         flash("Aluno criado com sucesso." if result["ok"] else (result["error"] or "Nao foi possivel criar o aluno."), "success" if result["ok"] else "error")
         return redirect(url_for("alunos"))
 
@@ -1476,11 +1508,9 @@ def criar_treino():
     result = _insert(
         TABLE_TREINOS,
         {
-            "nome": request.form.get("nome"),
+            "descricao": request.form.get("nome"),
             "aluno_id": request.form.get("aluno_id"),
-            "exercicios_raw": request.form.get("exercicios_raw"),
-            "observacoes": request.form.get("observacoes"),
-            "status": "ativo",
+            "observacao": request.form.get("observacoes") or request.form.get("exercicios_raw"),
         },
     )
     flash("Treino criado com sucesso." if result["ok"] else (result["error"] or "Nao foi possivel criar o treino."), "success" if result["ok"] else "error")
@@ -1498,10 +1528,9 @@ def editar_treino(treino_id: str):
         TABLE_TREINOS,
         treino_id,
         {
-            "nome": request.form.get("nome"),
+            "descricao": request.form.get("nome"),
             "aluno_id": request.form.get("aluno_id"),
-            "exercicios_raw": request.form.get("exercicios_raw"),
-            "observacoes": request.form.get("observacoes"),
+            "observacao": request.form.get("observacoes") or request.form.get("exercicios_raw"),
         },
     )
     flash("Treino atualizado com sucesso." if result["ok"] else (result["error"] or "Nao foi possivel atualizar o treino."), "success" if result["ok"] else "error")
@@ -1533,12 +1562,10 @@ def agenda():
         aluno_id = request.form.get("aluno_id")
         aluno = next((item for item in _students() if item["id"] == aluno_id), None)
         payload = {
-            "titulo": request.form.get("titulo"),
+            "data": request.form.get("data") or str(request.form.get("inicio") or "")[:10],
+            "hora": request.form.get("hora") or str(request.form.get("inicio") or "")[11:16],
             "aluno_id": aluno_id,
-            "aluno_nome": aluno["nome"] if aluno else "",
-            "inicio": request.form.get("inicio"),
-            "termino": request.form.get("termino"),
-            "observacoes": request.form.get("observacoes"),
+            "observacao": request.form.get("observacoes") or request.form.get("titulo"),
             "status": "agendado",
         }
         result = _insert(TABLE_AGENDA, payload)
@@ -1615,26 +1642,11 @@ def avaliacoes():
         aluno = next((item for item in _students() if item["id"] == aluno_id), None)
         payload = {
             "aluno_id": aluno_id,
-            "aluno_nome": aluno["nome"] if aluno else "",
-            "sexo": request.form.get("sexo"),
             "peso": request.form.get("peso"),
             "estatura": request.form.get("estatura"),
             "idade": request.form.get("idade"),
-            "gordura": request.form.get("gordura"),
-            "tricipital": request.form.get("tricipital"),
-            "subscapular": request.form.get("subscapular"),
-            "suprailiaca": request.form.get("suprailiaca"),
-            "abdominal": request.form.get("abdominal"),
-            "peitoral": request.form.get("peitoral"),
-            "coxa": request.form.get("coxa"),
-            "perna": request.form.get("perna"),
-            "braco_direito": request.form.get("braco_direito"),
-            "peitoral_circ": request.form.get("peitoral_circ"),
-            "cintura": request.form.get("cintura"),
-            "quadril": request.form.get("quadril"),
-            "coxa_direita": request.form.get("coxa_direita"),
-            "perna_direita": request.form.get("perna_direita"),
-            "observacoes": request.form.get("observacoes"),
+            "data": request.form.get("data") or datetime.utcnow().date().isoformat(),
+            "observacao": request.form.get("observacoes"),
         }
         result = _insert(TABLE_AVALIACOES, payload)
         flash("Avaliacao salva com sucesso." if result["ok"] else (result["error"] or "Nao foi possivel salvar a avaliacao."), "success" if result["ok"] else "error")
@@ -1838,10 +1850,9 @@ def salvar_exercicio():
     exercicio_id = request.form.get("exercicio_id", "")
     payload = {
         "nome": request.form.get("nome"),
-        "grupo_muscular": request.form.get("grupo_muscular"),
         "descricao": request.form.get("descricao"),
-        "imagem_url": request.form.get("imagem_url"),
-        "video_url": request.form.get("video_url"),
+        "grupo_muscular_id": _to_uuid_or_none(request.form.get("grupo_muscular")),
+        "link_execucao": request.form.get("video_url"),
     }
     result = _update(TABLE_EXERCICIOS, exercicio_id, payload) if exercicio_id else _insert(TABLE_EXERCICIOS, payload)
     flash("Exercicio salvo com sucesso." if result["ok"] else (result["error"] or "Nao foi possivel salvar o exercicio."), "success" if result["ok"] else "error")
@@ -2221,6 +2232,240 @@ def configuracoes():
         "configuracoes.html",
         **_personal_context("configuracoes"),
     )
+
+
+def _json_payload() -> Dict[str, Any]:
+    payload = request.get_json(silent=True)
+    return payload if isinstance(payload, dict) else {}
+
+
+def _api_response(result: Dict[str, Any], *, success_status: int = 200):
+    status = success_status if result["ok"] else 400
+    return {"ok": result["ok"], "data": result["data"], "error": result["error"]}, status
+
+
+def _api_create(table: str, payload: Dict[str, Any], required: Optional[List[str]] = None):
+    missing = [field for field in (required or []) if not payload.get(field)]
+    if missing:
+        return {"ok": False, "data": None, "error": f"Campos obrigatorios ausentes: {', '.join(missing)}"}, 400
+    return _api_response(_insert(table, payload), success_status=201)
+
+
+def _api_update(table: str, row_id: str, payload: Dict[str, Any]):
+    if not payload:
+        return {"ok": False, "data": None, "error": "Envie ao menos um campo para atualizar."}, 400
+    return _api_response(_update(table, row_id, payload))
+
+
+def _api_delete(table: str, row_id: str):
+    return _api_response(_delete(table, row_id))
+
+
+def _only(payload: Dict[str, Any], allowed: List[str]) -> Dict[str, Any]:
+    return {key: payload.get(key) for key in allowed if key in payload}
+
+
+@app.get("/api/alunos")
+@login_required
+def api_listar_alunos():
+    return {"ok": True, "data": _students(), "error": None}
+
+
+@app.post("/api/alunos")
+@login_required
+def api_criar_aluno():
+    payload = _json_payload()
+    aluno = {
+        "nome": payload.get("nome"),
+        "email": payload.get("email"),
+        "objetivo": payload.get("objetivo"),
+        "data_nascimento": payload.get("data_nascimento"),
+        "experiencias_anteriores": payload.get("experiencias_anteriores"),
+        "restricoes_fisicas": payload.get("restricoes_fisicas"),
+        "plano_id": payload.get("plano_id"),
+        "auth_user_id": payload.get("auth_user_id"),
+    }
+    missing = [field for field in ("nome", "email") if not aluno.get(field)]
+    if missing:
+        return {"ok": False, "data": None, "error": f"Campos obrigatorios ausentes: {', '.join(missing)}"}, 400
+    return _api_response(_insert_raw(TABLE_ALUNOS, aluno), success_status=201)
+
+
+@app.get("/api/alunos/<aluno_id>")
+@login_required
+def api_obter_aluno(aluno_id: str):
+    result = _select_one(TABLE_ALUNOS, aluno_id)
+    status = 200 if result["ok"] and result["data"] else 404
+    if result["ok"] and not result["data"]:
+        result["error"] = "Aluno nao encontrado."
+    return {"ok": result["ok"] and bool(result["data"]), "data": result["data"], "error": result["error"]}, status
+
+
+@app.put("/api/alunos/<aluno_id>")
+@login_required
+def api_atualizar_aluno(aluno_id: str):
+    return _api_update(
+        TABLE_ALUNOS,
+        aluno_id,
+        _only(
+            _json_payload(),
+            ["nome", "email", "objetivo", "data_nascimento", "experiencias_anteriores", "restricoes_fisicas", "plano_id", "auth_user_id"],
+        ),
+    )
+
+
+@app.delete("/api/alunos/<aluno_id>")
+@login_required
+def api_excluir_aluno(aluno_id: str):
+    return _api_delete(TABLE_ALUNOS, aluno_id)
+
+
+@app.get("/api/treinos")
+@login_required
+def api_listar_treinos():
+    aluno_id = request.args.get("aluno_id") or None
+    return {"ok": True, "data": _trainings(aluno_id), "error": None}
+
+
+@app.post("/api/treinos")
+@login_required
+def api_criar_treino():
+    payload = _json_payload()
+    return _api_create(
+        TABLE_TREINOS,
+        {
+            "descricao": payload.get("descricao") or payload.get("nome"),
+            "aluno_id": payload.get("aluno_id"),
+            "observacao": payload.get("observacao") or payload.get("observacoes") or payload.get("exercicios_raw"),
+        },
+        required=["descricao", "aluno_id"],
+    )
+
+
+@app.get("/api/treinos/<treino_id>")
+@login_required
+def api_obter_treino(treino_id: str):
+    treino = next((item for item in _trainings() if item["id"] == treino_id), None)
+    status = 200 if treino else 404
+    return {"ok": bool(treino), "data": treino, "error": None if treino else "Treino nao encontrado."}, status
+
+
+@app.put("/api/treinos/<treino_id>")
+@login_required
+def api_atualizar_treino(treino_id: str):
+    payload = _json_payload()
+    mapped = {
+        "descricao": payload.get("descricao") or payload.get("nome"),
+        "aluno_id": payload.get("aluno_id"),
+        "observacao": payload.get("observacao") or payload.get("observacoes") or payload.get("exercicios_raw"),
+    }
+    return _api_update(TABLE_TREINOS, treino_id, mapped)
+
+
+@app.delete("/api/treinos/<treino_id>")
+@login_required
+def api_excluir_treino(treino_id: str):
+    return _api_delete(TABLE_TREINOS, treino_id)
+
+
+@app.get("/api/agenda")
+@login_required
+def api_listar_agenda():
+    return {"ok": True, "data": _schedule_rows(), "error": None}
+
+
+@app.post("/api/agenda")
+@login_required
+def api_criar_agenda():
+    payload = _json_payload()
+    aluno_id = payload.get("aluno_id")
+    aluno = next((item for item in _students() if item["id"] == aluno_id), None)
+    return _api_create(
+        TABLE_AGENDA,
+        {
+            "data": payload.get("data") or str(payload.get("inicio") or "")[:10],
+            "hora": payload.get("hora") or str(payload.get("inicio") or "")[11:16],
+            "aluno_id": aluno_id,
+            "observacao": payload.get("observacao") or payload.get("observacoes") or payload.get("titulo"),
+            "status": payload.get("status", "agendado"),
+        },
+        required=["data", "hora"],
+    )
+
+
+@app.get("/api/agenda/<agenda_id>")
+@login_required
+def api_obter_agenda(agenda_id: str):
+    item = next((row for row in _schedule_rows() if row["id"] == agenda_id), None)
+    status = 200 if item else 404
+    return {"ok": bool(item), "data": item, "error": None if item else "Agenda nao encontrada."}, status
+
+
+@app.put("/api/agenda/<agenda_id>")
+@login_required
+def api_atualizar_agenda(agenda_id: str):
+    payload = _json_payload()
+    mapped = {
+        "data": payload.get("data") or str(payload.get("inicio") or "")[:10],
+        "hora": payload.get("hora") or str(payload.get("inicio") or "")[11:16],
+        "aluno_id": payload.get("aluno_id"),
+        "observacao": payload.get("observacao") or payload.get("observacoes") or payload.get("titulo"),
+        "status": payload.get("status"),
+    }
+    return _api_update(TABLE_AGENDA, agenda_id, mapped)
+
+
+@app.delete("/api/agenda/<agenda_id>")
+@login_required
+def api_excluir_agenda(agenda_id: str):
+    return _api_delete(TABLE_AGENDA, agenda_id)
+
+
+@app.get("/api/avaliacoes")
+@login_required
+def api_listar_avaliacoes():
+    aluno_id = request.args.get("aluno_id") or None
+    return {"ok": True, "data": _assessments(aluno_id), "error": None}
+
+
+@app.post("/api/avaliacoes")
+@login_required
+def api_criar_avaliacao():
+    payload = _json_payload()
+    aluno_id = payload.get("aluno_id")
+    aluno = next((item for item in _students() if item["id"] == aluno_id), None)
+    allowed_fields = [
+        "data",
+        "peso",
+        "estatura",
+        "idade",
+        "observacao",
+    ]
+    avaliacao = {field: payload.get(field) for field in allowed_fields}
+    avaliacao.update({"aluno_id": aluno_id, "observacao": payload.get("observacao") or payload.get("observacoes")})
+    return _api_create(TABLE_AVALIACOES, avaliacao, required=["aluno_id"])
+
+
+@app.get("/api/avaliacoes/<avaliacao_id>")
+@login_required
+def api_obter_avaliacao(avaliacao_id: str):
+    result = _select_one(TABLE_AVALIACOES, avaliacao_id)
+    status = 200 if result["ok"] and result["data"] else 404
+    if result["ok"] and not result["data"]:
+        result["error"] = "Avaliacao nao encontrada."
+    return {"ok": result["ok"] and bool(result["data"]), "data": result["data"], "error": result["error"]}, status
+
+
+@app.put("/api/avaliacoes/<avaliacao_id>")
+@login_required
+def api_atualizar_avaliacao(avaliacao_id: str):
+    return _api_update(TABLE_AVALIACOES, avaliacao_id, _only(_json_payload(), ["data", "idade", "peso", "estatura", "observacao", "aluno_id"]))
+
+
+@app.delete("/api/avaliacoes/<avaliacao_id>")
+@login_required
+def api_excluir_avaliacao(avaliacao_id: str):
+    return _api_delete(TABLE_AVALIACOES, avaliacao_id)
 
 
 if __name__ == "__main__":
