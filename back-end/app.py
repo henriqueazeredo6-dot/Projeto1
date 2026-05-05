@@ -226,7 +226,52 @@ def _missing_table_error(error: Optional[str]) -> bool:
     if not error:
         return False
     lowered = error.lower()
-    return "does not exist" in lowered or "42p01" in lowered or "42703" in lowered
+    return (
+        "does not exist" in lowered
+        or "could not find the table" in lowered
+        or "pgrst205" in lowered
+        or "42p01" in lowered
+        or "42703" in lowered
+    )
+
+
+def _message_table_error_message(error: Optional[str]) -> str:
+    if _missing_table_error(error):
+        return f"Tabela de mensagens nao encontrada no Supabase. Crie ou configure a tabela {TABLE_MENSAGENS} para habilitar o envio."
+    return error or "Nao foi possivel enviar a mensagem."
+
+
+def _anamnese_table_error_message(error: Optional[str]) -> str:
+    if _missing_table_error(error):
+        return f"Tabela de anamnese nao encontrada no Supabase. Execute o schema para criar {TABLE_ANAMNESES} antes de salvar."
+    return error or "Nao foi possivel salvar a anamnese."
+
+
+def _observacao_table_error_message(error: Optional[str]) -> str:
+    if _missing_table_error(error):
+        return f"Tabela de observacoes nao encontrada no Supabase. Execute o schema para criar {TABLE_OBSERVACOES} antes de salvar."
+    return error or "Nao foi possivel salvar a observacao."
+
+
+def _missing_column_error(error: Optional[str], column: str = "") -> bool:
+    if not error:
+        return False
+    lowered = error.lower()
+    column_match = not column or column.lower() in lowered
+    return column_match and (
+        "could not find" in lowered
+        or "schema cache" in lowered
+        or "pgrst204" in lowered
+        or "42703" in lowered
+    )
+
+
+def _plan_table_error_message(error: Optional[str]) -> str:
+    if _missing_table_error(error):
+        return f"Tabela de planos nao encontrada no Supabase. Execute o schema para criar {TABLE_PLANOS}."
+    if _missing_column_error(error):
+        return f"Estrutura da tabela {TABLE_PLANOS} incompleta no Supabase. Execute o schema ou adicione as colunas nome, descricao, preco, duracao_dias e recorrente."
+    return error or "Nao foi possivel criar o plano."
 
 
 def _table_has_local_passwords() -> bool:
@@ -1415,12 +1460,15 @@ def alunos():
         return redirect(url_for("alunos"))
 
     search = request.args.get("busca", "").strip().lower()
+    aluno_edicao_id = request.args.get("editar_aluno_id", "")
     alunos_lista = _students()
     if search:
         alunos_lista = [aluno for aluno in alunos_lista if search in aluno["nome"].lower() or search in aluno["email"].lower()]
+    aluno_edicao = next((aluno for aluno in alunos_lista if aluno["id"] == aluno_edicao_id), {})
     return render_template(
         "alunos.html",
         alunos=alunos_lista,
+        aluno_edicao=aluno_edicao,
         busca=search,
         filtros={"busca": search, "status": request.args.get("status", "")},
         total_alunos=len(alunos_lista),
@@ -1431,6 +1479,35 @@ def alunos():
         csrf_form_token=_csrf_token,
         **_personal_context("alunos"),
     )
+
+
+@app.get("/alunos/<aluno_id>/editar")
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def abrir_edicao_aluno(aluno_id: str):
+    flash("A rota de edicao do aluno esta ativa, mas o formulario visual ainda nao existe nesta tela.", "info")
+    return redirect(url_for("alunos"))
+
+
+@app.post("/alunos/<aluno_id>/editar")
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def editar_aluno(aluno_id: str):
+    csrf_error = _require_csrf()
+    if csrf_error:
+        flash(csrf_error, "error")
+        return redirect(url_for("alunos", editar_aluno_id=aluno_id) + "#editar-aluno")
+    payload = {
+        "nome": request.form.get("nome"),
+        "email": request.form.get("email"),
+        "objetivo": request.form.get("objetivo"),
+        "data_nascimento": request.form.get("data_nascimento") or None,
+        "experiencias_anteriores": request.form.get("experiencias_anteriores"),
+        "restricoes_fisicas": request.form.get("restricoes_fisicas"),
+    }
+    result = _update(TABLE_ALUNOS, aluno_id, payload)
+    flash("Aluno atualizado com sucesso." if result["ok"] else (result["error"] or "Nao foi possivel atualizar o aluno."), "success" if result["ok"] else "error")
+    return redirect(url_for("alunos"))
 
 
 @app.get("/alunos/<aluno_id>")
@@ -1474,8 +1551,10 @@ def treinos():
         treino_exclusao=treino_exclusao,
         url_treinos_aluno_base="/treinos/aluno",
         visualizar_treino_base="/treinos",
+        visualizar_treino_url_base="/treinos",
         criar_treino_url=url_for("criar_treino"),
         editar_treino_base="/treinos/editar",
+        editar_treino_url_base="/treinos/editar",
         excluir_treino_base="/treinos/excluir",
         csrf_form_token=_csrf_token,
         **_personal_context("treinos"),
@@ -1489,13 +1568,38 @@ def treinos_aluno(aluno_id: str):
 
 
 @app.get("/treinos/<treino_id>")
+@app.get("/treinos/<treino_id>/")
 @login_required
 def visualizar_treino(treino_id: str):
     treino = next((item for item in _trainings() if item["id"] == treino_id), None)
     if not treino:
         flash("Treino nao encontrado.", "error")
         return redirect(url_for("treinos"))
-    return redirect(url_for("treinos", aluno_id=treino.get("aluno_id", ""), editar_treino_id=treino_id))
+    return redirect(url_for("treinos", aluno_id=treino.get("aluno_id", ""), editar_treino_id=treino_id) + "#editar-treino-modal")
+
+
+@app.get("/treinos/visualizar")
+@app.get("/treinos/visualizar/")
+@login_required
+def visualizar_treino_sem_id():
+    return redirect(url_for("treinos"))
+
+
+@app.get("/treinos/visualizar/<treino_id>")
+@app.get("/treinos/visualizar/<treino_id>/")
+@login_required
+def visualizar_treino_legacy(treino_id: str):
+    return visualizar_treino(treino_id)
+
+
+@app.get("/treinos/novo")
+@app.get("/treinos/novo/")
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def abrir_criacao_treino():
+    aluno_id = request.args.get("aluno_id", "")
+    target = url_for("treinos", aluno_id=aluno_id) if aluno_id else url_for("treinos")
+    return redirect(target + "#novo-treino-modal")
 
 
 @app.post("/treinos/novo")
@@ -1535,6 +1639,26 @@ def editar_treino(treino_id: str):
     )
     flash("Treino atualizado com sucesso." if result["ok"] else (result["error"] or "Nao foi possivel atualizar o treino."), "success" if result["ok"] else "error")
     return redirect(url_for("treinos", aluno_id=request.form.get("aluno_id", "")))
+
+
+@app.get("/treinos/editar")
+@app.get("/treinos/editar/")
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def abrir_edicao_treino_sem_id():
+    return redirect(url_for("treinos"))
+
+
+@app.get("/treinos/editar/<treino_id>")
+@app.get("/treinos/editar/<treino_id>/")
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def abrir_edicao_treino(treino_id: str):
+    treino = next((item for item in _trainings() if item["id"] == treino_id), None)
+    if not treino:
+        flash("Treino nao encontrado.", "error")
+        return redirect(url_for("treinos"))
+    return redirect(url_for("treinos", aluno_id=treino.get("aluno_id", ""), editar_treino_id=treino_id) + "#editar-treino-modal")
 
 
 @app.post("/treinos/excluir/<treino_id>")
@@ -1729,6 +1853,8 @@ def observacoes():
         result = _select_first_by(TABLE_OBSERVACOES, "aluno_id", aluno_ativo["id"])
         if result["ok"] and result["data"]:
             observacao = result["data"]
+        elif not result["ok"] and _missing_table_error(result["error"]):
+            flash(_observacao_table_error_message(result["error"]), "error")
     if request.method == "POST":
         csrf_error = _require_csrf()
         if csrf_error:
@@ -1747,7 +1873,7 @@ def observacoes():
             result = _update(TABLE_OBSERVACOES, existing["data"]["id"], payload)
         else:
             result = _insert(TABLE_OBSERVACOES, payload)
-        flash("Observacao salva com sucesso." if result["ok"] else (result["error"] or "Nao foi possivel salvar a observacao."), "success" if result["ok"] else "error")
+        flash("Observacao salva com sucesso." if result["ok"] else _observacao_table_error_message(result["error"]), "success" if result["ok"] else "error")
         return redirect(url_for("observacoes", aluno_id=request.form.get("aluno_id", "")))
 
     return render_template(
@@ -1776,11 +1902,14 @@ def observacoes():
     )
 
 
+@app.route("/anamnese/salvar", methods=["GET", "POST"])
+@app.route("/anamnese/salvar/", methods=["GET", "POST"])
 @app.route("/anamnese", methods=["GET", "POST"])
-@app.route("/anamnese/salvar", methods=["POST"])
 @login_required
 @role_required("Personal Trainer", "Admin", "Professor")
 def anamnese():
+    if request.method == "GET" and request.path.rstrip("/") == "/anamnese/salvar":
+        return redirect(url_for("anamnese", aluno_id=request.args.get("aluno_id", "")))
     alunos_lista = _students()
     aluno_id = request.values.get("aluno_id", "")
     aluno_ativo = next((item for item in alunos_lista if item["id"] == aluno_id), alunos_lista[0] if alunos_lista else None)
@@ -1808,7 +1937,7 @@ def anamnese():
             result = _update(TABLE_ANAMNESES, request.form.get("anamnese_id"), payload)
         else:
             result = _insert(TABLE_ANAMNESES, payload)
-        flash("Anamnese salva com sucesso." if result["ok"] else (result["error"] or "Nao foi possivel salvar a anamnese."), "success" if result["ok"] else "error")
+        flash("Anamnese salva com sucesso." if result["ok"] else _anamnese_table_error_message(result["error"]), "success" if result["ok"] else "error")
         return redirect(url_for("anamnese", aluno_id=request.form.get("aluno_id", "")))
 
     return render_template(
@@ -1817,7 +1946,7 @@ def anamnese():
         aluno_ativo=aluno_ativo,
         anamnese=anamnese_atual,
         buscar_anamnese_url=url_for("anamnese"),
-        salvar_anamnese_url=url_for("anamnese"),
+        salvar_anamnese_url="/anamnese/salvar",
         csrf_form_token=_csrf_token,
         **_personal_context("anamnese"),
     )
@@ -1827,17 +1956,37 @@ def anamnese():
 @login_required
 @role_required("Personal Trainer", "Admin", "Professor")
 def exercicios():
+    exercicio_edicao_id = request.args.get("editar_exercicio_id", "")
+    exercicios_lista = _exercises()
+    exercicio_edicao = next((item for item in exercicios_lista if item["id"] == exercicio_edicao_id), {})
     return render_template(
         "exercicios.html",
-        exercicios=_exercises(),
+        exercicios=exercicios_lista,
         busca=request.args.get("busca", ""),
-        exercicio_edicao={},
+        exercicio_edicao=exercicio_edicao,
+        modal_titulo="Editar exercicio" if exercicio_edicao else "Novo exercicio",
         salvar_exercicio_url=url_for("salvar_exercicio"),
         editar_exercicio_url_base="/exercicios/editar",
         excluir_exercicio_url_base="/exercicios/excluir",
         csrf_form_token=_csrf_token,
         **_personal_context("exercicios"),
     )
+
+
+@app.get("/exercicios/editar")
+@app.get("/exercicios/editar/")
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def abrir_edicao_exercicio_sem_id():
+    return redirect(url_for("exercicios"))
+
+
+@app.get("/exercicios/editar/<exercicio_id>")
+@app.get("/exercicios/editar/<exercicio_id>/")
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def abrir_edicao_exercicio(exercicio_id: str):
+    return redirect(url_for("exercicios", editar_exercicio_id=exercicio_id) + "#novo-exercicio-modal")
 
 
 @app.post("/exercicios/salvar")
@@ -1903,7 +2052,7 @@ def enviar_mensagem():
         "created_at": datetime.utcnow().isoformat(),
     }
     result = _insert(TABLE_MENSAGENS, payload)
-    flash("Mensagem enviada." if result["ok"] else (result["error"] or "Nao foi possivel enviar a mensagem."), "success" if result["ok"] else "error")
+    flash("Mensagem enviada." if result["ok"] else _message_table_error_message(result["error"]), "success" if result["ok"] else "error")
     return redirect(url_for("mensagens", contato_id=request.form.get("contato_id", "")))
 
 
@@ -1961,7 +2110,10 @@ def criar_plano():
         "recorrente": True if request.form.get("recorrente") else False,
     }
     result = _insert(TABLE_PLANOS, payload)
-    flash("Plano criado com sucesso." if result["ok"] else (result["error"] or "Nao foi possivel criar o plano."), "success" if result["ok"] else "error")
+    if not result["ok"] and _missing_column_error(result["error"], "duracao_dias"):
+        payload.pop("duracao_dias", None)
+        result = _insert(TABLE_PLANOS, payload)
+    flash("Plano criado com sucesso." if result["ok"] else _plan_table_error_message(result["error"]), "success" if result["ok"] else "error")
     return redirect(url_for("financeiro"))
 
 
@@ -2181,7 +2333,7 @@ def enviar_mensagem_aluno():
         "created_at": datetime.utcnow().isoformat(),
     }
     result = _insert(TABLE_MENSAGENS, payload)
-    flash("Mensagem enviada." if result["ok"] else (result["error"] or "Nao foi possivel enviar a mensagem."), "success" if result["ok"] else "error")
+    flash("Mensagem enviada." if result["ok"] else _message_table_error_message(result["error"]), "success" if result["ok"] else "error")
     return redirect(url_for("aluno_mensagens", contato_id=request.form.get("contato_id", "")))
 
 
