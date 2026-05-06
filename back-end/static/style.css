@@ -3865,6 +3865,11 @@ textarea:focus {
     position: relative;
 }
 
+.mobile-menu-toggle,
+.mobile-menu-button {
+    display: none;
+}
+
 .page-login .auth-panel.ui-card {
     border-radius: 0;
 }
@@ -3924,5 +3929,625 @@ textarea:focus {
     .page-financeiro .dashboard-add-button.ui-btn,
     .page-treinos .dashboard-add-button.ui-btn {
         width: 100%;
+    }
+
+    .page-alunos,
+    .page-agenda,
+    .page-avaliacoes,
+    .page-evolucao,
+    .page-aluno-meu-treino,
+    .page-aluno-agenda,
+    .page-aluno-evolucao {
+        background: linear-gradient(180deg, #09090d 0%, #06070a 100%);
+    }
+
+    .page-index .site-shell {
+        width: 100%;
+    }
+
+    .page-index .hero-landing,
+    .page-index .content-section,
+    .page-index .cta-section {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .page-index .hero-landing {
+        min-height: auto;
+        padding-top: 5.2rem;
+        padding-bottom: 3rem;
+    }
+
+    .page-index .hero-content,
+    .page-index .intro-card,
+    .page-index .feature-grid,
+    .page-index .pricing-grid,
+    .page-index .cta-section {
+        width: 100%;
+    }
+
+    .page-index .hero-content {
+        max-width: 26rem;
+    }
+
+    .page-index .display-title {
+        font-size: clamp(4rem, 18vw, 5.6rem);
+        line-height: 0.9;
+    }
+
+    .page-index .hero-copy {
+        max-width: 32rem;
+        margin-top: 1.65rem;
+        font-size: clamp(1rem, 4.6vw, 1.2rem);
+        line-height: 1.55;
+    }
+
+    .page-index .actions {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.85rem;
+    }
+
+    .page-index .actions .button,
+    .page-index .plan-card .button,
+    .page-index .cta-section .button {
+        width: 100%;
+    }
+
+    .page-index .intro-card {
+        grid-template-columns: 1fr;
+    }
+
+    .page-index .intro-column {
+        padding: 1.2rem;
+    }
+
+    .page-index .content-section {
+        padding-top: 3.2rem;
+        padding-bottom: 0.5rem;
+    }
+
+    .page-index .section-title {
+        margin-bottom: 2rem;
+        font-size: clamp(2.4rem, 12vw, 3.6rem);
+    }
+
+    .page-login .auth-brand,
+    .page-cadastro .auth-brand {
+        display: none;
+    }
+
+    .page-login .auth-panel,
+    .page-cadastro .auth-panel {
+        min-height: 100vh;
+        padding: 2rem 1rem 2.5rem;
+        align-items: flex-start;
+    }
+
+    .page-login .auth-panel-inner,
+    .page-cadastro .auth-panel-inner {
+        max-width: 100%;
+        padding: 3.25rem 0 0;
+    }
+
+    .page-login .auth-panel h2,
+    .page-cadastro .auth-panel h2 {
+        font-size: clamp(3.2rem, 15vw, 4.4rem);
+    }
+
+    .page-login .auth-subtitle,
+    .page-cadastro .auth-subtitle {
+        margin-top: 0.9rem;
+        font-size: 1rem;
+    }
+
+    .page-login form,
+    .page-cadastro form {
+        margin-top: 2.2rem;
+    }
+
+    .page-login .checkbox-row,
+    .page-cadastro .checkbox-row {
+        align-items: flex-start;
+    }
+
+    .page-login .checkbox-row label,
+    .page-cadastro .checkbox-row label {
+        line-height: 1.45;
+    }
+
+    .page-login .link-row,
+    .page-cadastro .link-row {
+        margin-top: 1.6rem;
+        font-size: 0.98rem;
+    }
+
+    .page-login .back-link,
+    .page-cadastro .back-link {
+        margin-top: 1.25rem;
+    }
+
+    .page-alunos .dashboard-layout,
+    .page-agenda .dashboard-layout,
+    .page-avaliacoes .dashboard-layout,
+    .page-evolucao .dashboard-layout,
+    .page-aluno-meu-treino .dashboard-layout,
+    .page-aluno-agenda .dashboard-layout,
+    .page-aluno-evolucao .dashboard-layout {
+        display: block;
+    }
+
+    .page-alunos .dashboard-sidebar,
+    .page-agenda .dashboard-sidebar,
+    .page-avaliacoes .dashboard-sidebar,
+    .page-evolucao .dashboard-sidebar,
+    .page-aluno-meu-treino .dashboard-sidebar,
+    .page-aluno-agenda .dashboard-sidebar,
+    .page-aluno-evolucao .dashboard-sidebar {
+        position: fixed;
+        inset: 0 0 auto 0;
+        z-index: 30;
+        border-right: 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(6, 7, 10, 0.98);
+    }
+
+    .page-alunos .mobile-menu-toggle,
+    .page-agenda .mobile-menu-toggle,
+    .page-avaliacoes .mobile-menu-toggle,
+    .page-evolucao .mobile-menu-toggle,
+    .page-aluno-meu-treino .mobile-menu-toggle,
+    .page-aluno-agenda .mobile-menu-toggle,
+    .page-aluno-evolucao .mobile-menu-toggle {
+        display: block;
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .page-alunos .sidebar-brand,
+    .page-agenda .sidebar-brand,
+    .page-avaliacoes .sidebar-brand,
+    .page-evolucao .sidebar-brand,
+    .page-aluno-meu-treino .sidebar-brand,
+    .page-aluno-agenda .sidebar-brand,
+    .page-aluno-evolucao .sidebar-brand {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 5.5rem;
+        padding: 1.2rem 1rem;
+        border-bottom: 0;
+        gap: 0.6rem;
+    }
+
+    .page-alunos .sidebar-brand::after,
+    .page-agenda .sidebar-brand::after,
+    .page-avaliacoes .sidebar-brand::after,
+    .page-evolucao .sidebar-brand::after,
+    .page-aluno-meu-treino .sidebar-brand::after,
+    .page-aluno-agenda .sidebar-brand::after,
+    .page-aluno-evolucao .sidebar-brand::after {
+        display: none;
+    }
+
+    .page-alunos .mobile-menu-button,
+    .page-agenda .mobile-menu-button,
+    .page-avaliacoes .mobile-menu-button,
+    .page-evolucao .mobile-menu-button,
+    .page-aluno-meu-treino .mobile-menu-button,
+    .page-aluno-agenda .mobile-menu-button,
+    .page-aluno-evolucao .mobile-menu-button {
+        display: inline-flex;
+        width: 2.35rem;
+        height: 2.35rem;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.32rem;
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+
+    .page-alunos .mobile-menu-button span,
+    .page-agenda .mobile-menu-button span,
+    .page-avaliacoes .mobile-menu-button span,
+    .page-evolucao .mobile-menu-button span,
+    .page-aluno-meu-treino .mobile-menu-button span,
+    .page-aluno-agenda .mobile-menu-button span,
+    .page-aluno-evolucao .mobile-menu-button span {
+        width: 1.65rem;
+        height: 0.18rem;
+        background: #f3f4f7;
+        display: block;
+    }
+
+    .page-alunos .sidebar-user,
+    .page-agenda .sidebar-user,
+    .page-avaliacoes .sidebar-user,
+    .page-evolucao .sidebar-user,
+    .page-aluno-meu-treino .sidebar-user,
+    .page-aluno-agenda .sidebar-user,
+    .page-aluno-evolucao .sidebar-user {
+        display: none;
+    }
+
+    .page-alunos .sidebar-logo,
+    .page-agenda .sidebar-logo,
+    .page-avaliacoes .sidebar-logo,
+    .page-evolucao .sidebar-logo,
+    .page-aluno-meu-treino .sidebar-logo,
+    .page-aluno-agenda .sidebar-logo,
+    .page-aluno-evolucao .sidebar-logo {
+        font-size: 2.4rem;
+    }
+
+    .page-alunos .sidebar-nav,
+    .page-agenda .sidebar-nav,
+    .page-avaliacoes .sidebar-nav,
+    .page-evolucao .sidebar-nav,
+    .page-aluno-meu-treino .sidebar-nav,
+    .page-aluno-agenda .sidebar-nav,
+    .page-aluno-evolucao .sidebar-nav {
+        display: flex;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        gap: 0;
+        padding: 0.55rem 0.8rem calc(0.55rem + env(safe-area-inset-bottom));
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        position: fixed;
+        inset: auto 0 0 0;
+        z-index: 35;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(8, 9, 12, 0.98);
+    }
+
+    .page-alunos .mobile-menu-toggle:checked ~ .sidebar-nav,
+    .page-agenda .mobile-menu-toggle:checked ~ .sidebar-nav,
+    .page-avaliacoes .mobile-menu-toggle:checked ~ .sidebar-nav,
+    .page-evolucao .mobile-menu-toggle:checked ~ .sidebar-nav,
+    .page-aluno-meu-treino .mobile-menu-toggle:checked ~ .sidebar-nav,
+    .page-aluno-agenda .mobile-menu-toggle:checked ~ .sidebar-nav,
+    .page-aluno-evolucao .mobile-menu-toggle:checked ~ .sidebar-nav {
+        inset: 5.5rem 0 auto 0;
+        max-height: calc(100svh - 5.5rem);
+        flex-direction: column;
+        align-items: stretch;
+        padding: 0.75rem 1rem 1rem;
+        overflow-y: auto;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+    }
+
+    .page-alunos .sidebar-nav::-webkit-scrollbar,
+    .page-agenda .sidebar-nav::-webkit-scrollbar,
+    .page-avaliacoes .sidebar-nav::-webkit-scrollbar,
+    .page-evolucao .sidebar-nav::-webkit-scrollbar,
+    .page-aluno-meu-treino .sidebar-nav::-webkit-scrollbar,
+    .page-aluno-agenda .sidebar-nav::-webkit-scrollbar,
+    .page-aluno-evolucao .sidebar-nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .page-alunos .sidebar-link,
+    .page-agenda .sidebar-link,
+    .page-avaliacoes .sidebar-link,
+    .page-evolucao .sidebar-link,
+    .page-aluno-meu-treino .sidebar-link,
+    .page-aluno-agenda .sidebar-link,
+    .page-aluno-evolucao .sidebar-link {
+        flex: 0 0 5.3rem;
+        min-height: 3.9rem;
+        padding: 0.35rem 0.45rem;
+        gap: 0.3rem;
+        border: 0;
+        background: transparent;
+        font-size: 0.8rem;
+        white-space: normal;
+        text-align: center;
+        justify-content: center;
+        flex-direction: column;
+        color: #8f94a0;
+    }
+
+    .page-alunos .mobile-menu-toggle:checked ~ .sidebar-nav .sidebar-link,
+    .page-agenda .mobile-menu-toggle:checked ~ .sidebar-nav .sidebar-link,
+    .page-avaliacoes .mobile-menu-toggle:checked ~ .sidebar-nav .sidebar-link,
+    .page-evolucao .mobile-menu-toggle:checked ~ .sidebar-nav .sidebar-link,
+    .page-aluno-meu-treino .mobile-menu-toggle:checked ~ .sidebar-nav .sidebar-link,
+    .page-aluno-agenda .mobile-menu-toggle:checked ~ .sidebar-nav .sidebar-link,
+    .page-aluno-evolucao .mobile-menu-toggle:checked ~ .sidebar-nav .sidebar-link {
+        flex: 0 0 auto;
+        min-height: 2.9rem;
+        flex-direction: row;
+        justify-content: flex-start;
+        text-align: left;
+        padding: 0 0.8rem;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .page-alunos .sidebar-link svg,
+    .page-agenda .sidebar-link svg,
+    .page-avaliacoes .sidebar-link svg,
+    .page-evolucao .sidebar-link svg,
+    .page-aluno-meu-treino .sidebar-link svg,
+    .page-aluno-agenda .sidebar-link svg,
+    .page-aluno-evolucao .sidebar-link svg {
+        width: 1.35rem;
+        height: 1.35rem;
+    }
+
+    .page-alunos .dashboard-main,
+    .page-agenda .dashboard-main,
+    .page-avaliacoes .dashboard-main,
+    .page-evolucao .dashboard-main,
+    .page-aluno-meu-treino .dashboard-main,
+    .page-aluno-agenda .dashboard-main,
+    .page-aluno-evolucao .dashboard-main {
+        padding: 7.6rem 1rem 6.8rem;
+    }
+
+    .page-alunos .dashboard-header,
+    .page-agenda .dashboard-header,
+    .page-avaliacoes .dashboard-header,
+    .page-evolucao .dashboard-header,
+    .page-aluno-meu-treino .aluno-header,
+    .page-aluno-agenda .dashboard-header,
+    .page-aluno-evolucao .dashboard-header {
+        gap: 0.9rem;
+    }
+
+    .page-alunos .dashboard-title,
+    .page-agenda .dashboard-title,
+    .page-avaliacoes .dashboard-title,
+    .page-evolucao .dashboard-title,
+    .page-aluno-meu-treino .aluno-main-title,
+    .page-aluno-evolucao .dashboard-title {
+        font-size: clamp(3.5rem, 18vw, 5.2rem);
+        line-height: 0.92;
+    }
+
+    .page-alunos .dashboard-subtitle,
+    .page-agenda .dashboard-subtitle,
+    .page-avaliacoes .dashboard-subtitle,
+    .page-evolucao .dashboard-subtitle,
+    .page-aluno-meu-treino .aluno-main-subtitle,
+    .page-aluno-evolucao .dashboard-subtitle {
+        margin-top: 0.55rem;
+        font-size: 0.95rem;
+        line-height: 1.45;
+    }
+
+    .page-alunos .student-toolbar,
+    .page-agenda .dashboard-toolbar,
+    .page-avaliacoes .avaliacoes-filter,
+    .page-evolucao .evolucao-student-form {
+        gap: 0.75rem;
+    }
+
+    .page-alunos .dashboard-add-button,
+    .page-agenda .dashboard-add-button,
+    .page-avaliacoes .dashboard-add-button,
+    .page-evolucao .dashboard-add-button {
+        width: 100%;
+        min-height: 4rem;
+        font-size: 1.15rem;
+    }
+
+    .page-alunos .student-modal-wrap,
+    .page-agenda .student-modal-wrap,
+    .page-avaliacoes .student-modal-wrap {
+        padding: 0.75rem;
+    }
+
+    .page-alunos .student-modal,
+    .page-agenda .student-modal,
+    .page-avaliacoes .student-modal {
+        width: 100%;
+        max-width: 100%;
+        max-height: calc(100svh - 1.5rem);
+        overflow-y: auto;
+    }
+
+    .page-alunos .student-modal-header,
+    .page-agenda .student-modal-header,
+    .page-avaliacoes .student-modal-header {
+        align-items: flex-start;
+        gap: 0.65rem;
+    }
+
+    .page-alunos .student-search-form,
+    .page-avaliacoes .student-search-form,
+    .page-evolucao .evolucao-student-form,
+    .page-agenda .agenda-google-actions,
+    .page-agenda .agenda-actions,
+    .page-aluno-agenda .agenda-aluno-cancel {
+        width: 100%;
+    }
+
+    .page-alunos .student-toolbar {
+        margin-top: 0.75rem;
+    }
+
+    .page-alunos .student-filter-grid {
+        grid-template-columns: 1fr;
+        gap: 0;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(19, 19, 24, 0.96);
+    }
+
+    .page-alunos .student-filter-grid input,
+    .page-alunos .student-filter-grid select,
+    .page-alunos .student-filter-grid button {
+        min-height: 4.05rem;
+        border: 0;
+    }
+
+    .page-alunos .student-filter-grid select,
+    .page-alunos .student-filter-grid button {
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .page-alunos .student-card {
+        padding: 1.45rem;
+    }
+
+    .page-alunos .student-card-header {
+        gap: 1rem;
+    }
+
+    .page-alunos .student-avatar {
+        width: 5.2rem;
+        height: 5.2rem;
+        font-size: 1.8rem;
+    }
+
+    .page-alunos .student-meta h2 {
+        font-size: 2rem;
+        line-height: 0.95;
+    }
+
+    .page-alunos .student-meta p {
+        font-size: 0.95rem;
+        line-height: 1.4;
+    }
+
+    .page-alunos .student-card-body {
+        margin-top: 1rem;
+        gap: 0.5rem;
+    }
+
+    .page-alunos .student-card-actions {
+        grid-template-columns: 1fr auto;
+        gap: 0.7rem;
+    }
+
+    .page-alunos .student-action,
+    .page-alunos .student-icon-button {
+        min-height: 3.7rem;
+        font-size: 1rem;
+    }
+
+    .page-alunos .student-action:nth-child(2) {
+        grid-column: 1 / -1;
+    }
+
+    .page-alunos .student-card-actions form {
+        grid-column: 2;
+        grid-row: 1;
+    }
+
+    .page-agenda .agenda-google-actions form,
+    .page-agenda .agenda-actions form {
+        width: 100%;
+    }
+
+    .page-agenda .agenda-actions .student-action,
+    .page-agenda .agenda-google-actions .button,
+    .page-aluno-agenda .agenda-aluno-cancel .student-action,
+    .page-aluno-agenda .agenda-slot-card form .button-block {
+        width: 100%;
+    }
+
+    .page-aluno-agenda .agenda-slots-grid,
+    .page-aluno-agenda .agenda-list {
+        gap: 0.85rem;
+    }
+
+    .page-avaliacoes .avaliacoes-filter label,
+    .page-evolucao .evolucao-student-form label {
+        width: 100%;
+    }
+
+    .page-avaliacoes .avaliacoes-filter select,
+    .page-evolucao .evolucao-student-form select {
+        width: 100%;
+    }
+
+    .page-aluno-meu-treino .aluno-treino-meta {
+        line-height: 1.55;
+    }
+
+    .page-aluno-meu-treino .aluno-outline-button,
+    .page-aluno-meu-treino .aluno-start-button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-index .hero-landing,
+    .page-index .content-section,
+    .page-index .cta-section,
+    .page-login .auth-panel,
+    .page-cadastro .auth-panel {
+        padding-left: 0.8rem;
+        padding-right: 0.8rem;
+    }
+
+    .page-index .intro-column,
+    .page-index .feature-card,
+    .page-index .plan-card {
+        padding: 1rem;
+    }
+
+    .page-alunos .sidebar-nav,
+    .page-agenda .sidebar-nav,
+    .page-avaliacoes .sidebar-nav,
+    .page-evolucao .sidebar-nav,
+    .page-aluno-meu-treino .sidebar-nav,
+    .page-aluno-agenda .sidebar-nav,
+    .page-aluno-evolucao .sidebar-nav {
+        padding: 0.7rem 0.8rem 0.85rem;
+    }
+
+    .page-alunos .sidebar-link,
+    .page-agenda .sidebar-link,
+    .page-avaliacoes .sidebar-link,
+    .page-evolucao .sidebar-link,
+    .page-aluno-meu-treino .sidebar-link,
+    .page-aluno-agenda .sidebar-link,
+    .page-aluno-evolucao .sidebar-link {
+        flex-basis: 4.9rem;
+        min-height: 3.65rem;
+        padding: 0.3rem 0.4rem;
+        font-size: 0.74rem;
+    }
+
+    .page-alunos .student-modal,
+    .page-agenda .student-modal,
+    .page-avaliacoes .student-modal {
+        padding: 1rem;
+    }
+
+    .page-login .auth-panel-inner,
+    .page-cadastro .auth-panel-inner {
+        padding-top: 2.6rem;
+    }
+
+    .page-login .auth-panel h2,
+    .page-cadastro .auth-panel h2 {
+        font-size: 3rem;
+    }
+
+    .page-aluno-meu-treino .aluno-treino-card,
+    .page-aluno-agenda .agenda-slot-card,
+    .page-aluno-agenda .agenda-card,
+    .page-evolucao .avaliacao-panel,
+    .page-evolucao .avaliacao-history-panel,
+    .page-aluno-evolucao .avaliacao-panel,
+    .page-aluno-evolucao .avaliacao-history-panel,
+    .page-avaliacoes .avaliacao-panel,
+    .page-avaliacoes .avaliacao-history-panel,
+    .page-alunos .student-card {
+        padding-left: 0.9rem;
+        padding-right: 0.9rem;
     }
 }

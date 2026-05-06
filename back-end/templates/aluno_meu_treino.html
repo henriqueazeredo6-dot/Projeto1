@@ -33,11 +33,13 @@
 
     <div class="dashboard-layout">
         <aside class="dashboard-sidebar">
+            <input class="mobile-menu-toggle" type="checkbox" id="mobile-menu-toggle" aria-hidden="true">
             <div class="sidebar-brand">
                 <a class="sidebar-logo" href="{{ aluno_dashboard_url|default('/aluno/dashboard', true) }}">
                     <span>{{ marca_nome|default('', true) }}</span>
                 </a>
                 <p class="sidebar-user">{{ aluno_nome|default('', true) }}</p>
+                <label class="mobile-menu-button" for="mobile-menu-toggle" aria-label="Abrir menu"><span></span><span></span><span></span></label>
             </div>
 
             <nav class="sidebar-nav" aria-label="Menu principal do aluno">

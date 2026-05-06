@@ -24,7 +24,9 @@ app = Flask(
     template_folder=str(TEMPLATES_DIR),
     static_folder=str(STATIC_DIR),
 )
-app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY", "confie-dev-secret")
+app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY") or secrets.token_hex(32)
+if not os.getenv("FLASK_SECRET_KEY"):
+    app.logger.warning("FLASK_SECRET_KEY nao configurada. Uma chave temporaria foi gerada para esta execucao.")
 
 
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
@@ -37,10 +39,11 @@ TABLE_TREINOS = os.getenv("SUPABASE_TABLE_TREINOS", "tb_treino")
 TABLE_AGENDA = os.getenv("SUPABASE_TABLE_AGENDA", "tb_agenda")
 TABLE_AVALIACOES = os.getenv("SUPABASE_TABLE_AVALIACOES", "tb_avaliacao")
 TABLE_EXERCICIOS = os.getenv("SUPABASE_TABLE_EXERCICIOS", "tb_exercicios")
+TABLE_GRUPOS_MUSCULARES = os.getenv("SUPABASE_TABLE_GRUPOS_MUSCULARES", "tb_grupo_muscular")
 TABLE_MENSAGENS = os.getenv("SUPABASE_TABLE_MENSAGENS", "tb_mensagens")
 TABLE_OBSERVACOES = os.getenv("SUPABASE_TABLE_OBSERVACOES", "tb_observacao")
 TABLE_ANAMNESES = os.getenv("SUPABASE_TABLE_ANAMNESES", "tb_anamnese")
-TABLE_PAGAMENTOS = os.getenv("SUPABASE_TABLE_PAGAMENTOS", "tb_pagamento")
+TABLE_PAGAMENTOS = os.getenv("SUPABASE_TABLE_PAGAMENTOS", "tb_parcela")
 TABLE_PLANOS = os.getenv("SUPABASE_TABLE_PLANOS", "tb_plano")
 TABLE_EXECUCOES = os.getenv("SUPABASE_TABLE_EXECUCOES", "tb_execucao_treino")
 
@@ -231,7 +234,6 @@ def _missing_table_error(error: Optional[str]) -> bool:
         or "could not find the table" in lowered
         or "pgrst205" in lowered
         or "42p01" in lowered
-        or "42703" in lowered
     )
 
 
@@ -282,7 +284,7 @@ def _table_has_local_passwords() -> bool:
         _LOCAL_PASSWORD_SUPPORT = False
         return False
     try:
-        _client().table(TABLE_USUARIOS).select("senha_hash").limit(1).execute()
+        _admin_client().table(TABLE_USUARIOS).select("senha_hash").limit(1).execute()
         _LOCAL_PASSWORD_SUPPORT = True
     except Exception as exc:
         _LOCAL_PASSWORD_SUPPORT = False
@@ -382,6 +384,61 @@ def _slug_status(value: Any) -> str:
         "paid": "pago",
         "open": "disponivel",
     }.get(text, text)
+
+
+PAYMENT_STATUS_TO_DB = {"pendente": 1, "pago": 2, "atrasado": 3}
+PAYMENT_STATUS_FROM_DB = {1: "pendente", 2: "pago", 3: "atrasado"}
+
+
+def _is_uuid(value: Any) -> bool:
+    if not value:
+        return False
+    try:
+        UUID(str(value))
+        return True
+    except (TypeError, ValueError):
+        return False
+
+
+def _slug_text(value: Any) -> str:
+    return str(value or "").strip().lower().replace(" ", "-").replace("_", "-")
+
+
+def _payment_status_slug(value: Any) -> str:
+    if isinstance(value, int):
+        return PAYMENT_STATUS_FROM_DB.get(value, "pendente")
+    text = str(value or "").strip()
+    if text.isdigit():
+        return PAYMENT_STATUS_FROM_DB.get(int(text), "pendente")
+    return _slug_status(text)
+
+
+def _payment_status_db(value: Any) -> int:
+    return PAYMENT_STATUS_TO_DB.get(_slug_status(value), 1)
+
+
+def _split_datetime_local(value: Any) -> Dict[str, str]:
+    text = str(value or "").strip()
+    if not text:
+        return {"data": "", "hora": ""}
+    try:
+        parsed = datetime.fromisoformat(text)
+        return {"data": parsed.date().isoformat(), "hora": parsed.time().replace(microsecond=0).isoformat()}
+    except ValueError:
+        if "T" in text:
+            data, hora = text.split("T", 1)
+            return {"data": data, "hora": hora[:8]}
+        return {"data": text[:10], "hora": text[11:19] if len(text) >= 16 else ""}
+
+
+def _combine_date_time(data: Any, hora: Any) -> str:
+    date_part = str(data or "").strip()
+    time_part = str(hora or "").strip()
+    if not date_part:
+        return ""
+    if not time_part:
+        return date_part
+    return f"{date_part}T{time_part}"
 
 
 def _human_status(value: Any) -> str:
@@ -766,7 +823,7 @@ def _personal_context(pagina_ativa: str) -> Dict[str, Any]:
         "financeiro_url": url_for("financeiro"),
         "exercicios_url": url_for("exercicios"),
         "configuracoes_url": url_for("configuracoes"),
-        "logout_url": "/index.html",
+        "logout_url": url_for("logout"),
     }
 
 
@@ -790,7 +847,7 @@ def _student_context(pagina_ativa: str) -> Dict[str, Any]:
         "aluno_mensagens_url": url_for("aluno_mensagens"),
         "evolucao_url": url_for("evolucao_aluno"),
         "evolucao_aluno_url": url_for("evolucao_aluno"),
-        "logout_url": "/index.html",
+        "logout_url": url_for("logout"),
     }
 
 
@@ -803,9 +860,12 @@ def _load_rows(table: str, *, filters: Optional[Dict[str, Any]] = None, order: O
 
 def _students() -> List[Dict[str, Any]]:
     rows = _load_rows(TABLE_ALUNOS)
+    planos_por_id = {str(row.get("id")): row for row in _optional_rows(TABLE_PLANOS)}
     normalized: List[Dict[str, Any]] = []
     for row in rows:
         name = _first(row, "nome", "name", default="Aluno")
+        plano_id = _first(row, "plano", default="")
+        plano_ref = planos_por_id.get(str(plano_id), {})
         normalized.append(
             {
                 **row,
@@ -816,7 +876,8 @@ def _students() -> List[Dict[str, Any]]:
                 "data_nascimento": _fmt_date(_first(row, "data_nascimento", "nascimento")),
                 "objetivo": _first(row, "objetivo", "goal", default="Nao informado"),
                 "status": _human_status(_first(row, "status", default="ativo")),
-                "plano": _first(row, "plano", "plano_descricao", default="Nao definido"),
+                "plano_id": plano_id,
+                "plano": _first(row, "plano_descricao", default=_first(plano_ref, "nome", default=plano_id or "Nao definido")),
                 "avatar_iniciais": _initials(name),
             }
         )
@@ -850,7 +911,8 @@ def _trainings(aluno_id: Optional[str] = None) -> List[Dict[str, Any]]:
     alunos_por_id = {row["id"]: row for row in _students()}
     normalized: List[Dict[str, Any]] = []
     for row in rows:
-        exercises = _parse_exercises(_first(row, "exercicios_raw", "exercicios", default=""))
+        exercises_raw = _first(row, "exercicios_raw", "exercicios", "observacao", default="")
+        exercises = _parse_exercises(exercises_raw)
         aluno_ref = alunos_por_id.get(_first(row, "aluno_id", default=""), {})
         normalized.append(
             {
@@ -862,7 +924,7 @@ def _trainings(aluno_id: Optional[str] = None) -> List[Dict[str, Any]]:
                 "status": _human_status(_first(row, "status", default="ativo")),
                 "grupo_muscular": _first(row, "grupo_muscular", default="Treino personalizado"),
                 "observacoes": _first(row, "observacoes", "observacao", "notes", default=""),
-                "exercicios_raw": _first(row, "exercicios_raw", "exercicios", default=""),
+                "exercicios_raw": exercises_raw,
                 "exercicios_lista": exercises,
                 "total_exercicios": _to_int(_first(row, "total_exercicios", default=len(exercises))) or len(exercises),
                 "atualizado_em": _fmt_date(_first(row, "updated_at", "created_at", "data_criacao")),
@@ -898,8 +960,11 @@ def _schedule_rows() -> List[Dict[str, Any]]:
     for row in rows:
         aluno_ref = alunos_por_id.get(_first(row, "aluno_id", default=""), {})
         status = _slug_status(_first(row, "status", default="pendente"))
-        title = _first(row, "titulo", "nome", "title", "observacao", default="Aula")
-        start = _first(row, "inicio", "data_hora_inicio", "data_hora", "start_time", "starts_at", "data", default="")
+        observacao = _first(row, "observacao", "observacoes", "notes", default="")
+        title = _first(row, "titulo", "nome", "title", default=str(observacao).splitlines()[0] if observacao else "Aula")
+        start = _first(row, "inicio", "data_hora_inicio", "data_hora", "start_time", "starts_at", default="")
+        if not start:
+            start = _combine_date_time(_first(row, "data", default=""), _first(row, "hora", default=""))
         end = _first(row, "termino", "data_hora_fim", "end_time", "ends_at", default="")
         if start and row.get("hora") and "T" not in str(start):
             start = f"{start}T{str(row.get('hora'))[:5]}"
@@ -930,7 +995,7 @@ def _schedule_rows() -> List[Dict[str, Any]]:
                 "data": _fmt_date(start),
                 "hora": hours,
                 "tipo": _first(row, "tipo", "category", default="Aula"),
-                "observacoes": _first(row, "observacoes", "observacao", "notes", default=""),
+                "observacoes": observacao,
                 "google_calendar_url": google_calendar_url,
             }
         )
@@ -1017,7 +1082,7 @@ def _assessments(aluno_id: Optional[str] = None) -> List[Dict[str, Any]]:
                 "aluno_nome": _first(row, "aluno_nome", default=aluno_ref.get("nome", "Aluno")),
                 "peso": f"{_first(row, 'peso', default='0')} kg",
                 "altura": f"{_first(row, 'estatura', 'altura', default='0')} cm",
-                "data": _fmt_date(_first(row, "created_at", "data_avaliacao")),
+                "data": _fmt_date(_first(row, "data", "created_at", "data_avaliacao")),
                 "observacoes": _first(row, "observacoes", "observacao", default=""),
                 "historico_label": f"Avaliacao {_first(row, 'numero', default='1')}",
                 "status_label": metrics["classificacao"],
@@ -1033,15 +1098,18 @@ def _exercises() -> List[Dict[str, Any]]:
     if not result["ok"]:
         return []
     rows = result["data"]
+    grupos_por_id = {str(row.get("id")): row for row in _optional_rows(TABLE_GRUPOS_MUSCULARES)}
     normalized: List[Dict[str, Any]] = []
     for row in rows:
+        grupo_ref = grupos_por_id.get(str(_first(row, "grupo_muscular_id", default="")), {})
         normalized.append(
             {
                 **row,
                 "id": row.get("id", ""),
                 "nome": _first(row, "nome", "name", default="Exercicio"),
-                "grupo_muscular": _first(row, "grupo_muscular", "grupo_muscular_id", default="Nao informado"),
+                "grupo_muscular": _first(row, "grupo_muscular", default=_first(grupo_ref, "nome", default=_first(row, "grupo_muscular_id", default="Nao informado"))),
                 "descricao": _first(row, "descricao", "description", default=""),
+                "video_url": _first(row, "video_url", "link_execucao", default=""),
                 "imagem_url": _first(row, "imagem_url", default=""),
                 "video_url": _first(row, "video_url", "link_execucao", default=""),
             }
@@ -1049,11 +1117,26 @@ def _exercises() -> List[Dict[str, Any]]:
     return normalized
 
 
+def _get_or_create_muscle_group_id(nome: Any) -> Optional[str]:
+    group_name = str(nome or "").strip()
+    if not group_name:
+        return None
+    if _is_uuid(group_name):
+        return group_name
+    existing = _select_first_by(TABLE_GRUPOS_MUSCULARES, "nome", group_name)
+    if existing["ok"] and existing["data"]:
+        return existing["data"].get("id")
+    created = _insert(TABLE_GRUPOS_MUSCULARES, {"nome": group_name})
+    if created["ok"] and created["data"]:
+        return created["data"][0].get("id")
+    return None
+
+
 def _optional_rows(table: str, *, order: Optional[str] = None, desc: bool = False) -> List[Dict[str, Any]]:
     if not _ready():
         return []
     try:
-        query = _client().table(table).select("*")
+        query = _admin_client().table(table).select("*")
         if order:
             query = query.order(order, desc=desc)
         response = query.execute()
@@ -1127,13 +1210,16 @@ def _messages_for_student(contact_id: Optional[str]) -> Dict[str, Any]:
 
 
 def _payment_rows() -> List[Dict[str, Any]]:
-    rows = _optional_rows(TABLE_PAGAMENTOS, order="atualizado_em", desc=True)
+    rows = _optional_rows(TABLE_PAGAMENTOS, order="data_parcela", desc=True)
+    alunos_por_id = {row["id"]: row for row in _students()}
     if not rows:
         return [
             {
                 "id": aluno["id"],
+                "aluno_id": aluno["id"],
                 "aluno_nome": aluno["nome"],
                 "email": aluno["email"],
+                "valor": 0,
                 "status": "pendente",
                 "status_label": "Pendente",
                 "status_color": "pending",
@@ -1144,17 +1230,18 @@ def _payment_rows() -> List[Dict[str, Any]]:
         ]
     normalized: List[Dict[str, Any]] = []
     for row in rows:
-        status = _slug_status(_first(row, "status", "status_pagamento", default="pendente"))
+        aluno_ref = alunos_por_id.get(_first(row, "aluno_id", default=""), {})
+        status = _payment_status_slug(_first(row, "status_parcela", "status", "status_pagamento", default="pendente"))
         normalized.append(
             {
                 **row,
                 "id": row.get("id", ""),
-                "aluno_nome": _first(row, "aluno_nome", default="Aluno"),
-                "email": _first(row, "email", default=""),
+                "aluno_nome": _first(row, "aluno_nome", default=aluno_ref.get("nome", "Aluno")),
+                "email": _first(row, "email", default=aluno_ref.get("email", "")),
                 "status": status,
                 "status_label": _human_status(status).upper(),
                 "status_color": "paid" if status == "pago" else "pending" if status == "pendente" else "late",
-                "atualizado_em": _fmt_date(_first(row, "atualizado_em", "updated_at", "created_at")) or "Sem atualizacao",
+                "atualizado_em": _fmt_date(_first(row, "data_recebimento", "data_parcela", "created_at")) or "Sem atualizacao",
                 "alterar_status_url": url_for("alterar_status_pagamento", pagamento_id=row.get("id", "")),
             }
         )
@@ -1181,6 +1268,23 @@ def _plans() -> List[Dict[str, Any]]:
             }
         )
     return normalized
+
+
+def _db_plan_options() -> List[Dict[str, Any]]:
+    return [plan for plan in _plans() if _is_uuid(plan.get("id"))]
+
+
+def _resolve_plan_id(value: Any) -> Optional[str]:
+    text = str(value or "").strip()
+    if not text:
+        return None
+    if _is_uuid(text):
+        return text
+    wanted = _slug_text(text)
+    for plan in _db_plan_options():
+        if wanted in {_slug_text(plan.get("id")), _slug_text(plan.get("nome"))}:
+            return str(plan["id"])
+    return None
 
 
 def _landing_resources() -> List[Dict[str, Any]]:
@@ -1429,7 +1533,7 @@ def dashboard():
         variacao_checkins="",
         adicionar_aluno_destino=url_for("alunos") + "#novo-aluno",
         adicionar_aluno_url=url_for("alunos") + "#novo-aluno",
-        criar_treino_url=url_for("criar_treino"),
+        criar_treino_url=url_for("treinos") + "#novo-treino-modal",
         agendar_aula_url=url_for("agenda") + "#nova-aula",
         total_avaliacoes=len(avaliacoes_lista),
         **_personal_context("dashboard"),
@@ -1445,17 +1549,19 @@ def alunos():
         if csrf_error:
             flash(csrf_error, "error")
             return redirect(url_for("alunos"))
+        plano_id = _resolve_plan_id(request.form.get("plano"))
         payload = {
             "nome": request.form.get("nome"),
             "email": request.form.get("email"),
+            "telefone": request.form.get("telefone"),
             "objetivo": request.form.get("objetivo"),
             "data_nascimento": request.form.get("data_nascimento") or request.form.get("nascimento"),
             "experiencias_anteriores": request.form.get("experiencias_anteriores"),
             "restricoes_fisicas": request.form.get("restricoes_fisicas"),
-            "plano_id": request.form.get("plano_id") or None,
-            "auth_user_id": request.form.get("auth_user_id") or None,
+            "status": request.form.get("status") or "ativo",
+            "plano": plano_id,
         }
-        result = _insert_raw(TABLE_ALUNOS, payload)
+        result = _insert(TABLE_ALUNOS, payload)
         flash("Aluno criado com sucesso." if result["ok"] else (result["error"] or "Nao foi possivel criar o aluno."), "success" if result["ok"] else "error")
         return redirect(url_for("alunos"))
 
@@ -1472,6 +1578,7 @@ def alunos():
         busca=search,
         filtros={"busca": search, "status": request.args.get("status", "")},
         total_alunos=len(alunos_lista),
+        planos=_db_plan_options(),
         criar_aluno_url=url_for("alunos"),
         excluir_aluno_base_url="/alunos",
         editar_aluno_base_url="/alunos",
@@ -1481,43 +1588,75 @@ def alunos():
     )
 
 
-@app.get("/alunos/<aluno_id>/editar")
+@app.get("/alunos/novo")
 @login_required
 @role_required("Personal Trainer", "Admin", "Professor")
-def abrir_edicao_aluno(aluno_id: str):
-    flash("A rota de edicao do aluno esta ativa, mas o formulario visual ainda nao existe nesta tela.", "info")
-    return redirect(url_for("alunos"))
-
-
-@app.post("/alunos/<aluno_id>/editar")
-@login_required
-@role_required("Personal Trainer", "Admin", "Professor")
-def editar_aluno(aluno_id: str):
-    csrf_error = _require_csrf()
-    if csrf_error:
-        flash(csrf_error, "error")
-        return redirect(url_for("alunos", editar_aluno_id=aluno_id) + "#editar-aluno")
-    payload = {
-        "nome": request.form.get("nome"),
-        "email": request.form.get("email"),
-        "objetivo": request.form.get("objetivo"),
-        "data_nascimento": request.form.get("data_nascimento") or None,
-        "experiencias_anteriores": request.form.get("experiencias_anteriores"),
-        "restricoes_fisicas": request.form.get("restricoes_fisicas"),
-    }
-    result = _update(TABLE_ALUNOS, aluno_id, payload)
-    flash("Aluno atualizado com sucesso." if result["ok"] else (result["error"] or "Nao foi possivel atualizar o aluno."), "success" if result["ok"] else "error")
-    return redirect(url_for("alunos"))
+def novo_aluno_redirect():
+    return redirect(url_for("alunos") + "#novo-aluno")
 
 
 @app.get("/alunos/<aluno_id>")
 @login_required
+@role_required("Personal Trainer", "Admin", "Professor")
 def aluno_perfil(aluno_id: str):
     return redirect(url_for("avaliacoes", aluno_id=aluno_id))
 
 
+@app.route("/alunos/<aluno_id>/editar", methods=["GET", "POST"])
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def editar_aluno(aluno_id: str):
+    aluno_result = _select_one(TABLE_ALUNOS, aluno_id)
+    aluno_row = aluno_result["data"] if aluno_result["ok"] else None
+    if not aluno_row:
+        flash("Aluno nao encontrado.", "error")
+        return redirect(url_for("alunos"))
+
+    if request.method == "POST":
+        csrf_error = _require_csrf()
+        if csrf_error:
+            flash(csrf_error, "error")
+            return redirect(url_for("editar_aluno", aluno_id=aluno_id))
+        payload = {
+            "nome": request.form.get("nome"),
+            "email": request.form.get("email"),
+            "telefone": request.form.get("telefone"),
+            "objetivo": request.form.get("objetivo"),
+            "status": request.form.get("status"),
+            "plano": _resolve_plan_id(request.form.get("plano")),
+        }
+        result = _update(TABLE_ALUNOS, aluno_id, payload)
+        flash("Aluno atualizado com sucesso." if result["ok"] else (result["error"] or "Nao foi possivel atualizar o aluno."), "success" if result["ok"] else "error")
+        return redirect(url_for("alunos"))
+
+    search = request.args.get("busca", "").strip().lower()
+    alunos_lista = _students()
+    form = {
+        **aluno_row,
+        "plano": _first(aluno_row, "plano", default=""),
+        "objetivo": _first(aluno_row, "objetivo", default=""),
+        "status": _slug_status(_first(aluno_row, "status", default="ativo")),
+    }
+    return render_template(
+        "alunos.html",
+        alunos=alunos_lista,
+        busca=search,
+        filtros={"busca": search, "status": request.args.get("status", "")},
+        total_alunos=len(alunos_lista),
+        planos=_db_plan_options(),
+        form=form,
+        criar_aluno_url=url_for("editar_aluno", aluno_id=aluno_id),
+        excluir_aluno_base_url="/alunos",
+        editar_aluno_base_url="/alunos",
+        detalhes_aluno_base_url="/alunos",
+        csrf_form_token=_csrf_token,
+        **_personal_context("alunos"),
+    )
+
+
 @app.post("/alunos/<aluno_id>/excluir")
 @login_required
+@role_required("Personal Trainer", "Admin", "Professor")
 def excluir_aluno(aluno_id: str):
     csrf_error = _require_csrf()
     if csrf_error:
@@ -1563,6 +1702,7 @@ def treinos():
 
 @app.get("/treinos/aluno/<aluno_id>")
 @login_required
+@role_required("Personal Trainer", "Admin", "Professor")
 def treinos_aluno(aluno_id: str):
     return redirect(url_for("treinos", aluno_id=aluno_id))
 
@@ -1570,6 +1710,7 @@ def treinos_aluno(aluno_id: str):
 @app.get("/treinos/<treino_id>")
 @app.get("/treinos/<treino_id>/")
 @login_required
+@role_required("Personal Trainer", "Admin", "Professor")
 def visualizar_treino(treino_id: str):
     treino = next((item for item in _trainings() if item["id"] == treino_id), None)
     if not treino:
@@ -1602,8 +1743,30 @@ def abrir_criacao_treino():
     return redirect(target + "#novo-treino-modal")
 
 
+@app.get("/treinos/visualizar")
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def visualizar_treino_redirect():
+    return redirect(url_for("treinos"))
+
+
+@app.get("/treinos/visualizar/<treino_id>")
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def visualizar_treino_alias(treino_id: str):
+    return redirect(url_for("visualizar_treino", treino_id=treino_id))
+
+
+@app.get("/treinos/novo")
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def novo_treino_redirect():
+    return redirect(url_for("treinos") + "#novo-treino-modal")
+
+
 @app.post("/treinos/novo")
 @login_required
+@role_required("Personal Trainer", "Admin", "Professor")
 def criar_treino():
     csrf_error = _require_csrf()
     if csrf_error:
@@ -1614,7 +1777,9 @@ def criar_treino():
         {
             "descricao": request.form.get("nome"),
             "aluno_id": request.form.get("aluno_id"),
-            "observacao": request.form.get("observacoes") or request.form.get("exercicios_raw"),
+            "observacao": request.form.get("exercicios_raw") or request.form.get("observacoes"),
+            "data_criacao": datetime.utcnow().date().isoformat(),
+            "created_at": datetime.utcnow().isoformat(),
         },
     )
     flash("Treino criado com sucesso." if result["ok"] else (result["error"] or "Nao foi possivel criar o treino."), "success" if result["ok"] else "error")
@@ -1623,6 +1788,7 @@ def criar_treino():
 
 @app.post("/treinos/editar/<treino_id>")
 @login_required
+@role_required("Personal Trainer", "Admin", "Professor")
 def editar_treino(treino_id: str):
     csrf_error = _require_csrf()
     if csrf_error:
@@ -1634,7 +1800,7 @@ def editar_treino(treino_id: str):
         {
             "descricao": request.form.get("nome"),
             "aluno_id": request.form.get("aluno_id"),
-            "observacao": request.form.get("observacoes") or request.form.get("exercicios_raw"),
+            "observacao": request.form.get("exercicios_raw") or request.form.get("observacoes"),
         },
     )
     flash("Treino atualizado com sucesso." if result["ok"] else (result["error"] or "Nao foi possivel atualizar o treino."), "success" if result["ok"] else "error")
@@ -1663,6 +1829,7 @@ def abrir_edicao_treino(treino_id: str):
 
 @app.post("/treinos/excluir/<treino_id>")
 @login_required
+@role_required("Personal Trainer", "Admin", "Professor")
 def excluir_treino(treino_id: str):
     csrf_error = _require_csrf()
     if csrf_error:
@@ -1684,13 +1851,19 @@ def agenda():
             flash(csrf_error, "error")
             return redirect(url_for("agenda"))
         aluno_id = request.form.get("aluno_id")
-        aluno = next((item for item in _students() if item["id"] == aluno_id), None)
+        inicio = _split_datetime_local(request.form.get("inicio"))
+        titulo = request.form.get("titulo", "").strip()
+        observacoes = request.form.get("observacoes", "").strip()
+        observacao = " - ".join(part for part in [titulo, observacoes] if part)
+        if not inicio["data"]:
+            flash("Informe a data e horario da aula.", "error")
+            return redirect(url_for("agenda"))
         payload = {
-            "data": request.form.get("data") or str(request.form.get("inicio") or "")[:10],
-            "hora": request.form.get("hora") or str(request.form.get("inicio") or "")[11:16],
+            "data": inicio["data"],
+            "hora": inicio["hora"],
             "aluno_id": aluno_id,
-            "observacao": request.form.get("observacoes") or request.form.get("titulo"),
             "status": "agendado",
+            "observacao": observacao,
         }
         result = _insert(TABLE_AGENDA, payload)
         flash("Aula agendada com sucesso." if result["ok"] else (result["error"] or "Nao foi possivel agendar a aula."), "success" if result["ok"] else "error")
@@ -1717,8 +1890,16 @@ def agenda():
     )
 
 
+@app.get("/agenda/nova")
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def nova_aula_redirect():
+    return redirect(url_for("agenda") + "#nova-aula")
+
+
 @app.post("/agenda/confirmar/<agenda_id>")
 @login_required
+@role_required("Personal Trainer", "Admin", "Professor")
 def confirmar_agenda(agenda_id: str):
     csrf_error = _require_csrf()
     if csrf_error:
@@ -1731,6 +1912,7 @@ def confirmar_agenda(agenda_id: str):
 
 @app.post("/agenda/concluir/<agenda_id>")
 @login_required
+@role_required("Personal Trainer", "Admin", "Professor")
 def concluir_agenda(agenda_id: str):
     csrf_error = _require_csrf()
     if csrf_error:
@@ -1743,6 +1925,7 @@ def concluir_agenda(agenda_id: str):
 
 @app.post("/agenda/cancelar/<agenda_id>")
 @login_required
+@role_required("Personal Trainer", "Admin", "Professor")
 def cancelar_agenda(agenda_id: str):
     csrf_error = _require_csrf()
     if csrf_error:
@@ -1763,13 +1946,27 @@ def avaliacoes():
             flash(csrf_error, "error")
             return redirect(url_for("avaliacoes"))
         aluno_id = request.form.get("aluno_id")
-        aluno = next((item for item in _students() if item["id"] == aluno_id), None)
         payload = {
             "aluno_id": aluno_id,
+            "data": request.form.get("data") or datetime.utcnow().date().isoformat(),
+            "sexo": request.form.get("sexo"),
             "peso": request.form.get("peso"),
             "estatura": request.form.get("estatura"),
             "idade": request.form.get("idade"),
-            "data": request.form.get("data") or datetime.utcnow().date().isoformat(),
+            "gordura": request.form.get("gordura"),
+            "tricipital": request.form.get("tricipital"),
+            "subscapular": request.form.get("subscapular"),
+            "suprailiaca": request.form.get("suprailiaca"),
+            "abdominal": request.form.get("abdominal"),
+            "peitoral": request.form.get("peitoral"),
+            "coxa": request.form.get("coxa"),
+            "perna": request.form.get("perna"),
+            "braco_direito": request.form.get("braco_direito"),
+            "peitoral_circ": request.form.get("peitoral_circ"),
+            "cintura": request.form.get("cintura"),
+            "quadril": request.form.get("quadril"),
+            "coxa_direita": request.form.get("coxa_direita"),
+            "perna_direita": request.form.get("perna_direita"),
             "observacao": request.form.get("observacoes"),
         }
         result = _insert(TABLE_AVALIACOES, payload)
@@ -1952,6 +2149,13 @@ def anamnese():
     )
 
 
+@app.get("/anamnese/buscar")
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def buscar_anamnese_redirect():
+    return redirect(url_for("anamnese", aluno_id=request.args.get("aluno_id", "")))
+
+
 @app.route("/exercicios", methods=["GET"])
 @login_required
 @role_required("Personal Trainer", "Admin", "Professor")
@@ -1989,18 +2193,28 @@ def abrir_edicao_exercicio(exercicio_id: str):
     return redirect(url_for("exercicios", editar_exercicio_id=exercicio_id) + "#novo-exercicio-modal")
 
 
+@app.route("/exercicios/upload-imagem", methods=["GET", "POST"])
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def upload_imagem_exercicio_redirect():
+    flash("Upload de imagem ainda nao esta ativo. Use URL de video ou imagem por enquanto.", "info")
+    return redirect(url_for("exercicios"))
+
+
 @app.post("/exercicios/salvar")
 @login_required
+@role_required("Personal Trainer", "Admin", "Professor")
 def salvar_exercicio():
     csrf_error = _require_csrf()
     if csrf_error:
         flash(csrf_error, "error")
         return redirect(url_for("exercicios"))
     exercicio_id = request.form.get("exercicio_id", "")
+    grupo_muscular_id = _get_or_create_muscle_group_id(request.form.get("grupo_muscular"))
     payload = {
         "nome": request.form.get("nome"),
+        "grupo_muscular_id": grupo_muscular_id,
         "descricao": request.form.get("descricao"),
-        "grupo_muscular_id": _to_uuid_or_none(request.form.get("grupo_muscular")),
         "link_execucao": request.form.get("video_url"),
     }
     result = _update(TABLE_EXERCICIOS, exercicio_id, payload) if exercicio_id else _insert(TABLE_EXERCICIOS, payload)
@@ -2010,6 +2224,7 @@ def salvar_exercicio():
 
 @app.post("/exercicios/excluir/<exercicio_id>")
 @login_required
+@role_required("Personal Trainer", "Admin", "Professor")
 def excluir_exercicio(exercicio_id: str):
     csrf_error = _require_csrf()
     if csrf_error:
@@ -2037,6 +2252,7 @@ def mensagens():
 
 @app.post("/mensagens/enviar")
 @login_required
+@role_required("Personal Trainer", "Admin", "Professor")
 def enviar_mensagem():
     csrf_error = _require_csrf()
     if csrf_error:
@@ -2054,6 +2270,21 @@ def enviar_mensagem():
     result = _insert(TABLE_MENSAGENS, payload)
     flash("Mensagem enviada." if result["ok"] else _message_table_error_message(result["error"]), "success" if result["ok"] else "error")
     return redirect(url_for("mensagens", contato_id=request.form.get("contato_id", "")))
+
+
+@app.route("/mensagens/atualizar", methods=["GET", "POST"])
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def atualizar_mensagens_redirect():
+    return redirect(url_for("mensagens", contato_id=request.values.get("contato_id", "")))
+
+
+@app.route("/mensagens/upload", methods=["GET", "POST"])
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def upload_mensagem_redirect():
+    flash("Upload de arquivo em mensagens ainda nao esta ativo.", "info")
+    return redirect(url_for("mensagens", contato_id=request.values.get("contato_id", "")))
 
 
 @app.route("/financeiro", methods=["GET"])
@@ -2084,19 +2315,36 @@ def financeiro():
 
 @app.post("/financeiro/pagamentos/<pagamento_id>/status")
 @login_required
+@role_required("Personal Trainer", "Admin", "Professor")
 def alterar_status_pagamento(pagamento_id: str):
     csrf_error = _require_csrf()
     if csrf_error:
         flash(csrf_error, "error")
         return redirect(url_for("financeiro"))
     status = _slug_status(request.form.get("status_pagamento", "pendente"))
-    result = _update(TABLE_PAGAMENTOS, pagamento_id, {"status": status, "atualizado_em": datetime.utcnow().isoformat()})
+    status_db = _payment_status_db(status)
+    existing = _select_one(TABLE_PAGAMENTOS, pagamento_id)
+    payload = {"status_parcela": status_db}
+    if status == "pago":
+        payload["data_recebimento"] = datetime.utcnow().date().isoformat()
+    if existing["ok"] and existing["data"]:
+        result = _update(TABLE_PAGAMENTOS, pagamento_id, payload)
+    else:
+        payload.update(
+            {
+                "aluno_id": pagamento_id,
+                "data_parcela": datetime.utcnow().date().isoformat(),
+                "valor": request.form.get("valor") or 0,
+            }
+        )
+        result = _insert(TABLE_PAGAMENTOS, payload)
     flash("Status alterado com sucesso." if result["ok"] else (result["error"] or "Nao foi possivel alterar o status."), "success" if result["ok"] else "error")
     return redirect(url_for("financeiro"))
 
 
 @app.post("/financeiro/planos")
 @login_required
+@role_required("Personal Trainer", "Admin", "Professor")
 def criar_plano():
     csrf_error = _require_csrf()
     if csrf_error:
@@ -2119,6 +2367,7 @@ def criar_plano():
 
 @app.get("/financeiro/planos/<plano_id>")
 @login_required
+@role_required("Personal Trainer", "Admin", "Professor")
 def gerenciar_plano(plano_id: str):
     return redirect(url_for("financeiro"))
 
@@ -2148,10 +2397,21 @@ def agenda_aluno():
     )
 
 
+@app.get("/meu-treino")
+@login_required
+@role_required("Aluno")
+def meu_treino_legacy_redirect():
+    return redirect(url_for("aluno_meu_treino"))
+
+
 @app.post("/agenda/marcar")
 @login_required
 @role_required("Aluno")
 def marcar_aula_aluno():
+    csrf_error = _require_csrf()
+    if csrf_error:
+        flash(csrf_error, "error")
+        return redirect(url_for("agenda_aluno"))
     aluno = _current_student_row()
     if not aluno:
         flash("Aluno nao localizado para este login.", "error")
@@ -2165,7 +2425,6 @@ def marcar_aula_aluno():
         horario_id,
         {
             "aluno_id": aluno.get("id"),
-            "aluno_nome": aluno.get("nome"),
             "status": "agendado",
         },
     )
@@ -2181,7 +2440,7 @@ def cancelar_agendamento_aluno(agenda_id: str):
     if csrf_error:
         flash(csrf_error, "error")
         return redirect(url_for("agenda_aluno"))
-    result = _update(TABLE_AGENDA, agenda_id, {"aluno_id": None, "aluno_nome": None, "status": "disponivel"})
+    result = _update(TABLE_AGENDA, agenda_id, {"aluno_id": None, "status": "disponivel"})
     flash("Agendamento cancelado." if result["ok"] else (result["error"] or "Nao foi possivel cancelar o agendamento."), "success" if result["ok"] else "error")
     return redirect(url_for("agenda_aluno"))
 
@@ -2236,6 +2495,17 @@ def aluno_meu_treino():
         iniciar_treino_base="/aluno/treino",
         **_student_context("meu_treino"),
     )
+
+
+@app.get("/aluno/treinos/iniciar")
+@login_required
+@role_required("Aluno")
+def iniciar_treino_aluno_redirect():
+    aluno = _current_student_row() or {}
+    treinos_lista = _trainings(aluno.get("id"))
+    if treinos_lista:
+        return redirect(url_for("aluno_treino_execucao", treino_id=treinos_lista[0]["id"]))
+    return redirect(url_for("aluno_meu_treino"))
 
 
 @app.get("/aluno/treino/<treino_id>/execucao")
@@ -2295,7 +2565,17 @@ def concluir_treino_execucao(treino_id: str):
     if csrf_error:
         flash(csrf_error, "error")
         return redirect(url_for("aluno_treino_execucao", treino_id=treino_id))
-    result = _update(TABLE_TREINOS, treino_id, {"status": "concluido"})
+    aluno = _current_student_row() or {}
+    result = _insert(
+        TABLE_EXECUCOES,
+        {
+            "aluno_id": aluno.get("id"),
+            "treino_id": treino_id,
+            "status": "concluido",
+            "serie_registrada": False,
+            "created_at": datetime.utcnow().isoformat(),
+        },
+    )
     flash("Treino concluido." if result["ok"] else (result["error"] or "Nao foi possivel concluir o treino."), "success" if result["ok"] else "error")
     return redirect(url_for("aluno_meu_treino", treino_id=treino_id))
 
@@ -2335,6 +2615,23 @@ def enviar_mensagem_aluno():
     result = _insert(TABLE_MENSAGENS, payload)
     flash("Mensagem enviada." if result["ok"] else _message_table_error_message(result["error"]), "success" if result["ok"] else "error")
     return redirect(url_for("aluno_mensagens", contato_id=request.form.get("contato_id", "")))
+
+
+@app.route("/aluno/mensagens/contatos", methods=["GET", "POST"])
+@app.route("/aluno/mensagens/conversa", methods=["GET", "POST"])
+@app.route("/aluno/mensagens/atualizar", methods=["GET", "POST"])
+@login_required
+@role_required("Aluno")
+def aluno_mensagens_redirects():
+    return redirect(url_for("aluno_mensagens", contato_id=request.values.get("contato_id", "")))
+
+
+@app.route("/aluno/mensagens/upload", methods=["GET", "POST"])
+@login_required
+@role_required("Aluno")
+def aluno_mensagens_upload_redirect():
+    flash("Upload de arquivo em mensagens ainda nao esta ativo.", "info")
+    return redirect(url_for("aluno_mensagens", contato_id=request.values.get("contato_id", "")))
 
 
 @app.get("/evolucao-aluno")

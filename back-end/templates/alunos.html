@@ -6,12 +6,14 @@
     <title>CONFIE - Plataforma para Personal Trainers - Alunos</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
+<body class="page-alunos">
     <div class="dashboard-layout">
         <aside class="dashboard-sidebar">
+            <input class="mobile-menu-toggle" type="checkbox" id="mobile-menu-toggle" aria-hidden="true">
             <div class="sidebar-brand">
                 <a class="sidebar-logo" href="{{ dashboard_url|default('/dashboard', true) }}">CONFIE Personal</a>
                 <p class="sidebar-user">{{ profissional_nome|default(nome_usuario|default('Personal Trainer', true), true) }}</p>
+                <label class="mobile-menu-button" for="mobile-menu-toggle" aria-label="Abrir menu"><span></span><span></span><span></span></label>
             </div>
 
             <nav class="sidebar-nav" aria-label="Menu principal">
@@ -151,9 +153,10 @@
                         <div class="field">
                             <label for="plano">Plano</label>
                             <select id="plano" name="plano">
-                                <option value="starter" {% if form is defined and form.plano == 'starter' %}selected{% endif %}>Starter</option>
-                                <option value="premium" {% if form is not defined or form.plano == 'premium' %}selected{% endif %}>Premium</option>
-                                <option value="online" {% if form is defined and form.plano == 'online' %}selected{% endif %}>Consultoria online</option>
+                                <option value="">Sem plano definido</option>
+                                {% for plano in planos|default([], true) %}
+                                <option value="{{ plano.id }}" {% if form is defined and form.plano == plano.id %}selected{% endif %}>{{ plano.nome }}</option>
+                                {% endfor %}
                             </select>
                         </div>
 
