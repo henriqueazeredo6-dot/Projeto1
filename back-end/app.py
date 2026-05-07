@@ -61,7 +61,6 @@ GOOGLE_CALENDAR_SCOPES = [
     for scope in os.getenv("GOOGLE_CALENDAR_SCOPES", "https://www.googleapis.com/auth/calendar.readonly").split(",")
     if scope.strip()
 ]
-
 supabase: Optional[Client] = None
 supabase_admin: Optional[Client] = None
 if SUPABASE_URL and SUPABASE_KEY:
@@ -663,7 +662,17 @@ def _google_calendar_context() -> Dict[str, Any]:
 
 
 def _is_student_path(path: str) -> bool:
-    return path == "/aluno" or path.startswith("/aluno/") or path in {"/agenda-aluno", "/evolucao-aluno"}
+    legacy_student_paths = {
+        "/agenda-aluno",
+        "/agenda-aluno.html",
+        "/aluno_dashboard.html",
+        "/aluno_meu_treino.html",
+        "/aluno_mensagens.html",
+        "/aluno_treino_execucao.html",
+        "/evolucao-aluno",
+        "/evolucao-aluno.html",
+    }
+    return path == "/aluno" or path.startswith("/aluno/") or path in legacy_student_paths
 
 
 def _dev_user_for_path(path: str) -> Dict[str, Any]:
@@ -929,25 +938,6 @@ def _trainings(aluno_id: Optional[str] = None) -> List[Dict[str, Any]]:
                 "total_exercicios": _to_int(_first(row, "total_exercicios", default=len(exercises))) or len(exercises),
                 "atualizado_em": _fmt_date(_first(row, "updated_at", "created_at", "data_criacao")),
                 "video_url": _first(row, "video_url", default=""),
-            }
-        )
-    if DEV_BYPASS_AUTH and aluno_id == DEV_ALUNO_ID and not normalized:
-        aluno_ref = alunos_por_id.get(DEV_ALUNO_ID, {"nome": "Aluno"})
-        exercises = _parse_exercises("Agachamento - 3x12\nSupino - 3x12\nRemada - 3x12")
-        normalized.append(
-            {
-                "id": "demo-treino-1",
-                "nome": "Treino exemplo",
-                "aluno_id": DEV_ALUNO_ID,
-                "aluno_nome": aluno_ref.get("nome", "Aluno"),
-                "status": _human_status("ativo"),
-                "grupo_muscular": "Corpo todo",
-                "observacoes": "Treino de demonstracao para visualizacao.",
-                "exercicios_raw": "Agachamento - 3x12\nSupino - 3x12\nRemada - 3x12",
-                "exercicios_lista": exercises,
-                "total_exercicios": len(exercises),
-                "atualizado_em": _fmt_date(datetime.utcnow().isoformat()),
-                "video_url": "",
             }
         )
     return normalized
@@ -1263,7 +1253,10 @@ def _plans() -> List[Dict[str, Any]]:
                 "id": row.get("id", ""),
                 "nome": _first(row, "nome", default="Plano"),
                 "preco": _currency(_first(row, "preco", "valor", default=0)),
+                "preco_valor": _first(row, "preco", "valor", default=0),
                 "descricao": _first(row, "descricao", default=""),
+                "duracao_dias": _first(row, "duracao_dias", default=30),
+                "recorrente": bool(_first(row, "recorrente", default=True)),
                 "gerenciar_url": url_for("gerenciar_plano", plano_id=row.get("id", "")),
             }
         )
@@ -1512,6 +1505,7 @@ def google_calendar_disconnect():
 
 
 @app.get("/dashboard")
+@app.get("/dashboard.html")
 @login_required
 @role_required("Personal Trainer", "Admin", "Professor")
 def dashboard():
@@ -1541,6 +1535,7 @@ def dashboard():
 
 
 @app.route("/alunos", methods=["GET", "POST"])
+@app.route("/alunos.html", methods=["GET", "POST"])
 @login_required
 @role_required("Personal Trainer", "Admin", "Professor")
 def alunos():
@@ -1668,6 +1663,7 @@ def excluir_aluno(aluno_id: str):
 
 
 @app.get("/treinos")
+@app.get("/treinos.html")
 @login_required
 @role_required("Personal Trainer", "Admin", "Professor")
 def treinos():
@@ -1741,27 +1737,6 @@ def abrir_criacao_treino():
     aluno_id = request.args.get("aluno_id", "")
     target = url_for("treinos", aluno_id=aluno_id) if aluno_id else url_for("treinos")
     return redirect(target + "#novo-treino-modal")
-
-
-@app.get("/treinos/visualizar")
-@login_required
-@role_required("Personal Trainer", "Admin", "Professor")
-def visualizar_treino_redirect():
-    return redirect(url_for("treinos"))
-
-
-@app.get("/treinos/visualizar/<treino_id>")
-@login_required
-@role_required("Personal Trainer", "Admin", "Professor")
-def visualizar_treino_alias(treino_id: str):
-    return redirect(url_for("visualizar_treino", treino_id=treino_id))
-
-
-@app.get("/treinos/novo")
-@login_required
-@role_required("Personal Trainer", "Admin", "Professor")
-def novo_treino_redirect():
-    return redirect(url_for("treinos") + "#novo-treino-modal")
 
 
 @app.post("/treinos/novo")
@@ -1842,6 +1817,7 @@ def excluir_treino(treino_id: str):
 
 
 @app.route("/agenda", methods=["GET", "POST"])
+@app.route("/agenda.html", methods=["GET", "POST"])
 @login_required
 @role_required("Personal Trainer", "Admin", "Professor")
 def agenda():
@@ -1937,6 +1913,7 @@ def cancelar_agenda(agenda_id: str):
 
 
 @app.route("/avaliacoes", methods=["GET", "POST"])
+@app.route("/avaliacoes.html", methods=["GET", "POST"])
 @login_required
 @role_required("Personal Trainer", "Admin", "Professor")
 def avaliacoes():
@@ -2012,6 +1989,7 @@ def avaliacoes():
 
 
 @app.route("/evolucao", methods=["GET", "POST"])
+@app.route("/evolucao.html", methods=["GET", "POST"])
 @login_required
 @role_required("Personal Trainer", "Admin", "Professor")
 def evolucao():
@@ -2039,6 +2017,7 @@ def evolucao():
 
 
 @app.route("/observacoes", methods=["GET", "POST"])
+@app.route("/observacoes.html", methods=["GET", "POST"])
 @login_required
 @role_required("Personal Trainer", "Admin", "Professor")
 def observacoes():
@@ -2102,6 +2081,7 @@ def observacoes():
 @app.route("/anamnese/salvar", methods=["GET", "POST"])
 @app.route("/anamnese/salvar/", methods=["GET", "POST"])
 @app.route("/anamnese", methods=["GET", "POST"])
+@app.route("/anamnese.html", methods=["GET", "POST"])
 @login_required
 @role_required("Personal Trainer", "Admin", "Professor")
 def anamnese():
@@ -2157,6 +2137,7 @@ def buscar_anamnese_redirect():
 
 
 @app.route("/exercicios", methods=["GET"])
+@app.route("/exercicios.html", methods=["GET"])
 @login_required
 @role_required("Personal Trainer", "Admin", "Professor")
 def exercicios():
@@ -2236,6 +2217,7 @@ def excluir_exercicio(exercicio_id: str):
 
 
 @app.route("/mensagens", methods=["GET"])
+@app.route("/mensagens.html", methods=["GET"])
 @login_required
 @role_required("Personal Trainer", "Admin", "Professor")
 def mensagens():
@@ -2288,16 +2270,20 @@ def upload_mensagem_redirect():
 
 
 @app.route("/financeiro", methods=["GET"])
+@app.route("/financeiro.html", methods=["GET"])
 @login_required
 @role_required("Personal Trainer", "Admin", "Professor")
 def financeiro():
     pagamentos = _payment_rows()
     planos = _plans()
+    plano_edicao_id = request.args.get("editar_plano_id", "")
+    plano_edicao = next((plano for plano in planos if str(plano.get("id")) == str(plano_edicao_id)), {})
     receita = sum(_to_float(_first(item, "valor", default=0)) or 0 for item in pagamentos if item.get("status") == "pago")
     return render_template(
         "financeiro.html",
         pagamentos=pagamentos,
         planos=planos,
+        plano_edicao=plano_edicao,
         receita_estimada=_currency(receita),
         receita_descricao="Recebimentos registrados",
         total_sessoes=len(_schedule_rows()),
@@ -2365,14 +2351,38 @@ def criar_plano():
     return redirect(url_for("financeiro"))
 
 
-@app.get("/financeiro/planos/<plano_id>")
+@app.route("/financeiro/planos/<plano_id>", methods=["GET", "POST"])
 @login_required
 @role_required("Personal Trainer", "Admin", "Professor")
 def gerenciar_plano(plano_id: str):
+    if request.method == "GET":
+        plano = _select_one(TABLE_PLANOS, plano_id)
+        if not plano["ok"] or not plano["data"]:
+            flash("Plano nao encontrado.", "error")
+            return redirect(url_for("financeiro"))
+        return redirect(url_for("financeiro", editar_plano_id=plano_id) + "#editar-plano")
+
+    csrf_error = _require_csrf()
+    if csrf_error:
+        flash(csrf_error, "error")
+        return redirect(url_for("financeiro", editar_plano_id=plano_id) + "#editar-plano")
+    payload = {
+        "nome": request.form.get("nome"),
+        "descricao": request.form.get("descricao"),
+        "preco": request.form.get("preco"),
+        "duracao_dias": request.form.get("duracao_dias"),
+        "recorrente": True if request.form.get("recorrente") else False,
+    }
+    result = _update(TABLE_PLANOS, plano_id, payload)
+    if not result["ok"] and _missing_column_error(result["error"], "duracao_dias"):
+        payload.pop("duracao_dias", None)
+        result = _update(TABLE_PLANOS, plano_id, payload)
+    flash("Plano atualizado com sucesso." if result["ok"] else _plan_table_error_message(result["error"]), "success" if result["ok"] else "error")
     return redirect(url_for("financeiro"))
 
 
 @app.route("/agenda-aluno")
+@app.route("/agenda-aluno.html")
 @app.route("/aluno/agenda")
 @login_required
 @role_required("Aluno")
@@ -2446,6 +2456,7 @@ def cancelar_agendamento_aluno(agenda_id: str):
 
 
 @app.get("/aluno/dashboard")
+@app.get("/aluno_dashboard.html")
 @login_required
 @role_required("Aluno")
 def aluno_dashboard():
@@ -2468,6 +2479,7 @@ def aluno_dashboard():
 
 @app.get("/aluno/treinos")
 @app.get("/aluno/meu-treino")
+@app.get("/aluno_meu_treino.html")
 @login_required
 @role_required("Aluno")
 def aluno_meu_treino():
@@ -2498,6 +2510,7 @@ def aluno_meu_treino():
 
 
 @app.get("/aluno/treinos/iniciar")
+@app.get("/aluno_treino_execucao.html")
 @login_required
 @role_required("Aluno")
 def iniciar_treino_aluno_redirect():
@@ -2581,6 +2594,7 @@ def concluir_treino_execucao(treino_id: str):
 
 
 @app.route("/aluno/mensagens", methods=["GET"])
+@app.route("/aluno_mensagens.html", methods=["GET"])
 @login_required
 @role_required("Aluno")
 def aluno_mensagens():
@@ -2635,6 +2649,7 @@ def aluno_mensagens_upload_redirect():
 
 
 @app.get("/evolucao-aluno")
+@app.get("/evolucao-aluno.html")
 @app.get("/aluno/evolucao")
 @login_required
 @role_required("Aluno")
@@ -2672,6 +2687,7 @@ def evolucao_aluno():
 
 
 @app.get("/configuracoes")
+@app.get("/configuracoes.html")
 @login_required
 def configuracoes():
     role = str(session.get("user_role", "")).strip().lower()
