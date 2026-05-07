@@ -1566,10 +1566,18 @@ def alunos():
     if search:
         alunos_lista = [aluno for aluno in alunos_lista if search in aluno["nome"].lower() or search in aluno["email"].lower()]
     aluno_edicao = next((aluno for aluno in alunos_lista if aluno["id"] == aluno_edicao_id), {})
+    form = {}
+    if aluno_edicao:
+        form = {
+            **aluno_edicao,
+            "plano": aluno_edicao.get("plano_id", ""),
+            "status": _slug_status(aluno_edicao.get("status", "ativo")),
+        }
     return render_template(
         "alunos.html",
         alunos=alunos_lista,
         aluno_edicao=aluno_edicao,
+        form=form,
         busca=search,
         filtros={"busca": search, "status": request.args.get("status", "")},
         total_alunos=len(alunos_lista),
@@ -1624,29 +1632,7 @@ def editar_aluno(aluno_id: str):
         flash("Aluno atualizado com sucesso." if result["ok"] else (result["error"] or "Nao foi possivel atualizar o aluno."), "success" if result["ok"] else "error")
         return redirect(url_for("alunos"))
 
-    search = request.args.get("busca", "").strip().lower()
-    alunos_lista = _students()
-    form = {
-        **aluno_row,
-        "plano": _first(aluno_row, "plano", default=""),
-        "objetivo": _first(aluno_row, "objetivo", default=""),
-        "status": _slug_status(_first(aluno_row, "status", default="ativo")),
-    }
-    return render_template(
-        "alunos.html",
-        alunos=alunos_lista,
-        busca=search,
-        filtros={"busca": search, "status": request.args.get("status", "")},
-        total_alunos=len(alunos_lista),
-        planos=_db_plan_options(),
-        form=form,
-        criar_aluno_url=url_for("editar_aluno", aluno_id=aluno_id),
-        excluir_aluno_base_url="/alunos",
-        editar_aluno_base_url="/alunos",
-        detalhes_aluno_base_url="/alunos",
-        csrf_form_token=_csrf_token,
-        **_personal_context("alunos"),
-    )
+    return redirect(url_for("alunos", editar_aluno_id=aluno_id) + "#novo-aluno")
 
 
 @app.post("/alunos/<aluno_id>/excluir")
