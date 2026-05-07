@@ -2673,6 +2673,10 @@ select:focus {
     display: grid;
 }
 
+.anamnese-mobile-search {
+    display: none;
+}
+
 .anamnese-contact-card {
     display: grid;
     grid-template-columns: auto 1fr;
@@ -3857,6 +3861,9 @@ textarea:focus {
 .page-dashboard .sidebar-nav,
 .page-exercicios .sidebar-nav,
 .page-financeiro .sidebar-nav,
+.page-mensagens .sidebar-nav,
+.page-anamnese .sidebar-nav,
+.page-aluno-mensagens .sidebar-nav,
 .page-aluno-dashboard .sidebar-nav,
 .page-aluno-meu-treino .sidebar-nav,
 .page-aluno-treino-execucao .sidebar-nav {
@@ -3908,5 +3915,564 @@ textarea:focus {
     .page-financeiro .dashboard-add-button.ui-btn,
     .page-treinos .dashboard-add-button.ui-btn {
         width: 100%;
+    }
+}
+
+/* Mobile app parity */
+@media (max-width: 760px) {
+    body.personal-page,
+    body.page-aluno-mensagens,
+    body.page-anamnese,
+    body.page-mensagens {
+        padding: 5.65rem 0 5.4rem;
+        background: #09090c;
+    }
+
+    .personal-page .dashboard-layout,
+    .page-aluno-mensagens .dashboard-layout,
+    .page-anamnese .dashboard-layout,
+    .page-mensagens .dashboard-layout {
+        display: block;
+        min-height: auto;
+    }
+
+    .personal-page .dashboard-sidebar,
+    .page-aluno-mensagens .dashboard-sidebar,
+    .page-anamnese .dashboard-sidebar,
+    .page-mensagens .dashboard-sidebar {
+        position: fixed;
+        z-index: 30;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5.55rem;
+        border-right: 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        background: #09090c;
+    }
+
+    .personal-page .dashboard-sidebar::after,
+    .page-aluno-mensagens .dashboard-sidebar::after,
+    .page-anamnese .dashboard-sidebar::after,
+    .page-mensagens .dashboard-sidebar::after {
+        content: "\2630";
+        position: absolute;
+        right: 1rem;
+        bottom: 1.12rem;
+        color: #f4f4f5;
+        font-size: 1.45rem;
+        line-height: 1;
+    }
+
+    .personal-page .sidebar-brand,
+    .page-aluno-mensagens .sidebar-brand,
+    .page-anamnese .sidebar-brand,
+    .page-mensagens .sidebar-brand {
+        height: 100%;
+        padding: 2.95rem 1rem 0;
+        border: 0;
+    }
+
+    .personal-page .sidebar-logo,
+    .page-aluno-mensagens .sidebar-logo,
+    .page-anamnese .sidebar-logo,
+    .page-mensagens .sidebar-logo,
+    .page-aluno-mensagens .sidebar-logo span {
+        color: var(--primary);
+        font-size: 1.05rem;
+        line-height: 1;
+        letter-spacing: 0;
+    }
+
+    .personal-page .sidebar-logo-image,
+    .page-aluno-mensagens .sidebar-logo-image {
+        max-height: 1.05rem;
+        width: auto;
+    }
+
+    .personal-page .sidebar-user,
+    .page-aluno-mensagens .sidebar-user,
+    .page-anamnese .sidebar-user,
+    .page-mensagens .sidebar-user {
+        display: none;
+    }
+
+    .personal-page .sidebar-nav,
+    .page-aluno-mensagens .sidebar-nav,
+    .page-anamnese .sidebar-nav,
+    .page-mensagens .sidebar-nav {
+        position: fixed;
+        z-index: 40;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 4.45rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0;
+        overflow-x: auto;
+        padding: 0.55rem 0.7rem 0.6rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(9, 9, 12, 0.96);
+        scrollbar-width: none;
+    }
+
+    .personal-page .sidebar-nav::-webkit-scrollbar,
+    .page-aluno-mensagens .sidebar-nav::-webkit-scrollbar,
+    .page-anamnese .sidebar-nav::-webkit-scrollbar,
+    .page-mensagens .sidebar-nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .personal-page .sidebar-link,
+    .page-aluno-mensagens .sidebar-link,
+    .page-anamnese .sidebar-link,
+    .page-mensagens .sidebar-link {
+        min-width: 4rem;
+        min-height: 3.05rem;
+        flex: 0 0 4rem;
+        justify-content: center;
+        align-items: center;
+        padding: 1.45rem 0.2rem 0;
+        position: relative;
+        background: transparent;
+        color: #8f939d;
+        font-size: 0.64rem;
+        line-height: 1;
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    .personal-page .sidebar-link::before,
+    .page-aluno-mensagens .sidebar-link::before,
+    .page-anamnese .sidebar-link::before,
+    .page-mensagens .sidebar-link::before {
+        content: "";
+        position: absolute;
+        top: 0.24rem;
+        left: 50%;
+        width: 1rem;
+        height: 1rem;
+        transform: translateX(-50%);
+        border: 1.8px solid currentColor;
+        border-radius: 0.22rem;
+        opacity: 0.95;
+    }
+
+    .personal-page .sidebar-link:hover,
+    .personal-page .sidebar-link.is-active,
+    .page-aluno-mensagens .sidebar-link:hover,
+    .page-aluno-mensagens .sidebar-link.is-active,
+    .page-anamnese .sidebar-link:hover,
+    .page-anamnese .sidebar-link.is-active,
+    .page-mensagens .sidebar-link:hover,
+    .page-mensagens .sidebar-link.is-active {
+        background: transparent;
+        color: var(--primary);
+    }
+
+    .personal-page .sidebar-link svg,
+    .page-aluno-mensagens .sidebar-link svg,
+    .page-anamnese .sidebar-link svg,
+    .page-mensagens .sidebar-link svg {
+        position: absolute;
+        top: 0.12rem;
+        left: 50%;
+        width: 1.15rem;
+        height: 1.15rem;
+        transform: translateX(-50%);
+    }
+
+    .personal-page .dashboard-main,
+    .page-aluno-mensagens .dashboard-main,
+    .page-anamnese .dashboard-main,
+    .page-mensagens .dashboard-main {
+        padding: 1.6rem 1.12rem 1.3rem;
+    }
+
+    .dashboard-header,
+    .aluno-header {
+        margin-bottom: 1.55rem;
+    }
+
+    .dashboard-title,
+    .aluno-main-title {
+        font-size: clamp(2.55rem, 11.5vw, 3.25rem);
+        line-height: 0.86;
+        letter-spacing: 0;
+    }
+
+    .dashboard-subtitle,
+    .aluno-main-subtitle {
+        margin-top: 0.6rem;
+        color: #a3a3ab;
+        font-size: 1rem;
+        line-height: 1.25;
+    }
+
+    .page-exercicios .dashboard-header {
+        gap: 1.05rem;
+        margin-bottom: 0;
+    }
+
+    .page-exercicios .dashboard-add-button {
+        min-height: 2.55rem;
+        margin-top: 0;
+        padding: 0 1.05rem;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 0.9rem;
+        font-weight: 700;
+    }
+
+    .page-exercicios .exercicios-toolbar {
+        margin-top: 1.65rem;
+    }
+
+    .page-exercicios .exercicios-search-wrap input {
+        height: 2.65rem;
+        border-color: rgba(255, 255, 255, 0.1);
+        background: #0b0b0f;
+        color: #d7d8dd;
+    }
+
+    .page-exercicios .exercicios-grid {
+        margin-top: 0;
+        gap: 0;
+    }
+
+    .page-exercicios .exercicios-card {
+        border-color: rgba(255, 255, 255, 0.12);
+        background: #101014;
+    }
+
+    .page-exercicios .exercicios-card-media {
+        height: 8.4rem;
+        background: #29292c;
+        color: #686872;
+    }
+
+    .page-exercicios .exercicios-card-media svg {
+        width: 2.7rem;
+        height: 2.7rem;
+    }
+
+    .page-exercicios .exercicios-card-body {
+        padding: 1.45rem 1.35rem 1rem;
+    }
+
+    .page-exercicios .exercicios-card-title,
+    .page-exercicios .exercicios-card-group {
+        font-size: 0.9rem;
+    }
+
+    .page-exercicios .exercicios-card-group {
+        margin-top: 0.55rem;
+        color: var(--primary);
+    }
+
+    .page-exercicios .exercicios-card-meta span:first-child {
+        display: none;
+    }
+
+    .page-exercicios .exercicios-card-description {
+        display: none;
+    }
+
+    .page-exercicios .exercicios-card-actions {
+        margin-top: 0.9rem;
+    }
+
+    .page-exercicios .exercicios-action {
+        min-height: 2.45rem;
+    }
+
+    .page-mensagens .mensagens-layout,
+    .page-aluno-mensagens .mensagens-layout {
+        margin-top: 1.75rem;
+        gap: 1.35rem;
+    }
+
+    .page-mensagens .mensagens-panel,
+    .page-aluno-mensagens .mensagens-panel {
+        min-height: 13.8rem;
+        border-color: rgba(255, 255, 255, 0.1);
+        background: #101014;
+    }
+
+    .page-mensagens .mensagens-panel-header,
+    .page-aluno-mensagens .mensagens-panel-header {
+        padding: 1.15rem 0.85rem;
+    }
+
+    .page-mensagens .mensagens-panel-title,
+    .page-aluno-mensagens .mensagens-panel-title {
+        font-size: 0.9rem;
+    }
+
+    .page-mensagens .mensagens-contact-card,
+    .page-aluno-mensagens .mensagens-contact-card {
+        min-height: 3.9rem;
+        padding: 0.75rem 0.85rem;
+        gap: 0.75rem;
+        border-left-width: 3px;
+    }
+
+    .page-mensagens .mensagens-contact-card.is-active,
+    .page-aluno-mensagens .mensagens-contact-card.is-active {
+        background: rgba(255, 90, 10, 0.16);
+    }
+
+    .page-mensagens .mensagens-avatar,
+    .page-aluno-mensagens .mensagens-avatar {
+        width: 2rem;
+        height: 2rem;
+    }
+
+    .page-mensagens .mensagens-contact-name,
+    .page-aluno-mensagens .mensagens-contact-name {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 0.95rem;
+        font-weight: 700;
+        text-transform: none;
+    }
+
+    .page-mensagens .mensagens-contact-email,
+    .page-aluno-mensagens .mensagens-contact-email {
+        display: block;
+        margin-top: 0.2rem;
+        font-size: 0.72rem;
+    }
+
+    .page-mensagens .mensagens-thread,
+    .page-aluno-mensagens .mensagens-thread {
+        display: grid;
+        min-height: 13.9rem;
+        padding: 0;
+        gap: 0;
+    }
+
+    .page-mensagens .mensagens-thread-header,
+    .page-aluno-mensagens .mensagens-thread-header {
+        padding: 0.8rem 0.9rem;
+    }
+
+    .page-mensagens .mensagens-thread-body,
+    .page-aluno-mensagens .mensagens-thread-body {
+        min-height: 6.05rem;
+        padding: 0.85rem;
+    }
+
+    .page-mensagens .mensagens-message,
+    .page-aluno-mensagens .mensagens-message {
+        max-width: 4.1rem;
+        padding: 0.85rem 0.55rem;
+        border: 0;
+        background: #1b1b20;
+        font-size: 0.76rem;
+    }
+
+    .page-mensagens .mensagens-message.is-own,
+    .page-aluno-mensagens .mensagens-message.is-own {
+        background: var(--primary);
+    }
+
+    .page-mensagens .mensagens-message-author,
+    .page-aluno-mensagens .mensagens-message-author {
+        display: none;
+    }
+
+    .page-mensagens .mensagens-message-text,
+    .page-aluno-mensagens .mensagens-message-text {
+        margin: 0;
+        line-height: 1.25;
+    }
+
+    .page-mensagens .mensagens-message-time,
+    .page-aluno-mensagens .mensagens-message-time {
+        margin-top: 0.32rem;
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.72rem;
+    }
+
+    .page-mensagens .mensagens-thread-form,
+    .page-aluno-mensagens .mensagens-thread-form {
+        padding: 0.8rem 0.85rem;
+    }
+
+    .page-mensagens .mensagens-form-row,
+    .page-aluno-mensagens .mensagens-form-row {
+        grid-template-columns: 1fr 3.55rem;
+        gap: 0.45rem;
+    }
+
+    .page-mensagens .mensagens-input,
+    .page-aluno-mensagens .mensagens-input {
+        min-height: 2.7rem;
+        padding: 0.78rem 0.75rem;
+        background: #0b0b0f;
+    }
+
+    .page-mensagens .mensagens-send-button,
+    .page-aluno-mensagens .mensagens-send-button {
+        width: auto;
+        min-width: 3.55rem;
+        min-height: 2.7rem;
+    }
+
+    .mensagens-contact-empty {
+        min-height: 13.5rem;
+    }
+
+    .mensagens-empty-icon {
+        width: 2.7rem;
+        height: 2.7rem;
+        color: #555762;
+    }
+
+    .mensagens-empty-state h2 {
+        display: none;
+    }
+
+    .mensagens-empty-copy {
+        margin-top: 0.8rem;
+        font-size: 0.78rem;
+        line-height: 1.35;
+    }
+
+    .page-anamnese .dashboard-title,
+    .page-anamnese .dashboard-subtitle {
+        display: block;
+    }
+
+    .page-anamnese .anamnese-layout {
+        margin-top: 1.85rem;
+        gap: 1.25rem;
+    }
+
+    .page-anamnese .anamnese-layout:has(.anamnese-form-panel) {
+        margin-top: 0;
+    }
+
+    .page-anamnese .anamnese-layout:has(.anamnese-form-panel) > aside,
+    .page-anamnese .anamnese-layout:has(.anamnese-form-panel) ~ * {
+        display: none;
+    }
+
+    .page-anamnese .dashboard-main:has(.anamnese-form-panel) .dashboard-header {
+        display: none;
+    }
+
+    .page-anamnese .anamnese-sidebar-title,
+    .page-anamnese .anamnese-form-title {
+        font-size: 1.05rem;
+    }
+
+    .page-anamnese .anamnese-mobile-search {
+        display: block;
+        margin: 0 0 0.8rem;
+    }
+
+    .page-anamnese .anamnese-mobile-search label {
+        margin-bottom: 0.55rem;
+        color: #86868f;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+    }
+
+    .page-anamnese .anamnese-mobile-search input {
+        height: 3.15rem;
+        border-color: rgba(255, 255, 255, 0.12);
+        background: #09090c;
+        color: #d8d8df;
+        font-size: 0.95rem;
+    }
+
+    .page-anamnese .anamnese-mobile-search input::placeholder {
+        color: #666871;
+    }
+
+    .page-anamnese .anamnese-contact-card {
+        min-height: 3.9rem;
+        padding: 0.8rem 0.95rem;
+        background: #101014;
+    }
+
+    .page-anamnese .anamnese-contact-card .mensagens-avatar {
+        width: 1.35rem;
+        height: 1.35rem;
+        background: transparent;
+        color: #f4f4f5;
+    }
+
+    .page-anamnese .anamnese-contact-name {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 0.95rem;
+        font-weight: 700;
+        text-transform: none;
+    }
+
+    .page-anamnese .anamnese-contact-email {
+        display: block;
+        margin-top: 0.22rem;
+        font-size: 0.7rem;
+    }
+
+    .page-anamnese .anamnese-form-panel {
+        min-height: 0;
+        padding: 0;
+        border: 0;
+        background: transparent;
+    }
+
+    .page-anamnese .anamnese-form-title {
+        margin-bottom: 1.4rem;
+        font-size: 1rem;
+    }
+
+    .page-anamnese .anamnese-field + .anamnese-field {
+        margin-top: 1.25rem;
+    }
+
+    .page-anamnese .anamnese-field label {
+        margin-bottom: 0.65rem;
+        color: #86868f;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+    }
+
+    .page-anamnese .anamnese-field textarea {
+        min-height: 6.35rem;
+        padding: 0.9rem;
+        border-color: rgba(255, 255, 255, 0.12);
+        background: #09090c;
+        color: #d8d8df;
+    }
+
+    .page-anamnese .anamnese-submit {
+        min-height: 2.7rem;
+        margin-top: 1.25rem;
+    }
+
+    .page-anamnese .anamnese-empty-panel {
+        min-height: 7.2rem;
+        padding: 1rem;
+        background: #101014;
+    }
+
+    .page-anamnese .anamnese-empty-state h2,
+    .page-anamnese .anamnese-empty-state p {
+        display: none;
+    }
+
+    .page-anamnese .anamnese-empty-state::before {
+        content: "";
+        display: block;
+        width: 3rem;
+        height: 3rem;
+        margin: 0 auto;
+        border: 4px solid #555762;
+        border-radius: 0.4rem;
     }
 }

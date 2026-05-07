@@ -1770,6 +1770,14 @@ def observacoes():
 @role_required("Personal Trainer", "Admin", "Professor")
 def anamnese():
     alunos_lista = _students()
+    busca = request.values.get("busca", "").strip()
+    if busca:
+        termo = busca.lower()
+        alunos_lista = [
+            aluno
+            for aluno in alunos_lista
+            if termo in aluno["nome"].lower() or termo in aluno["email"].lower()
+        ]
     aluno_id = request.values.get("aluno_id", "")
     aluno_ativo = next((item for item in alunos_lista if item["id"] == aluno_id), alunos_lista[0] if alunos_lista else None)
     anamnese_atual = {}
@@ -1804,6 +1812,7 @@ def anamnese():
         alunos=alunos_lista,
         aluno_ativo=aluno_ativo,
         anamnese=anamnese_atual,
+        busca=busca,
         buscar_anamnese_url=url_for("anamnese"),
         salvar_anamnese_url=url_for("anamnese"),
         csrf_form_token=_csrf_token,
