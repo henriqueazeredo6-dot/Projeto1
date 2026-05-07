@@ -17,11 +17,13 @@
     {% endif %}
     <div class="dashboard-layout">
         <aside class="dashboard-sidebar">
+            <input class="mobile-menu-toggle" type="checkbox" id="mobile-menu-toggle" aria-hidden="true">
             <div class="sidebar-brand">
                 <a class="sidebar-logo" href="{{ dashboard_url|default('/dashboard', true) }}">
                     <span>{{ marca_nome|default('', true) }}</span>
                 </a>
                 <p class="sidebar-user">{{ profissional_nome|default('', true) }}</p>
+                <label class="mobile-menu-button" for="mobile-menu-toggle" aria-label="Abrir menu"><span></span><span></span><span></span></label>
             </div>
 
             <nav class="sidebar-nav" aria-label="Menu principal">
