@@ -5009,3 +5009,152 @@ textarea:focus {
         max-width: 88%;
     }
 }
+
+/* Bottom mobile options selector */
+.mobile-options-bar {
+    display: none;
+}
+
+@media (max-width: 760px) {
+    body.personal-page,
+    body.aluno-page,
+    body.treinos-page {
+        padding-bottom: 5.35rem;
+    }
+
+    .personal-page .dashboard-sidebar::after,
+    .aluno-page .dashboard-sidebar::after,
+    .treinos-page .dashboard-sidebar::after {
+        content: none;
+    }
+
+    .personal-page .sidebar-nav,
+    .aluno-page .sidebar-nav,
+    .treinos-page .sidebar-nav {
+        left: 0.85rem;
+        right: 0.85rem;
+        bottom: calc(4.75rem + max(0.75rem, env(safe-area-inset-bottom)));
+        height: auto;
+        max-height: min(68vh, 31rem);
+        display: grid;
+        grid-template-columns: 1fr;
+        align-items: stretch;
+        gap: 0.45rem;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 0.75rem;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(14, 14, 18, 0.98);
+        box-shadow: 0 -1.25rem 3rem rgba(0, 0, 0, 0.48);
+        transform: translateY(calc(100% + 6rem));
+        opacity: 0;
+        pointer-events: none;
+        transition: transform 0.22s ease, opacity 0.22s ease;
+    }
+
+    body.mobile-nav-open .dashboard-sidebar .sidebar-nav {
+        transform: translateY(0);
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .personal-page .sidebar-link,
+    .aluno-page .sidebar-link,
+    .treinos-page .sidebar-link {
+        min-width: 0;
+        min-height: 3rem;
+        width: 100%;
+        flex: none;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 0.75rem 0.9rem;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: #101014;
+        color: #d9dbe1;
+        font-size: 0.9rem;
+        text-align: left;
+    }
+
+    .personal-page .sidebar-link::before,
+    .aluno-page .sidebar-link::before,
+    .treinos-page .sidebar-link::before {
+        content: none;
+    }
+
+    .personal-page .sidebar-link svg,
+    .aluno-page .sidebar-link svg,
+    .treinos-page .sidebar-link svg {
+        display: none;
+    }
+
+    .personal-page .sidebar-link.is-active,
+    .aluno-page .sidebar-link.is-active,
+    .treinos-page .sidebar-link.is-active {
+        border-color: rgba(255, 90, 10, 0.75);
+        background: var(--primary);
+        color: #fff;
+    }
+
+    .mobile-options-bar {
+        position: fixed;
+        z-index: 50;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        min-height: 4.35rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.7rem 1rem max(0.75rem, env(safe-area-inset-bottom));
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(8, 8, 11, 0.98);
+        box-shadow: 0 -0.75rem 2rem rgba(0, 0, 0, 0.42);
+        backdrop-filter: blur(14px);
+    }
+
+    .mobile-options-label {
+        min-width: 0;
+        color: #8f939d;
+        font-size: 0.76rem;
+        line-height: 1.2;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .mobile-options-label strong {
+        color: #f4f4f5;
+        font-size: 0.95rem;
+        font-weight: 700;
+    }
+
+    .mobile-nav-toggle {
+        width: 3.15rem;
+        min-width: 3.15rem;
+        min-height: 2.85rem;
+        padding: 0;
+        border: 1px solid rgba(255, 90, 10, 0.72);
+        background: var(--primary);
+        color: #fff;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 1.35rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        line-height: 1;
+        text-transform: none;
+    }
+
+    .mobile-nav-toggle:hover {
+        background: var(--primary-strong);
+        transform: none;
+    }
+
+    body.mobile-nav-open::before {
+        content: "";
+        position: fixed;
+        z-index: 35;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.38);
+    }
+}
