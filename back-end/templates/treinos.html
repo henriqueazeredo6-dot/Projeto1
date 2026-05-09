@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -6,7 +6,7 @@
     <title>{{ page_title|default('Treinos', true) }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body class="treinos-page page-treinos">
+<body class="personal-page treinos-page page-treinos">
     {% set pagina_ativa = pagina_ativa|default('treinos', true) %}
     {% set visualizar_treino_base = visualizar_treino_url_base|default('/treinos/visualizar', true) %}
     {% set editar_treino_base = editar_treino_url_base|default('/treinos/editar', true) %}
