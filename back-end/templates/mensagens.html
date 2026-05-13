@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -6,7 +6,7 @@
     <title>{{ page_title|default('CONFIE - Mensagens', true) }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
+<body class="personal-page page-mensagens">
     {% set conversa_ativa = conversa_ativa|default({}, true) %}
     {% set contatos_lista = contatos|default([], true) %}
     {% set mensagens_lista = mensagens|default([], true) %}
@@ -169,6 +169,7 @@
             </section>
         </main>
     </div>
+    <script src="{{ url_for('static', filename='mobile-nav.js') }}"></script>
 </body>
 </html>
 

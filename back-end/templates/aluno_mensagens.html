@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -6,7 +6,7 @@
     <title>{{ page_title|default('CONFIE - Mensagens do Aluno', true) }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body class="aluno-page">
+<body class="aluno-page page-aluno-mensagens">
     {% set pagina_ativa = pagina_ativa|default('mensagens', true) %}
     {% set conversa_ativa = conversa_ativa|default({}, true) %}
     {% set contatos_lista = contatos|default([], true) %}
@@ -119,10 +119,13 @@
                             </span>
                         </a>
                         {% else %}
-                        <div class="mensagens-thread-empty">
+                        <div class="mensagens-thread-empty mensagens-contact-empty">
                             <div class="mensagens-empty-state">
-                                <h2>Nenhum contato</h2>
-                                <p class="mensagens-empty-copy">Ainda não existe nenhum contato disponível para conversa.</p>
+                                <svg class="mensagens-empty-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <circle cx="12" cy="8" r="3" stroke="currentColor" stroke-width="1.8"/>
+                                    <path d="M6.5 18C7.2 15.6 9.2 14 12 14C14.8 14 16.8 15.6 17.5 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                </svg>
+                                <p class="mensagens-empty-copy">Nenhum contato</p>
                             </div>
                         </div>
                         {% endfor %}
@@ -214,6 +217,7 @@
             </section>
         </main>
     </div>
+    <script src="{{ url_for('static', filename='mobile-nav.js') }}"></script>
 </body>
 </html>
 

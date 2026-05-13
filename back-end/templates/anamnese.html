@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -6,7 +6,7 @@
     <title>{{ page_title|default('CONFIE - Anamnese', true) }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
+<body class="personal-page page-anamnese">
     {% set aluno_ativo = aluno_ativo|default({}, true) %}
     {% set alunos_lista = alunos|default([], true) %}
     {% set anamnese = anamnese|default({}, true) %}
@@ -58,6 +58,18 @@
             <section class="anamnese-layout" aria-label="Central de anamnese">
                 <aside aria-label="Lista de alunos">
                     <h2 class="anamnese-sidebar-title">Alunos</h2>
+
+                    <form class="anamnese-mobile-search" action="{{ anamnese_url|default('/anamnese', true) }}" method="get" role="search" aria-label="Buscar aluno por nome">
+                        <label for="anamnese_busca_aluno">Nome do aluno</label>
+                        <input
+                            id="anamnese_busca_aluno"
+                            name="busca"
+                            type="search"
+                            value="{{ busca|default('', true) }}"
+                            placeholder="Digite o nome do aluno..."
+                            autocomplete="off"
+                        >
+                    </form>
 
                     <div class="anamnese-contact-list">
                         {% for aluno in alunos_lista %}
@@ -153,6 +165,7 @@
             </section>
         </main>
     </div>
+    <script src="{{ url_for('static', filename='mobile-nav.js') }}"></script>
 </body>
 </html>
 

@@ -2689,6 +2689,10 @@ select:focus {
     display: grid;
 }
 
+.anamnese-mobile-search {
+    display: none;
+}
+
 .anamnese-contact-card {
     display: grid;
     grid-template-columns: auto 1fr;
@@ -3878,6 +3882,9 @@ textarea:focus {
 .page-dashboard .sidebar-nav,
 .page-exercicios .sidebar-nav,
 .page-financeiro .sidebar-nav,
+.page-mensagens .sidebar-nav,
+.page-anamnese .sidebar-nav,
+.page-aluno-mensagens .sidebar-nav,
 .page-aluno-dashboard .sidebar-nav,
 .page-aluno-meu-treino .sidebar-nav,
 .page-aluno-treino-execucao .sidebar-nav {
@@ -5125,5 +5132,1246 @@ Observacao:
 
     .page-financeiro .financeiro-section-title {
         font-size: clamp(1.85rem, 9.5vw, 2.55rem);
+    }
+}
+
+/* Mobile app parity */
+@media (max-width: 760px) {
+    body.personal-page,
+    body.page-aluno-mensagens,
+    body.page-anamnese,
+    body.page-mensagens {
+        padding: 5.65rem 0 5.4rem;
+        background: #09090c;
+    }
+
+    .personal-page .dashboard-layout,
+    .page-aluno-mensagens .dashboard-layout,
+    .page-anamnese .dashboard-layout,
+    .page-mensagens .dashboard-layout {
+        display: block;
+        min-height: auto;
+    }
+
+    .personal-page .dashboard-sidebar,
+    .page-aluno-mensagens .dashboard-sidebar,
+    .page-anamnese .dashboard-sidebar,
+    .page-mensagens .dashboard-sidebar {
+        position: fixed;
+        z-index: 30;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5.55rem;
+        border-right: 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        background: #09090c;
+    }
+
+    .personal-page .dashboard-sidebar::after,
+    .page-aluno-mensagens .dashboard-sidebar::after,
+    .page-anamnese .dashboard-sidebar::after,
+    .page-mensagens .dashboard-sidebar::after {
+        content: "\2630";
+        position: absolute;
+        right: 1rem;
+        bottom: 1.12rem;
+        color: #f4f4f5;
+        font-size: 1.45rem;
+        line-height: 1;
+    }
+
+    .personal-page .sidebar-brand,
+    .page-aluno-mensagens .sidebar-brand,
+    .page-anamnese .sidebar-brand,
+    .page-mensagens .sidebar-brand {
+        height: 100%;
+        padding: 2.95rem 1rem 0;
+        border: 0;
+    }
+
+    .personal-page .sidebar-logo,
+    .page-aluno-mensagens .sidebar-logo,
+    .page-anamnese .sidebar-logo,
+    .page-mensagens .sidebar-logo,
+    .page-aluno-mensagens .sidebar-logo span {
+        color: var(--primary);
+        font-size: 1.05rem;
+        line-height: 1;
+        letter-spacing: 0;
+    }
+
+    .personal-page .sidebar-logo-image,
+    .page-aluno-mensagens .sidebar-logo-image {
+        max-height: 1.05rem;
+        width: auto;
+    }
+
+    .personal-page .sidebar-user,
+    .page-aluno-mensagens .sidebar-user,
+    .page-anamnese .sidebar-user,
+    .page-mensagens .sidebar-user {
+        display: none;
+    }
+
+    .personal-page .sidebar-nav,
+    .page-aluno-mensagens .sidebar-nav,
+    .page-anamnese .sidebar-nav,
+    .page-mensagens .sidebar-nav {
+        position: fixed;
+        z-index: 40;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 4.45rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0;
+        overflow-x: auto;
+        padding: 0.55rem 0.7rem 0.6rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(9, 9, 12, 0.96);
+        scrollbar-width: none;
+    }
+
+    .personal-page .sidebar-nav::-webkit-scrollbar,
+    .page-aluno-mensagens .sidebar-nav::-webkit-scrollbar,
+    .page-anamnese .sidebar-nav::-webkit-scrollbar,
+    .page-mensagens .sidebar-nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .personal-page .sidebar-link,
+    .page-aluno-mensagens .sidebar-link,
+    .page-anamnese .sidebar-link,
+    .page-mensagens .sidebar-link {
+        min-width: 4rem;
+        min-height: 3.05rem;
+        flex: 0 0 4rem;
+        justify-content: center;
+        align-items: center;
+        padding: 1.45rem 0.2rem 0;
+        position: relative;
+        background: transparent;
+        color: #8f939d;
+        font-size: 0.64rem;
+        line-height: 1;
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    .personal-page .sidebar-link::before,
+    .page-aluno-mensagens .sidebar-link::before,
+    .page-anamnese .sidebar-link::before,
+    .page-mensagens .sidebar-link::before {
+        content: "";
+        position: absolute;
+        top: 0.24rem;
+        left: 50%;
+        width: 1rem;
+        height: 1rem;
+        transform: translateX(-50%);
+        border: 1.8px solid currentColor;
+        border-radius: 0.22rem;
+        opacity: 0.95;
+    }
+
+    .personal-page .sidebar-link:hover,
+    .personal-page .sidebar-link.is-active,
+    .page-aluno-mensagens .sidebar-link:hover,
+    .page-aluno-mensagens .sidebar-link.is-active,
+    .page-anamnese .sidebar-link:hover,
+    .page-anamnese .sidebar-link.is-active,
+    .page-mensagens .sidebar-link:hover,
+    .page-mensagens .sidebar-link.is-active {
+        background: transparent;
+        color: var(--primary);
+    }
+
+    .personal-page .sidebar-link svg,
+    .page-aluno-mensagens .sidebar-link svg,
+    .page-anamnese .sidebar-link svg,
+    .page-mensagens .sidebar-link svg {
+        position: absolute;
+        top: 0.12rem;
+        left: 50%;
+        width: 1.15rem;
+        height: 1.15rem;
+        transform: translateX(-50%);
+    }
+
+    .personal-page .dashboard-main,
+    .page-aluno-mensagens .dashboard-main,
+    .page-anamnese .dashboard-main,
+    .page-mensagens .dashboard-main {
+        padding: 1.6rem 1.12rem 1.3rem;
+    }
+
+    .dashboard-header,
+    .aluno-header {
+        margin-bottom: 1.55rem;
+    }
+
+    .dashboard-title,
+    .aluno-main-title {
+        font-size: clamp(2.55rem, 11.5vw, 3.25rem);
+        line-height: 0.86;
+        letter-spacing: 0;
+    }
+
+    .dashboard-subtitle,
+    .aluno-main-subtitle {
+        margin-top: 0.6rem;
+        color: #a3a3ab;
+        font-size: 1rem;
+        line-height: 1.25;
+    }
+
+    .page-exercicios .dashboard-header {
+        gap: 1.05rem;
+        margin-bottom: 0;
+    }
+
+    .page-exercicios .dashboard-add-button {
+        min-height: 2.55rem;
+        margin-top: 0;
+        padding: 0 1.05rem;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 0.9rem;
+        font-weight: 700;
+    }
+
+    .page-exercicios .exercicios-toolbar {
+        margin-top: 1.65rem;
+    }
+
+    .page-exercicios .exercicios-search-wrap input {
+        height: 2.65rem;
+        border-color: rgba(255, 255, 255, 0.1);
+        background: #0b0b0f;
+        color: #d7d8dd;
+    }
+
+    .page-exercicios .exercicios-grid {
+        margin-top: 0;
+        gap: 0;
+    }
+
+    .page-exercicios .exercicios-card {
+        border-color: rgba(255, 255, 255, 0.12);
+        background: #101014;
+    }
+
+    .page-exercicios .exercicios-card-media {
+        height: 8.4rem;
+        background: #29292c;
+        color: #686872;
+    }
+
+    .page-exercicios .exercicios-card-media svg {
+        width: 2.7rem;
+        height: 2.7rem;
+    }
+
+    .page-exercicios .exercicios-card-body {
+        padding: 1.45rem 1.35rem 1rem;
+    }
+
+    .page-exercicios .exercicios-card-title,
+    .page-exercicios .exercicios-card-group {
+        font-size: 0.9rem;
+    }
+
+    .page-exercicios .exercicios-card-group {
+        margin-top: 0.55rem;
+        color: var(--primary);
+    }
+
+    .page-exercicios .exercicios-card-meta span:first-child {
+        display: none;
+    }
+
+    .page-exercicios .exercicios-card-description {
+        display: none;
+    }
+
+    .page-exercicios .exercicios-card-actions {
+        margin-top: 0.9rem;
+    }
+
+    .page-exercicios .exercicios-action {
+        min-height: 2.45rem;
+    }
+
+    .page-mensagens .mensagens-layout,
+    .page-aluno-mensagens .mensagens-layout {
+        margin-top: 1.75rem;
+        gap: 1.35rem;
+    }
+
+    .page-mensagens .mensagens-panel,
+    .page-aluno-mensagens .mensagens-panel {
+        min-height: 13.8rem;
+        border-color: rgba(255, 255, 255, 0.1);
+        background: #101014;
+    }
+
+    .page-mensagens .mensagens-panel-header,
+    .page-aluno-mensagens .mensagens-panel-header {
+        padding: 1.15rem 0.85rem;
+    }
+
+    .page-mensagens .mensagens-panel-title,
+    .page-aluno-mensagens .mensagens-panel-title {
+        font-size: 0.9rem;
+    }
+
+    .page-mensagens .mensagens-contact-card,
+    .page-aluno-mensagens .mensagens-contact-card {
+        min-height: 3.9rem;
+        padding: 0.75rem 0.85rem;
+        gap: 0.75rem;
+        border-left-width: 3px;
+    }
+
+    .page-mensagens .mensagens-contact-card.is-active,
+    .page-aluno-mensagens .mensagens-contact-card.is-active {
+        background: rgba(255, 90, 10, 0.16);
+    }
+
+    .page-mensagens .mensagens-avatar,
+    .page-aluno-mensagens .mensagens-avatar {
+        width: 2rem;
+        height: 2rem;
+    }
+
+    .page-mensagens .mensagens-contact-name,
+    .page-aluno-mensagens .mensagens-contact-name {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 0.95rem;
+        font-weight: 700;
+        text-transform: none;
+    }
+
+    .page-mensagens .mensagens-contact-email,
+    .page-aluno-mensagens .mensagens-contact-email {
+        display: block;
+        margin-top: 0.2rem;
+        font-size: 0.72rem;
+    }
+
+    .page-mensagens .mensagens-thread,
+    .page-aluno-mensagens .mensagens-thread {
+        display: grid;
+        min-height: 13.9rem;
+        padding: 0;
+        gap: 0;
+    }
+
+    .page-mensagens .mensagens-thread-header,
+    .page-aluno-mensagens .mensagens-thread-header {
+        padding: 0.8rem 0.9rem;
+    }
+
+    .page-mensagens .mensagens-thread-body,
+    .page-aluno-mensagens .mensagens-thread-body {
+        min-height: 6.05rem;
+        padding: 0.85rem;
+    }
+
+    .page-mensagens .mensagens-message,
+    .page-aluno-mensagens .mensagens-message {
+        max-width: 4.1rem;
+        padding: 0.85rem 0.55rem;
+        border: 0;
+        background: #1b1b20;
+        font-size: 0.76rem;
+    }
+
+    .page-mensagens .mensagens-message.is-own,
+    .page-aluno-mensagens .mensagens-message.is-own {
+        background: var(--primary);
+    }
+
+    .page-mensagens .mensagens-message-author,
+    .page-aluno-mensagens .mensagens-message-author {
+        display: none;
+    }
+
+    .page-mensagens .mensagens-message-text,
+    .page-aluno-mensagens .mensagens-message-text {
+        margin: 0;
+        line-height: 1.25;
+    }
+
+    .page-mensagens .mensagens-message-time,
+    .page-aluno-mensagens .mensagens-message-time {
+        margin-top: 0.32rem;
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.72rem;
+    }
+
+    .page-mensagens .mensagens-thread-form,
+    .page-aluno-mensagens .mensagens-thread-form {
+        padding: 0.8rem 0.85rem;
+    }
+
+    .page-mensagens .mensagens-form-row,
+    .page-aluno-mensagens .mensagens-form-row {
+        grid-template-columns: 1fr 3.55rem;
+        gap: 0.45rem;
+    }
+
+    .page-mensagens .mensagens-input,
+    .page-aluno-mensagens .mensagens-input {
+        min-height: 2.7rem;
+        padding: 0.78rem 0.75rem;
+        background: #0b0b0f;
+    }
+
+    .page-mensagens .mensagens-send-button,
+    .page-aluno-mensagens .mensagens-send-button {
+        width: auto;
+        min-width: 3.55rem;
+        min-height: 2.7rem;
+    }
+
+    .mensagens-contact-empty {
+        min-height: 13.5rem;
+    }
+
+    .mensagens-empty-icon {
+        width: 2.7rem;
+        height: 2.7rem;
+        color: #555762;
+    }
+
+    .mensagens-empty-state h2 {
+        display: none;
+    }
+
+    .mensagens-empty-copy {
+        margin-top: 0.8rem;
+        font-size: 0.78rem;
+        line-height: 1.35;
+    }
+
+    .page-anamnese .dashboard-title,
+    .page-anamnese .dashboard-subtitle {
+        display: block;
+    }
+
+    .page-anamnese .anamnese-layout {
+        margin-top: 1.85rem;
+        gap: 1.25rem;
+    }
+
+    .page-anamnese .anamnese-layout:has(.anamnese-form-panel) {
+        margin-top: 0;
+    }
+
+    .page-anamnese .anamnese-layout:has(.anamnese-form-panel) > aside,
+    .page-anamnese .anamnese-layout:has(.anamnese-form-panel) ~ * {
+        display: none;
+    }
+
+    .page-anamnese .dashboard-main:has(.anamnese-form-panel) .dashboard-header {
+        display: none;
+    }
+
+    .page-anamnese .anamnese-sidebar-title,
+    .page-anamnese .anamnese-form-title {
+        font-size: 1.05rem;
+    }
+
+    .page-anamnese .anamnese-mobile-search {
+        display: block;
+        margin: 0 0 0.8rem;
+    }
+
+    .page-anamnese .anamnese-mobile-search label {
+        margin-bottom: 0.55rem;
+        color: #86868f;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+    }
+
+    .page-anamnese .anamnese-mobile-search input {
+        height: 3.15rem;
+        border-color: rgba(255, 255, 255, 0.12);
+        background: #09090c;
+        color: #d8d8df;
+        font-size: 0.95rem;
+    }
+
+    .page-anamnese .anamnese-mobile-search input::placeholder {
+        color: #666871;
+    }
+
+    .page-anamnese .anamnese-contact-card {
+        min-height: 3.9rem;
+        padding: 0.8rem 0.95rem;
+        background: #101014;
+    }
+
+    .page-anamnese .anamnese-contact-card .mensagens-avatar {
+        width: 1.35rem;
+        height: 1.35rem;
+        background: transparent;
+        color: #f4f4f5;
+    }
+
+    .page-anamnese .anamnese-contact-name {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 0.95rem;
+        font-weight: 700;
+        text-transform: none;
+    }
+
+    .page-anamnese .anamnese-contact-email {
+        display: block;
+        margin-top: 0.22rem;
+        font-size: 0.7rem;
+    }
+
+    .page-anamnese .anamnese-form-panel {
+        min-height: 0;
+        padding: 0;
+        border: 0;
+        background: transparent;
+    }
+
+    .page-anamnese .anamnese-form-title {
+        margin-bottom: 1.4rem;
+        font-size: 1rem;
+    }
+
+    .page-anamnese .anamnese-field + .anamnese-field {
+        margin-top: 1.25rem;
+    }
+
+    .page-anamnese .anamnese-field label {
+        margin-bottom: 0.65rem;
+        color: #86868f;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+    }
+
+    .page-anamnese .anamnese-field textarea {
+        min-height: 6.35rem;
+        padding: 0.9rem;
+        border-color: rgba(255, 255, 255, 0.12);
+        background: #09090c;
+        color: #d8d8df;
+    }
+
+    .page-anamnese .anamnese-submit {
+        min-height: 2.7rem;
+        margin-top: 1.25rem;
+    }
+
+    .page-anamnese .anamnese-empty-panel {
+        min-height: 7.2rem;
+        padding: 1rem;
+        background: #101014;
+    }
+
+    .page-anamnese .anamnese-empty-state h2,
+    .page-anamnese .anamnese-empty-state p {
+        display: none;
+    }
+
+    .page-anamnese .anamnese-empty-state::before {
+        content: "";
+        display: block;
+        width: 3rem;
+        height: 3rem;
+        margin: 0 auto;
+        border: 4px solid #555762;
+        border-radius: 0.4rem;
+    }
+}
+/* CONFIE PERSONAL - mobile system parity */
+@media (max-width: 760px) {
+    body.personal-page,
+    body.aluno-page,
+    body.treinos-page {
+        min-width: 0;
+        overflow-x: hidden;
+        padding: 5.35rem 0 5.15rem;
+        background: #08080b;
+    }
+
+    .personal-page .dashboard-layout,
+    .aluno-page .dashboard-layout,
+    .treinos-page .dashboard-layout {
+        display: block;
+        min-height: auto;
+    }
+
+    .personal-page .dashboard-sidebar,
+    .aluno-page .dashboard-sidebar,
+    .treinos-page .dashboard-sidebar {
+        position: fixed;
+        z-index: 30;
+        inset: 0 0 auto;
+        width: 100%;
+        height: 5.25rem;
+        min-height: 0;
+        overflow: visible;
+        border-right: 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(8, 8, 11, 0.98);
+        backdrop-filter: blur(14px);
+    }
+
+    .personal-page .dashboard-sidebar::after,
+    .aluno-page .dashboard-sidebar::after,
+    .treinos-page .dashboard-sidebar::after {
+        content: "\2630";
+        position: absolute;
+        right: 1.05rem;
+        bottom: 1.05rem;
+        color: #f7f7f8;
+        font-size: 1.35rem;
+        line-height: 1;
+    }
+
+    .personal-page .sidebar-brand,
+    .aluno-page .sidebar-brand,
+    .treinos-page .sidebar-brand {
+        height: 100%;
+        padding: 2.85rem 3.6rem 0 1rem;
+        border: 0;
+    }
+
+    .personal-page .sidebar-logo,
+    .aluno-page .sidebar-logo,
+    .treinos-page .sidebar-logo,
+    .personal-page .sidebar-logo span,
+    .aluno-page .sidebar-logo span,
+    .treinos-page .sidebar-logo span {
+        display: inline-flex;
+        max-width: 100%;
+        align-items: center;
+        color: var(--primary);
+        font-size: 0.95rem;
+        line-height: 1;
+        letter-spacing: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .personal-page .sidebar-logo-image,
+    .aluno-page .sidebar-logo-image,
+    .treinos-page .sidebar-logo-image {
+        width: auto;
+        max-width: 10rem;
+        max-height: 1.15rem;
+        object-fit: contain;
+    }
+
+    .personal-page .sidebar-user,
+    .aluno-page .sidebar-user,
+    .treinos-page .sidebar-user {
+        display: none;
+    }
+
+    .personal-page .sidebar-nav,
+    .aluno-page .sidebar-nav,
+    .treinos-page .sidebar-nav {
+        position: fixed;
+        z-index: 45;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 4.75rem;
+        display: flex;
+        flex-direction: row;
+        align-items: stretch;
+        gap: 0;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 0.55rem 0.55rem max(0.65rem, env(safe-area-inset-bottom));
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(8, 8, 11, 0.98);
+        scrollbar-width: none;
+    }
+
+    .personal-page .sidebar-nav::-webkit-scrollbar,
+    .aluno-page .sidebar-nav::-webkit-scrollbar,
+    .treinos-page .sidebar-nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .personal-page .sidebar-link,
+    .aluno-page .sidebar-link,
+    .treinos-page .sidebar-link {
+        position: relative;
+        flex: 0 0 4.45rem;
+        min-width: 4.45rem;
+        min-height: 3.35rem;
+        justify-content: center;
+        align-items: flex-end;
+        padding: 1.62rem 0.25rem 0.2rem;
+        border: 0;
+        background: transparent;
+        color: #8c909a;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 0.62rem;
+        font-weight: 600;
+        line-height: 1.1;
+        letter-spacing: 0;
+        text-align: center;
+        text-transform: none;
+        white-space: nowrap;
+    }
+
+    .personal-page .sidebar-link::before,
+    .aluno-page .sidebar-link::before,
+    .treinos-page .sidebar-link::before {
+        content: "";
+        position: absolute;
+        top: 0.28rem;
+        left: 50%;
+        width: 1.08rem;
+        height: 1.08rem;
+        transform: translateX(-50%);
+        border: 1.7px solid currentColor;
+        border-radius: 0.24rem;
+        opacity: 0.95;
+    }
+
+    .personal-page .sidebar-link:hover,
+    .personal-page .sidebar-link.is-active,
+    .aluno-page .sidebar-link:hover,
+    .aluno-page .sidebar-link.is-active,
+    .treinos-page .sidebar-link:hover,
+    .treinos-page .sidebar-link.is-active {
+        background: transparent;
+        color: var(--primary);
+        transform: none;
+    }
+
+    .personal-page .sidebar-link svg,
+    .aluno-page .sidebar-link svg,
+    .treinos-page .sidebar-link svg {
+        position: absolute;
+        top: 0.2rem;
+        left: 50%;
+        width: 1.2rem;
+        height: 1.2rem;
+        transform: translateX(-50%);
+    }
+
+    .personal-page .dashboard-main,
+    .aluno-page .dashboard-main,
+    .treinos-page .dashboard-main {
+        width: 100%;
+        min-width: 0;
+        padding: 1.45rem 1rem 1.35rem;
+    }
+
+    .dashboard-header,
+    .aluno-header,
+    .agenda-aluno-heading,
+    .evolucao-panel-head,
+    .avaliacao-hero-top,
+    .avaliacao-history-top {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.85rem;
+        margin-bottom: 1.35rem;
+    }
+
+    .dashboard-title,
+    .aluno-main-title,
+    .agenda-aluno-heading h2,
+    .treinos-column-title,
+    .treinos-panel-heading {
+        font-size: clamp(2.3rem, 11.5vw, 3.1rem);
+        line-height: 0.9;
+        letter-spacing: 0;
+    }
+
+    .dashboard-subtitle,
+    .aluno-main-subtitle,
+    .agenda-aluno-heading > p {
+        margin-top: 0.45rem;
+        color: #a2a5ad;
+        font-size: 0.95rem;
+        line-height: 1.35;
+    }
+
+    .button,
+    button,
+    .ui-btn,
+    .dashboard-add-button,
+    .student-action,
+    .aluno-start-button,
+    .aluno-outline-button,
+    .treinos-workout-action,
+    .mensagens-send-button,
+    .anamnese-submit {
+        min-height: 2.85rem;
+        border-radius: 0;
+        font-size: 0.86rem;
+        letter-spacing: 0;
+    }
+
+    .dashboard-add-button,
+    .student-add-button,
+    .agenda-add-button,
+    .avaliacao-add-button,
+    .observacoes-save-row button,
+    .anamnese-submit,
+    .aluno-start-button,
+    .aluno-concluir-button {
+        width: 100%;
+    }
+
+    .ui-card,
+    .dashboard-stat-card,
+    .dashboard-panel,
+    .dashboard-quick-card,
+    .student-card,
+    .agenda-card,
+    .avaliacao-panel,
+    .avaliacao-history-card,
+    .observacoes-panel,
+    .exercicios-card,
+    .financeiro-stat-card,
+    .financeiro-plan-card,
+    .treinos-panel,
+    .treinos-workout-block,
+    .aluno-highlight-card,
+    .aluno-stat-card,
+    .aluno-treino-card,
+    .mensagens-panel,
+    .anamnese-empty-panel {
+        border-color: rgba(255, 255, 255, 0.11);
+        border-radius: 0;
+        background: #101014;
+        box-shadow: none;
+    }
+
+    .dashboard-stats,
+    .dashboard-quick-grid,
+    .student-grid,
+    .agenda-list,
+    .avaliacao-top-stats,
+    .avaliacao-form-grid,
+    .avaliacao-card-grid,
+    .evolucao-top-stats,
+    .financeiro-stats,
+    .financeiro-plan-grid,
+    .aluno-stats-grid,
+    .exercicios-grid,
+    .treinos-content,
+    .mensagens-layout,
+    .anamnese-layout {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .dashboard-stats,
+    .dashboard-quick-section,
+    .student-grid,
+    .agenda-list,
+    .avaliacao-history-list,
+    .financeiro-section,
+    .aluno-treinos-wrap,
+    .mensagens-layout,
+    .anamnese-layout,
+    .exercicios-toolbar,
+    .exercicios-grid,
+    .treinos-shell {
+        margin-top: 1rem;
+    }
+
+    .dashboard-stat-card,
+    .aluno-stat-card,
+    .financeiro-stat-card {
+        min-height: 7.35rem;
+        padding: 1rem;
+    }
+
+    .dashboard-stat-value,
+    .aluno-stat-card strong,
+    .financeiro-stat-card strong {
+        font-size: clamp(1.55rem, 8vw, 2.15rem);
+    }
+
+    .dashboard-panel,
+    .treinos-panel,
+    .avaliacao-panel,
+    .observacoes-panel,
+    .financeiro-section {
+        padding: 1rem;
+    }
+
+    .dashboard-quick-card {
+        min-height: 3.45rem;
+        justify-content: flex-start;
+        padding: 0.8rem 1rem;
+    }
+
+    .student-filter-grid,
+    .agenda-form-row,
+    .observacoes-field-row,
+    .mensagens-form-row,
+    .treinos-modal-row,
+    .treinos-workout-actions,
+    .treinos-confirm-actions,
+    .student-card-actions,
+    .agenda-actions,
+    .avaliacao-modal-actions {
+        grid-template-columns: 1fr;
+        gap: 0.7rem;
+    }
+
+    input,
+    select,
+    textarea,
+    .mensagens-input {
+        max-width: 100%;
+        font-size: 1rem;
+    }
+
+    .student-table-wrap,
+    .financeiro-table-wrap,
+    .aluno-table-wrap,
+    .avaliacao-history-table-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .exercicios-search-wrap input,
+    .anamnese-mobile-search input,
+    .mensagens-input {
+        border-color: rgba(255, 255, 255, 0.12);
+        background: #0b0b0f;
+        color: #f2f2f4;
+    }
+
+    .exercicios-card-media {
+        height: 8.5rem;
+        background: #29292e;
+    }
+
+    .exercicios-card-body,
+    .student-card,
+    .agenda-card,
+    .financeiro-plan-card,
+    .aluno-treino-card {
+        padding: 1rem;
+    }
+
+    .exercicios-card-description {
+        display: none;
+    }
+
+    .mensagens-layout {
+        align-items: stretch;
+    }
+
+    .mensagens-panel {
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    .mensagens-panel-header,
+    .mensagens-thread-header,
+    .mensagens-thread-form {
+        padding: 0.9rem;
+    }
+
+    .mensagens-contact-card {
+        min-height: 3.8rem;
+        padding: 0.75rem 0.9rem;
+        gap: 0.75rem;
+        border-left: 3px solid transparent;
+    }
+
+    .mensagens-contact-card.is-active {
+        border-left-color: var(--primary);
+        background: rgba(255, 90, 10, 0.16);
+    }
+
+    .mensagens-avatar {
+        width: 2rem;
+        height: 2rem;
+        flex: 0 0 2rem;
+    }
+
+    .mensagens-thread {
+        display: grid;
+        grid-template-rows: auto minmax(12rem, 1fr) auto;
+        padding: 0;
+    }
+
+    .mensagens-thread-body {
+        min-height: 12rem;
+        padding: 0.85rem;
+    }
+
+    .mensagens-message {
+        max-width: 82%;
+        padding: 0.75rem 0.85rem;
+        border: 0;
+        background: #1b1b20;
+        font-size: 0.9rem;
+    }
+
+    .mensagens-message.is-own {
+        background: var(--primary);
+        color: #fff;
+    }
+
+    .mensagens-message-author {
+        display: none;
+    }
+
+    .mensagens-form-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 3.25rem;
+        align-items: stretch;
+    }
+
+    .mensagens-send-button {
+        width: 3.25rem;
+        min-width: 3.25rem;
+        padding: 0;
+    }
+
+    .anamnese-mobile-search {
+        display: block;
+    }
+
+    .anamnese-contact-card {
+        min-height: 3.8rem;
+        padding: 0.8rem 0.9rem;
+    }
+
+    .anamnese-form-panel {
+        padding: 1rem;
+    }
+
+    .anamnese-field textarea {
+        min-height: 7rem;
+    }
+
+    .treinos-list-item,
+    .treinos-workout-line,
+    .agenda-card,
+    .student-card,
+    .avaliacao-history-card {
+        min-width: 0;
+    }
+
+    .treinos-list-item span,
+    .mensagens-contact-email,
+    .mensagens-header-email,
+    .anamnese-contact-email {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .treinos-modal,
+    .student-modal-panel,
+    .avaliacao-modal {
+        width: calc(100% - 1.5rem);
+        max-height: calc(100vh - 2rem);
+        overflow-y: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    body.personal-page,
+    body.aluno-page,
+    body.treinos-page {
+        padding-top: 5.15rem;
+    }
+
+    .personal-page .dashboard-main,
+    .aluno-page .dashboard-main,
+    .treinos-page .dashboard-main {
+        padding-left: 0.85rem;
+        padding-right: 0.85rem;
+    }
+
+    .personal-page .sidebar-link,
+    .aluno-page .sidebar-link,
+    .treinos-page .sidebar-link {
+        flex-basis: 4.15rem;
+        min-width: 4.15rem;
+        font-size: 0.58rem;
+    }
+
+    .dashboard-title,
+    .aluno-main-title,
+    .agenda-aluno-heading h2,
+    .treinos-column-title,
+    .treinos-panel-heading {
+        font-size: clamp(2.05rem, 12vw, 2.85rem);
+    }
+
+    .mensagens-message {
+        max-width: 88%;
+    }
+}
+
+/* Bottom mobile options selector */
+.mobile-options-bar {
+    display: none;
+}
+
+@media (max-width: 760px) {
+    body.personal-page,
+    body.aluno-page,
+    body.treinos-page {
+        padding-bottom: 5.35rem;
+    }
+
+    .personal-page .dashboard-sidebar::after,
+    .aluno-page .dashboard-sidebar::after,
+    .treinos-page .dashboard-sidebar::after {
+        content: none;
+    }
+
+    .personal-page .sidebar-nav,
+    .aluno-page .sidebar-nav,
+    .treinos-page .sidebar-nav {
+        left: 0.85rem;
+        right: 0.85rem;
+        bottom: calc(4.75rem + max(0.75rem, env(safe-area-inset-bottom)));
+        height: auto;
+        max-height: min(68vh, 31rem);
+        display: grid;
+        grid-template-columns: 1fr;
+        align-items: stretch;
+        gap: 0.45rem;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 0.75rem;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(14, 14, 18, 0.98);
+        box-shadow: 0 -1.25rem 3rem rgba(0, 0, 0, 0.48);
+        transform: translateY(calc(100% + 6rem));
+        opacity: 0;
+        pointer-events: none;
+        transition: transform 0.22s ease, opacity 0.22s ease;
+    }
+
+    body.mobile-nav-open .dashboard-sidebar .sidebar-nav {
+        transform: translateY(0);
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .personal-page .sidebar-link,
+    .aluno-page .sidebar-link,
+    .treinos-page .sidebar-link {
+        min-width: 0;
+        min-height: 3rem;
+        width: 100%;
+        flex: none;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 0.75rem 0.9rem;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: #101014;
+        color: #d9dbe1;
+        font-size: 0.9rem;
+        text-align: left;
+    }
+
+    .personal-page .sidebar-link::before,
+    .aluno-page .sidebar-link::before,
+    .treinos-page .sidebar-link::before {
+        content: none;
+    }
+
+    .personal-page .sidebar-link svg,
+    .aluno-page .sidebar-link svg,
+    .treinos-page .sidebar-link svg {
+        display: none;
+    }
+
+    .personal-page .sidebar-link.is-active,
+    .aluno-page .sidebar-link.is-active,
+    .treinos-page .sidebar-link.is-active {
+        border-color: rgba(255, 90, 10, 0.75);
+        background: var(--primary);
+        color: #fff;
+    }
+
+    .mobile-options-bar {
+        position: fixed;
+        z-index: 50;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        min-height: 4.35rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.7rem 1rem max(0.75rem, env(safe-area-inset-bottom));
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(8, 8, 11, 0.98);
+        box-shadow: 0 -0.75rem 2rem rgba(0, 0, 0, 0.42);
+        backdrop-filter: blur(14px);
+    }
+
+    .mobile-options-label {
+        min-width: 0;
+        color: #8f939d;
+        font-size: 0.76rem;
+        line-height: 1.2;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .mobile-options-label strong {
+        color: #f4f4f5;
+        font-size: 0.95rem;
+        font-weight: 700;
+    }
+
+    .mobile-nav-toggle {
+        width: 3.15rem;
+        min-width: 3.15rem;
+        min-height: 2.85rem;
+        padding: 0;
+        border: 1px solid rgba(255, 90, 10, 0.72);
+        background: var(--primary);
+        color: #fff;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 1.35rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        line-height: 1;
+        text-transform: none;
+    }
+
+    .mobile-nav-toggle:hover {
+        background: var(--primary-strong);
+        transform: none;
+    }
+
+    body.mobile-nav-open::before {
+        content: "";
+        position: fixed;
+        z-index: 35;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.38);
     }
 }

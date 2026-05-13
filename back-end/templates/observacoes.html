@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -6,7 +6,7 @@
     <title>{{ page_title|default('CONFIE - Observações', true) }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
+<body class="personal-page page-observacoes">
     {% set pagina_ativa = pagina_ativa|default('observacoes', true) %}
     {% set historico_lista = historico|default([], true) %}
 
@@ -128,6 +128,7 @@
             </section>
         </main>
     </div>
+    <script src="{{ url_for('static', filename='mobile-nav.js') }}"></script>
 </body>
 </html>
 

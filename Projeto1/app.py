@@ -1307,12 +1307,6 @@ def evolucao():
     )
 
 
-@app.route("/mensagens")
-def mensagens():
-    flash("Tela de mensagens ainda em desenvolvimento.", "error")
-    return redirect(url_for("dashboard"))
-
-
 @app.route("/anamnese")
 def anamnese():
     return redirect(url_for("avaliacoes"))
