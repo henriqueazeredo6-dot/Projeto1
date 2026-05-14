@@ -81,10 +81,11 @@
                         <div class="observacoes-label-actions">
                             <label for="observacao_transcrita">Observação transcrita</label>
                             <div class="observacoes-inline-actions">
-                                <button type="submit" name="acao" value="gravar">Gravar</button>
+                                <button id="observacoes-gravar-audio" type="button">Gravar</button>
                                 <button class="button-secondary" type="submit" name="acao" value="organizar">Organizar</button>
                             </div>
                         </div>
+                        <p id="observacoes-audio-status" class="observacoes-audio-status" aria-live="polite"></p>
                         <textarea id="observacao_transcrita" name="observacao_transcrita" rows="7" placeholder="Detalhes da sessão, dor, compensação, técnica..." required>{{ form.observacao_transcrita if form is defined else '' }}</textarea>
                     </div>
 
@@ -128,5 +129,89 @@
             </section>
         </main>
     </div>
+    <script>
+        (function () {
+            var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            var recordButton = document.getElementById('observacoes-gravar-audio');
+            var status = document.getElementById('observacoes-audio-status');
+            var textarea = document.getElementById('observacao_transcrita');
+
+            if (!recordButton || !status || !textarea) {
+                return;
+            }
+
+            if (!SpeechRecognition) {
+                recordButton.disabled = true;
+                status.textContent = 'Gravacao por voz indisponivel neste navegador. Use Chrome ou Edge.';
+                return;
+            }
+
+            var recognition = new SpeechRecognition();
+            var isRecording = false;
+            var baseText = '';
+
+            recognition.lang = 'pt-BR';
+            recognition.continuous = true;
+            recognition.interimResults = true;
+
+            function setRecordingState(active) {
+                isRecording = active;
+                recordButton.textContent = active ? 'Parar' : 'Gravar';
+                recordButton.classList.toggle('is-recording', active);
+                status.textContent = active ? 'Gravando... fale sua observacao.' : '';
+            }
+
+            recognition.onresult = function (event) {
+                var interimText = '';
+                var finalText = '';
+
+                for (var index = event.resultIndex; index < event.results.length; index += 1) {
+                    var transcript = event.results[index][0].transcript.trim();
+                    if (event.results[index].isFinal) {
+                        finalText += transcript + ' ';
+                    } else {
+                        interimText += transcript + ' ';
+                    }
+                }
+
+                var nextText = [baseText, finalText, interimText]
+                    .map(function (part) { return part.trim(); })
+                    .filter(Boolean)
+                    .join(' ');
+
+                textarea.value = nextText;
+
+                if (finalText) {
+                    baseText = textarea.value.trim();
+                }
+            };
+
+            recognition.onerror = function (event) {
+                setRecordingState(false);
+                status.textContent = event.error === 'not-allowed'
+                    ? 'Permita o acesso ao microfone para gravar.'
+                    : 'Nao foi possivel iniciar a gravacao. Tente novamente.';
+            };
+
+            recognition.onend = function () {
+                setRecordingState(false);
+            };
+
+            recordButton.addEventListener('click', function () {
+                if (isRecording) {
+                    recognition.stop();
+                    return;
+                }
+
+                baseText = textarea.value.trim();
+                try {
+                    recognition.start();
+                    setRecordingState(true);
+                } catch (error) {
+                    status.textContent = 'A gravacao ja esta sendo iniciada. Aguarde um instante.';
+                }
+            });
+        })();
+    </script>
 </body>
 </html>

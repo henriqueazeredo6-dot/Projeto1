@@ -940,6 +940,13 @@ def _trainings(aluno_id: Optional[str] = None) -> List[Dict[str, Any]]:
                 "video_url": _first(row, "video_url", default=""),
             }
         )
+    if aluno_id:
+        aluno_id_normalized = str(aluno_id)
+        normalized = [
+            treino
+            for treino in normalized
+            if str(treino.get("aluno_id", "")) == aluno_id_normalized
+        ]
     return normalized
 
 
@@ -1657,10 +1664,8 @@ def treinos():
     aluno_id = request.args.get("aluno_id", "")
     treino_edicao_id = request.args.get("editar_treino_id", "")
     treino_exclusao_id = request.args.get("excluir_treino_id", "")
-    treinos_lista = _trainings(aluno_id or None)
-    aluno_selecionado = next((aluno for aluno in alunos_lista if aluno["id"] == aluno_id), alunos_lista[0] if alunos_lista else None)
-    if aluno_selecionado and not aluno_id:
-        treinos_lista = _trainings(aluno_selecionado["id"])
+    aluno_selecionado = next((aluno for aluno in alunos_lista if aluno["id"] == aluno_id), None)
+    treinos_lista = _trainings(aluno_selecionado["id"]) if aluno_selecionado else []
     treino_edicao = next((treino for treino in treinos_lista if treino["id"] == treino_edicao_id), {})
     treino_exclusao = next((treino for treino in treinos_lista if treino["id"] == treino_exclusao_id), {})
     return render_template(
@@ -2009,12 +2014,17 @@ def evolucao():
 def observacoes():
     alunos_lista = _students()
     aluno_id = request.values.get("aluno_id", "")
-    aluno_ativo = next((item for item in alunos_lista if item["id"] == aluno_id), alunos_lista[0] if alunos_lista else None)
-    observacao = {}
+    aluno_ativo = next((item for item in alunos_lista if item["id"] == aluno_id), None)
+    observacoes_lista = []
     if aluno_ativo:
-        result = _select_first_by(TABLE_OBSERVACOES, "aluno_id", aluno_ativo["id"])
-        if result["ok"] and result["data"]:
-            observacao = result["data"]
+        result = _select(
+            TABLE_OBSERVACOES,
+            filters={"aluno_id": aluno_ativo["id"]},
+            order="created_at",
+            desc=True,
+        )
+        if result["ok"]:
+            observacoes_lista = result["data"]
         elif not result["ok"] and _missing_table_error(result["error"]):
             flash(_observacao_table_error_message(result["error"]), "error")
     if request.method == "POST":
@@ -2030,33 +2040,32 @@ def observacoes():
             "proximo_ajuste": request.form.get("proximo_ajuste"),
             "updated_at": datetime.utcnow().isoformat(),
         }
-        existing = _select_first_by(TABLE_OBSERVACOES, "aluno_id", request.form.get("aluno_id"))
-        if existing["ok"] and existing["data"]:
-            result = _update(TABLE_OBSERVACOES, existing["data"]["id"], payload)
-        else:
-            result = _insert(TABLE_OBSERVACOES, payload)
+        result = _insert(TABLE_OBSERVACOES, payload)
         flash("Observacao salva com sucesso." if result["ok"] else _observacao_table_error_message(result["error"]), "success" if result["ok"] else "error")
         return redirect(url_for("observacoes", aluno_id=request.form.get("aluno_id", "")))
+
+    historico_observacoes = [
+        {
+            **item,
+            "data": _fmt_date(_first(item, "created_at", "updated_at")),
+            "hora": _fmt_datetime(_first(item, "created_at", "updated_at"))[-5:] if _first(item, "created_at", "updated_at") else "",
+            "aluno_nome": aluno_ativo["nome"] if aluno_ativo else "Aluno",
+            "observacao_transcrita": _first(item, "observacao_transcrita", "observacao", default=""),
+        }
+        for item in observacoes_lista
+    ]
 
     return render_template(
         "observacoes.html",
         alunos=alunos_lista,
         aluno_ativo=aluno_ativo,
-        observacao=observacao,
-        historico=[
-            {
-                **observacao,
-                "data": _fmt_date(_first(observacao, "updated_at", "created_at")),
-                "hora": _fmt_datetime(_first(observacao, "updated_at", "created_at"))[-5:] if _first(observacao, "updated_at", "created_at") else "",
-                "aluno_nome": aluno_ativo["nome"] if aluno_ativo else "Aluno",
-                "observacao_transcrita": _first(observacao, "observacao_transcrita", "observacao", default=""),
-            }
-        ] if observacao else [],
+        observacao=historico_observacoes[0] if historico_observacoes else {},
+        historico=historico_observacoes,
         aluno_id_selecionado=aluno_ativo["id"] if aluno_ativo else "",
         form={
-            "foco_treino": _first(observacao, "foco_treino", default=""),
-            "observacao_transcrita": _first(observacao, "observacao_transcrita", "observacao", default=""),
-            "proximo_ajuste": _first(observacao, "proximo_ajuste", default=""),
+            "foco_treino": "",
+            "observacao_transcrita": "",
+            "proximo_ajuste": "",
         },
         salvar_observacao_url=url_for("observacoes"),
         csrf_form_token=_csrf_token,

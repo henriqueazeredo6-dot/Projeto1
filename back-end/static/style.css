@@ -2652,6 +2652,19 @@ select:focus {
     margin-top: 1rem;
 }
 
+.observacoes-audio-status {
+    min-height: 1.2rem;
+    margin: -0.25rem 0 0.55rem;
+    color: #99a0ad;
+    font-size: 0.85rem;
+}
+
+.observacoes-inline-actions button.is-recording {
+    background: #e5484d;
+    border-color: #e5484d;
+    color: #ffffff;
+}
+
 .observacoes-history-card {
     border: 1px solid rgba(255, 255, 255, 0.12);
     padding: 1rem;
