@@ -1,7 +1,8 @@
 import os
+import json
 import secrets
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import wraps
 from typing import Any, Dict, List, Optional
 from uuid import UUID
@@ -61,6 +62,10 @@ GOOGLE_CALENDAR_SCOPES = [
     for scope in os.getenv("GOOGLE_CALENDAR_SCOPES", "https://www.googleapis.com/auth/calendar.readonly").split(",")
     if scope.strip()
 ]
+try:
+    GOOGLE_CALENDAR_MAX_EVENTS = max(1, int(os.getenv("GOOGLE_CALENDAR_MAX_EVENTS", "100")))
+except ValueError:
+    GOOGLE_CALENDAR_MAX_EVENTS = 100
 supabase: Optional[Client] = None
 supabase_admin: Optional[Client] = None
 if SUPABASE_URL and SUPABASE_KEY:
@@ -387,6 +392,7 @@ def _slug_status(value: Any) -> str:
 
 PAYMENT_STATUS_TO_DB = {"pendente": 1, "pago": 2, "atrasado": 3}
 PAYMENT_STATUS_FROM_DB = {1: "pendente", 2: "pago", 3: "atrasado"}
+AGENDA_META_PREFIX = "__agenda_meta__:"
 
 
 def _is_uuid(value: Any) -> bool:
@@ -461,6 +467,45 @@ def _initials(name: str) -> str:
     if len(parts) == 1:
         return parts[0][:2].upper()
     return (parts[0][0] + parts[-1][0]).upper()
+
+
+def _build_agenda_observacao(titulo: Any, observacoes: Any, termino_hora: Any) -> str:
+    meta = {
+        "titulo": str(titulo or "").strip(),
+        "termino": str(termino_hora or "").strip(),
+    }
+    body = str(observacoes or "").strip()
+    payload = AGENDA_META_PREFIX + json.dumps(meta, ensure_ascii=False)
+    return f"{payload}\n{body}".strip()
+
+
+def _parse_agenda_observacao(value: Any) -> Dict[str, str]:
+    text = str(value or "").strip()
+    if not text.startswith(AGENDA_META_PREFIX):
+        return {"titulo": "", "termino": "", "observacoes": text}
+
+    first_line, _, remainder = text.partition("\n")
+    raw_meta = first_line[len(AGENDA_META_PREFIX):].strip()
+    try:
+        meta = json.loads(raw_meta) if raw_meta else {}
+    except json.JSONDecodeError:
+        meta = {}
+    return {
+        "titulo": str(meta.get("titulo", "")).strip(),
+        "termino": str(meta.get("termino", "")).strip(),
+        "observacoes": remainder.strip(),
+    }
+
+
+def _default_end_from_start(start_value: Any) -> str:
+    text = str(start_value or "").strip()
+    if not text:
+        return ""
+    try:
+        end_dt = datetime.fromisoformat(text.replace("Z", "+00:00")).replace(second=0, microsecond=0) + timedelta(hours=1)
+        return end_dt.isoformat()
+    except ValueError:
+        return ""
 
 
 def _session_user() -> Dict[str, Any]:
@@ -617,7 +662,7 @@ def _google_calendar_context() -> Dict[str, Any]:
                 timeMin=now,
                 singleEvents=True,
                 orderBy="startTime",
-                maxResults=50,
+                maxResults=min(GOOGLE_CALENDAR_MAX_EVENTS, 50),
             ).execute()
             calendar_name = calendar_item.get("summaryOverride") or calendar_item.get("summary") or "Google Calendar"
             for event in events_response.get("items", []):
@@ -647,7 +692,7 @@ def _google_calendar_context() -> Dict[str, Any]:
         base_context.update(
             {
                 "connected": True,
-                "events": collected_events[:100],
+                "events": collected_events[:GOOGLE_CALENDAR_MAX_EVENTS],
                 "calendar_count": len(calendar_items),
             }
         )
@@ -957,14 +1002,26 @@ def _schedule_rows() -> List[Dict[str, Any]]:
     for row in rows:
         aluno_ref = alunos_por_id.get(_first(row, "aluno_id", default=""), {})
         status = _slug_status(_first(row, "status", default="pendente"))
-        observacao = _first(row, "observacao", "observacoes", "notes", default="")
-        title = _first(row, "titulo", "nome", "title", default=str(observacao).splitlines()[0] if observacao else "Aula")
+        observacao_bruta = _first(row, "observacao", "observacoes", "notes", default="")
+        agenda_meta = _parse_agenda_observacao(observacao_bruta)
+        observacao = agenda_meta["observacoes"]
+        title = _first(
+            row,
+            "titulo",
+            "nome",
+            "title",
+            default=agenda_meta["titulo"] or (str(observacao).splitlines()[0] if observacao else ("Horario disponivel" if status == "disponivel" else "Aula")),
+        )
         start = _first(row, "inicio", "data_hora_inicio", "data_hora", "start_time", "starts_at", default="")
         if not start:
             start = _combine_date_time(_first(row, "data", default=""), _first(row, "hora", default=""))
         end = _first(row, "termino", "data_hora_fim", "end_time", "ends_at", default="")
+        if not end and agenda_meta["termino"]:
+            end = _combine_date_time(_first(row, "data", default=""), agenda_meta["termino"])
         if start and row.get("hora") and "T" not in str(start):
             start = f"{start}T{str(row.get('hora'))[:5]}"
+        if not end:
+            end = _default_end_from_start(start)
         google_calendar_url = _first(row, "google_calendar_url", default="")
         if not google_calendar_url and start:
             start_raw = str(start).replace("-", "").replace(":", "").replace("T", "").split(".")[0]
@@ -991,7 +1048,7 @@ def _schedule_rows() -> List[Dict[str, Any]]:
                 "termino_iso": end,
                 "data": _fmt_date(start),
                 "hora": hours,
-                "tipo": _first(row, "tipo", "category", default="Aula"),
+                "tipo": _first(row, "tipo", "category", default="Horario disponivel" if status == "disponivel" else "Aula"),
                 "observacoes": observacao,
                 "google_calendar_url": google_calendar_url,
             }
@@ -1817,23 +1874,33 @@ def agenda():
         if csrf_error:
             flash(csrf_error, "error")
             return redirect(url_for("agenda"))
-        aluno_id = request.form.get("aluno_id")
+        tipo_registro = (request.form.get("tipo_registro") or "agendamento").strip().lower()
+        aluno_id = request.form.get("aluno_id") or None
         inicio = _split_datetime_local(request.form.get("inicio"))
+        termino_hora = (request.form.get("termino_hora") or "").strip()
         titulo = request.form.get("titulo", "").strip()
         observacoes = request.form.get("observacoes", "").strip()
-        observacao = " - ".join(part for part in [titulo, observacoes] if part)
         if not inicio["data"]:
             flash("Informe a data e horario da aula.", "error")
             return redirect(url_for("agenda"))
+        if tipo_registro == "agendamento" and not aluno_id:
+            flash("Selecione um aluno para agendar a aula.", "error")
+            return redirect(url_for("agenda"))
+        status = "disponivel" if tipo_registro == "disponibilidade" else "agendado"
+        titulo_padrao = "Horario disponivel" if status == "disponivel" else "Aula"
         payload = {
             "data": inicio["data"],
             "hora": inicio["hora"],
-            "aluno_id": aluno_id,
-            "status": "agendado",
-            "observacao": observacao,
+            "aluno_id": None if status == "disponivel" else aluno_id,
+            "status": status,
+            "observacao": _build_agenda_observacao(titulo or titulo_padrao, observacoes, termino_hora),
         }
         result = _insert(TABLE_AGENDA, payload)
-        flash("Aula agendada com sucesso." if result["ok"] else (result["error"] or "Nao foi possivel agendar a aula."), "success" if result["ok"] else "error")
+        if result["ok"]:
+            mensagem = "Horario disponivel criado com sucesso." if status == "disponivel" else "Aula agendada com sucesso."
+            flash(mensagem, "success")
+        else:
+            flash(result["error"] or "Nao foi possivel salvar o horario.", "error")
         return redirect(url_for("agenda"))
 
     compromissos = _schedule_rows()
@@ -2843,20 +2910,60 @@ def api_listar_agenda():
     return {"ok": True, "data": _schedule_rows(), "error": None}
 
 
+@app.get("/api/google-calendar/events")
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def api_google_calendar_events():
+    google_calendar = _google_calendar_context()
+    if not google_calendar["enabled"]:
+        return {
+            "ok": False,
+            "connected": False,
+            "calendar_count": 0,
+            "data": [],
+            "error": google_calendar["error"],
+        }, 503
+    if not google_calendar["connected"]:
+        return {
+            "ok": False,
+            "connected": False,
+            "calendar_count": 0,
+            "data": [],
+            "error": google_calendar["error"] or "Google Calendar ainda nao conectado.",
+        }, 200
+    if google_calendar["error"]:
+        return {
+            "ok": False,
+            "connected": True,
+            "calendar_count": google_calendar["calendar_count"],
+            "data": google_calendar["events"],
+            "error": google_calendar["error"],
+        }, 502
+    return {
+        "ok": True,
+        "connected": True,
+        "calendar_count": google_calendar["calendar_count"],
+        "data": google_calendar["events"],
+        "error": None,
+    }
+
+
 @app.post("/api/agenda")
 @login_required
 def api_criar_agenda():
     payload = _json_payload()
     aluno_id = payload.get("aluno_id")
-    aluno = next((item for item in _students() if item["id"] == aluno_id), None)
+    status = _slug_status(payload.get("status") or ("disponivel" if not aluno_id else "agendado"))
+    titulo = payload.get("titulo") or ("Horario disponivel" if status == "disponivel" else "Aula")
+    observacoes = payload.get("observacoes") or payload.get("observacao") or ""
     return _api_create(
         TABLE_AGENDA,
         {
             "data": payload.get("data") or str(payload.get("inicio") or "")[:10],
             "hora": payload.get("hora") or str(payload.get("inicio") or "")[11:16],
-            "aluno_id": aluno_id,
-            "observacao": payload.get("observacao") or payload.get("observacoes") or payload.get("titulo"),
-            "status": payload.get("status", "agendado"),
+            "aluno_id": None if status == "disponivel" else aluno_id,
+            "observacao": _build_agenda_observacao(titulo, observacoes, payload.get("termino_hora") or payload.get("termino")),
+            "status": status,
         },
         required=["data", "hora"],
     )
@@ -2874,13 +2981,17 @@ def api_obter_agenda(agenda_id: str):
 @login_required
 def api_atualizar_agenda(agenda_id: str):
     payload = _json_payload()
+    status = _slug_status(payload.get("status"))
+    titulo = payload.get("titulo")
+    observacoes = payload.get("observacoes") or payload.get("observacao")
     mapped = {
         "data": payload.get("data") or str(payload.get("inicio") or "")[:10],
         "hora": payload.get("hora") or str(payload.get("inicio") or "")[11:16],
-        "aluno_id": payload.get("aluno_id"),
-        "observacao": payload.get("observacao") or payload.get("observacoes") or payload.get("titulo"),
+        "aluno_id": None if status == "disponivel" else payload.get("aluno_id"),
         "status": payload.get("status"),
     }
+    if titulo is not None or observacoes is not None or payload.get("termino_hora") is not None or payload.get("termino") is not None:
+        mapped["observacao"] = _build_agenda_observacao(titulo or "", observacoes or "", payload.get("termino_hora") or payload.get("termino") or "")
     return _api_update(TABLE_AGENDA, agenda_id, mapped)
 
 

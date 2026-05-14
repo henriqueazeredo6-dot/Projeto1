@@ -1732,8 +1732,14 @@ select:focus {
     margin-top: 1.25rem;
 }
 
+.agenda-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
 .agenda-form-card {
-    width: min(100%, 720px);
+    width: 100%;
     padding: 1rem 1rem 1.2rem;
     border: 1px solid rgba(255, 255, 255, 0.08);
     background: #1b1b20;
@@ -6035,6 +6041,7 @@ Observacao:
     }
 
     .student-filter-grid,
+    .agenda-form-grid,
     .agenda-form-row,
     .observacoes-field-row,
     .mensagens-form-row,
