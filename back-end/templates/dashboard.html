@@ -52,10 +52,6 @@
                     <h1 class="dashboard-title">Dashboard</h1>
                     <p class="dashboard-subtitle">Bem-vindo{% if profissional_nome %}, {{ profissional_nome }}{% endif %}</p>
                 </div>
-
-                <a class="button ui-btn ui-btn-primary dashboard-add-button" href="{{ adicionar_aluno_destino }}">
-                    + Adicionar aluno
-                </a>
             </header>
 
             {% if sucesso %}
@@ -202,6 +198,7 @@
             });
         })();
     </script>
+    <script src="{{ url_for('static', filename='mobile-nav.js') }}"></script>
 </body>
 </html>
 
