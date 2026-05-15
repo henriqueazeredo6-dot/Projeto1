@@ -2715,6 +2715,7 @@ def aluno_meu_treino():
         retorno_treinos_destino=url_for("aluno_meu_treino"),
         aluno_treino_detalhe_base="/aluno/meu-treino",
         iniciar_treino_base="/aluno/treino",
+        aluno_treino_execucao_url_base="/aluno/treino",
         **_student_context("meu_treino"),
     )
 
@@ -2726,6 +2727,9 @@ def aluno_meu_treino():
 def iniciar_treino_aluno_redirect():
     aluno = _current_student_row() or {}
     treinos_lista = _trainings(aluno.get("id"))
+    treino_id = request.args.get("treino_id", "")
+    if treino_id and any(item["id"] == treino_id for item in treinos_lista):
+        return redirect(url_for("aluno_treino_execucao", treino_id=treino_id))
     if treinos_lista:
         return redirect(url_for("aluno_treino_execucao", treino_id=treinos_lista[0]["id"]))
     return redirect(url_for("aluno_meu_treino"))
@@ -2750,7 +2754,9 @@ def aluno_treino_execucao(treino_id: str):
         treino_id=treino_id,
         exercicios=exercicios,
         registrar_serie_destino=url_for("registrar_serie_treino", treino_id=treino_id),
+        registrar_serie_url=url_for("registrar_serie_treino", treino_id=treino_id),
         concluir_treino_destino=url_for("concluir_treino_execucao", treino_id=treino_id),
+        concluir_treino_url=url_for("concluir_treino_execucao", treino_id=treino_id),
         treino_proximo_destino="",
         retorno_treinos_destino=url_for("aluno_meu_treino"),
         **_student_context("meu_treino"),
