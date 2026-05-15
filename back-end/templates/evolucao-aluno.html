@@ -19,9 +19,9 @@
             <nav class="sidebar-nav" aria-label="Menu do aluno">
                 <a class="sidebar-link {% if pagina_ativa == 'dashboard' %}is-active{% endif %}" href="{{ dashboard_url|default('/dashboard', true) }}">Dashboard</a>
                 <a class="sidebar-link {% if pagina_ativa == 'meu_treino' %}is-active{% endif %}" href="{{ meu_treino_url|default('/meu-treino', true) }}">Meu Treino</a>
-                <a class="sidebar-link {% if pagina_ativa == 'agenda' %}is-active{% endif %}" href="{{ agenda_aluno_url|default('/agenda', true) }}">Agendar Aula</a>
+                <a class="sidebar-link {% if pagina_ativa == 'agenda' %}is-active{% endif %}" href="{{ agenda_aluno_url|default('/agenda-aluno', true) }}">Agendar Aula</a>
                 <a class="sidebar-link {% if pagina_ativa == 'mensagens' %}is-active{% endif %}" href="{{ mensagens_url|default('/mensagens', true) }}">Mensagens</a>
-                <a class="sidebar-link {% if pagina_ativa == 'evolucao' %}is-active{% endif %}" href="{{ evolucao_aluno_url|default('/evolucao', true) }}">Evolução</a>
+                <a class="sidebar-link {% if pagina_ativa == 'evolucao' %}is-active{% endif %}" href="{{ evolucao_aluno_url|default('/evolucao-aluno', true) }}">Evolução</a>
                 <a class="sidebar-link" href="{{ logout_url|default('/logout', true) }}">Sair</a>
             </nav>
         </aside>
@@ -34,6 +34,12 @@
                     <p class="dashboard-subtitle">Visualize os dados mais recentes das suas avaliações físicas.</p>
                 </div>
             </header>
+
+            {% if aviso_sincronizacao %}
+            <section class="student-feedback student-feedback-error" aria-label="Aviso de sincronização">
+                <p>{{ aviso_sincronizacao }}</p>
+            </section>
+            {% endif %}
 
             {% if sucesso %}
             <section class="student-feedback student-feedback-success" aria-label="Mensagem de sucesso">
@@ -196,4 +202,3 @@
     </div>
 </body>
 </html>
-

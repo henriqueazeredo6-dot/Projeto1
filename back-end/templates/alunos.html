@@ -68,7 +68,6 @@
                             <option value="">Todos os status</option>
                             <option value="ativo" {% if filtros is defined and filtros.status == 'ativo' %}selected{% endif %}>Ativos</option>
                             <option value="inativo" {% if filtros is defined and filtros.status == 'inativo' %}selected{% endif %}>Inativos</option>
-                            <option value="avaliacao" {% if filtros is defined and filtros.status == 'avaliacao' %}selected{% endif %}>Avaliação pendente</option>
                         </select>
                         <button class="button button-secondary" type="submit">Filtrar</button>
                     </div>
@@ -127,13 +126,13 @@
                         </div>
 
                         <div class="field">
-                            <label for="email">Email</label>
-                            <input id="email" name="email" type="email" placeholder="email@exemplo.com" value="{{ form.email if form is defined else '' }}" required>
+                            <label for="email">Email do aluno</label>
+                            <input id="email" name="email" type="email" placeholder="email@exemplo.com" value="{{ form.email if form is defined else '' }}">
                         </div>
 
                         <div class="field">
                             <label for="telefone">Telefone</label>
-                            <input id="telefone" name="telefone" type="tel" placeholder="(00) 00000-0000" value="{{ form.telefone if form is defined else '' }}">
+                            <input id="telefone" name="telefone" type="tel" placeholder="(DDD) 00000-0000" value="{{ form.telefone if form is defined else '' }}">
                         </div>
 
                         <div class="field">
@@ -146,7 +145,6 @@
                             <select id="status" name="status">
                                 <option value="ativo" {% if form is not defined or form.status == 'ativo' %}selected{% endif %}>Ativo</option>
                                 <option value="inativo" {% if form is defined and form.status == 'inativo' %}selected{% endif %}>Inativo</option>
-                                <option value="avaliacao" {% if form is defined and form.status == 'avaliacao' %}selected{% endif %}>Avaliação pendente</option>
                             </select>
                         </div>
 
@@ -161,8 +159,13 @@
                         </div>
 
                         <div class="field">
-                            <label for="senha">Senha inicial</label>
-                            <input id="senha" name="senha" type="password" placeholder="Senha inicial" required>
+                            <label for="senha">Senha inicial *opcional</label>
+                            <input id="senha" name="senha" type="password" placeholder="Se vazio, sera 1111">
+                        </div>
+
+                        <div class="student-checkbox">
+                            <input id="criar-login" name="criar_login" type="checkbox" value="1">
+                            <label for="criar-login">Criar login para o aluno usando o email informado</label>
                         </div>
 
                         <div class="student-checkbox">

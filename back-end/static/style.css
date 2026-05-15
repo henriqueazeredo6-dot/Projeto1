@@ -468,6 +468,12 @@ select {
     outline: none;
 }
 
+select option,
+select optgroup {
+    background: #1b1c22;
+    color: #f3f4f7;
+}
+
 input::placeholder {
     color: #5e6470;
 }
@@ -475,6 +481,28 @@ input::placeholder {
 input:focus,
 select:focus {
     border-color: var(--line-strong);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text);
+}
+
+textarea:focus {
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text);
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+    -webkit-text-fill-color: #f3f4f7;
+    box-shadow: 0 0 0 1000px #2f384d inset;
+    transition: background-color 9999s ease-in-out 0s;
+    caret-color: #f3f4f7;
 }
 
 .checkbox-row {
@@ -2181,6 +2209,16 @@ select:focus {
     text-transform: uppercase;
 }
 
+.avaliacao-header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.avaliacao-export-button {
+    min-width: 10.75rem;
+}
+
 .avaliacao-top-stats {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -2274,6 +2312,21 @@ select:focus {
     border: 1px solid rgba(255, 255, 255, 0.07);
     background: rgba(255, 255, 255, 0.02);
     padding: 1rem;
+}
+
+.avaliacao-history-export {
+    display: inline-flex;
+    margin-top: 0.8rem;
+    color: #ffb387;
+    font-size: 0.86rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    text-transform: uppercase;
+}
+
+.avaliacao-history-export:hover {
+    color: #ffffff;
 }
 
 .avaliacao-history-top {
@@ -3968,6 +4021,157 @@ textarea:focus {
     border-radius: 0;
 }
 
+.page-configuracoes .config-form-shell {
+    display: block;
+}
+
+.page-configuracoes .config-header {
+    align-items: flex-start;
+}
+
+.page-configuracoes .config-page-eyebrow,
+.page-configuracoes .config-panel-eyebrow,
+.page-configuracoes .config-preview-eyebrow {
+    display: block;
+    color: var(--primary);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+}
+
+.page-configuracoes .config-page-eyebrow {
+    margin-bottom: 1rem;
+}
+
+.page-configuracoes .config-header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.page-configuracoes .config-layout-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(21rem, 0.95fr);
+    gap: 1.2rem;
+    margin-top: 1.1rem;
+}
+
+.page-configuracoes .config-main-column,
+.page-configuracoes .config-side-column {
+    display: grid;
+    gap: 1rem;
+    align-content: start;
+}
+
+.page-configuracoes .config-panel {
+    padding: 1.35rem;
+}
+
+.page-configuracoes .config-panel-head {
+    display: grid;
+    gap: 0.55rem;
+    margin-bottom: 1.15rem;
+}
+
+.page-configuracoes .config-panel-title {
+    color: #ffffff;
+    font-family: var(--title-font);
+    font-size: clamp(2rem, 2.9vw, 3rem);
+    line-height: 0.95;
+    text-transform: uppercase;
+}
+
+.page-configuracoes .config-field-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.page-configuracoes .config-toggle-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.05rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+    cursor: pointer;
+}
+
+.page-configuracoes .config-toggle-card + .config-toggle-card {
+    margin-top: 0.8rem;
+}
+
+.page-configuracoes .config-toggle-card strong {
+    display: block;
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.page-configuracoes .config-toggle-card span {
+    display: block;
+    margin-top: 0.3rem;
+    color: var(--muted);
+    line-height: 1.45;
+}
+
+.page-configuracoes .config-toggle-card input[type="checkbox"] {
+    width: 1.3rem;
+    height: 1.3rem;
+    accent-color: var(--primary);
+    flex-shrink: 0;
+}
+
+.page-configuracoes .config-preview-hero {
+    padding: 0.2rem 0 1.1rem;
+}
+
+.page-configuracoes .config-preview-hero h3 {
+    color: #ffffff;
+    font-family: var(--title-font);
+    font-size: clamp(2.15rem, 4.3vw, 3.35rem);
+    line-height: 0.9;
+    text-transform: uppercase;
+}
+
+.page-configuracoes .config-preview-hero h3 span {
+    color: var(--primary);
+}
+
+.page-configuracoes .config-preview-hero p {
+    margin-top: 1rem;
+    color: var(--muted);
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.page-configuracoes .config-preview-block {
+    padding: 1rem 1.05rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.page-configuracoes .config-preview-block + .config-preview-block {
+    margin-top: 0.85rem;
+}
+
+.page-configuracoes .config-preview-block strong {
+    display: block;
+    margin-top: 0.45rem;
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.page-configuracoes .config-preview-block p {
+    margin-top: 0.35rem;
+    color: var(--muted);
+    line-height: 1.45;
+}
+
 .ui-form {
     margin: 0;
 }
@@ -4700,19 +4904,22 @@ Observacao:
 @media (max-width: 760px) {
     .page-dashboard,
     .page-treinos,
-    .page-financeiro {
+    .page-financeiro,
+    .page-configuracoes {
         background: linear-gradient(180deg, #09090d 0%, #06070a 100%);
     }
 
     .page-dashboard .dashboard-layout,
     .page-treinos .dashboard-layout,
-    .page-financeiro .dashboard-layout {
+    .page-financeiro .dashboard-layout,
+    .page-configuracoes .dashboard-layout {
         display: block;
     }
 
     .page-dashboard .dashboard-sidebar,
     .page-treinos .dashboard-sidebar,
-    .page-financeiro .dashboard-sidebar {
+    .page-financeiro .dashboard-sidebar,
+    .page-configuracoes .dashboard-sidebar {
         position: fixed;
         inset: 0 0 auto 0;
         z-index: 30;
@@ -4723,7 +4930,8 @@ Observacao:
 
     .page-dashboard .mobile-menu-toggle,
     .page-treinos .mobile-menu-toggle,
-    .page-financeiro .mobile-menu-toggle {
+    .page-financeiro .mobile-menu-toggle,
+    .page-configuracoes .mobile-menu-toggle {
         display: block;
         position: absolute;
         width: 1px;
@@ -4734,7 +4942,8 @@ Observacao:
 
     .page-dashboard .sidebar-brand,
     .page-treinos .sidebar-brand,
-    .page-financeiro .sidebar-brand {
+    .page-financeiro .sidebar-brand,
+    .page-configuracoes .sidebar-brand {
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -4746,13 +4955,15 @@ Observacao:
 
     .page-dashboard .sidebar-user,
     .page-treinos .sidebar-user,
-    .page-financeiro .sidebar-user {
+    .page-financeiro .sidebar-user,
+    .page-configuracoes .sidebar-user {
         display: none;
     }
 
     .page-dashboard .sidebar-logo,
     .page-treinos .sidebar-logo,
-    .page-financeiro .sidebar-logo {
+    .page-financeiro .sidebar-logo,
+    .page-configuracoes .sidebar-logo {
         display: inline-flex;
         align-items: center;
         max-width: calc(100% - 3.2rem);
@@ -4761,14 +4972,16 @@ Observacao:
     }
 
     .page-dashboard .sidebar-logo-image,
-    .page-financeiro .sidebar-logo-image {
+    .page-financeiro .sidebar-logo-image,
+    .page-configuracoes .sidebar-logo-image {
         max-height: 2rem;
         max-width: 12rem;
     }
 
     .page-dashboard .mobile-menu-button,
     .page-treinos .mobile-menu-button,
-    .page-financeiro .mobile-menu-button {
+    .page-financeiro .mobile-menu-button,
+    .page-configuracoes .mobile-menu-button {
         display: inline-flex;
         width: 2.45rem;
         height: 2.45rem;
@@ -4782,7 +4995,8 @@ Observacao:
 
     .page-dashboard .mobile-menu-button span,
     .page-treinos .mobile-menu-button span,
-    .page-financeiro .mobile-menu-button span {
+    .page-financeiro .mobile-menu-button span,
+    .page-configuracoes .mobile-menu-button span {
         width: 1.7rem;
         height: 0.18rem;
         display: block;
@@ -4791,7 +5005,8 @@ Observacao:
 
     .page-dashboard .sidebar-nav,
     .page-treinos .sidebar-nav,
-    .page-financeiro .sidebar-nav {
+    .page-financeiro .sidebar-nav,
+    .page-configuracoes .sidebar-nav {
         display: flex;
         flex-wrap: nowrap;
         justify-content: flex-start;
@@ -4810,13 +5025,15 @@ Observacao:
 
     .page-dashboard .sidebar-nav::-webkit-scrollbar,
     .page-treinos .sidebar-nav::-webkit-scrollbar,
-    .page-financeiro .sidebar-nav::-webkit-scrollbar {
+    .page-financeiro .sidebar-nav::-webkit-scrollbar,
+    .page-configuracoes .sidebar-nav::-webkit-scrollbar {
         display: none;
     }
 
     .page-dashboard .mobile-menu-toggle:checked ~ .sidebar-nav,
     .page-treinos .mobile-menu-toggle:checked ~ .sidebar-nav,
-    .page-financeiro .mobile-menu-toggle:checked ~ .sidebar-nav {
+    .page-financeiro .mobile-menu-toggle:checked ~ .sidebar-nav,
+    .page-configuracoes .mobile-menu-toggle:checked ~ .sidebar-nav {
         inset: 5.5rem 0 auto 0;
         max-height: calc(100svh - 5.5rem);
         flex-direction: column;
@@ -4830,25 +5047,29 @@ Observacao:
 
     .page-dashboard .mobile-menu-toggle:checked ~ .sidebar-brand .mobile-menu-button span:nth-child(1),
     .page-treinos .mobile-menu-toggle:checked ~ .sidebar-brand .mobile-menu-button span:nth-child(1),
-    .page-financeiro .mobile-menu-toggle:checked ~ .sidebar-brand .mobile-menu-button span:nth-child(1) {
+    .page-financeiro .mobile-menu-toggle:checked ~ .sidebar-brand .mobile-menu-button span:nth-child(1),
+    .page-configuracoes .mobile-menu-toggle:checked ~ .sidebar-brand .mobile-menu-button span:nth-child(1) {
         transform: translateY(0.5rem) rotate(45deg);
     }
 
     .page-dashboard .mobile-menu-toggle:checked ~ .sidebar-brand .mobile-menu-button span:nth-child(2),
     .page-treinos .mobile-menu-toggle:checked ~ .sidebar-brand .mobile-menu-button span:nth-child(2),
-    .page-financeiro .mobile-menu-toggle:checked ~ .sidebar-brand .mobile-menu-button span:nth-child(2) {
+    .page-financeiro .mobile-menu-toggle:checked ~ .sidebar-brand .mobile-menu-button span:nth-child(2),
+    .page-configuracoes .mobile-menu-toggle:checked ~ .sidebar-brand .mobile-menu-button span:nth-child(2) {
         opacity: 0;
     }
 
     .page-dashboard .mobile-menu-toggle:checked ~ .sidebar-brand .mobile-menu-button span:nth-child(3),
     .page-treinos .mobile-menu-toggle:checked ~ .sidebar-brand .mobile-menu-button span:nth-child(3),
-    .page-financeiro .mobile-menu-toggle:checked ~ .sidebar-brand .mobile-menu-button span:nth-child(3) {
+    .page-financeiro .mobile-menu-toggle:checked ~ .sidebar-brand .mobile-menu-button span:nth-child(3),
+    .page-configuracoes .mobile-menu-toggle:checked ~ .sidebar-brand .mobile-menu-button span:nth-child(3) {
         transform: translateY(-0.5rem) rotate(-45deg);
     }
 
     .page-dashboard .sidebar-link,
     .page-treinos .sidebar-link,
-    .page-financeiro .sidebar-link {
+    .page-financeiro .sidebar-link,
+    .page-configuracoes .sidebar-link {
         flex: 0 0 5.6rem;
         min-height: 3.9rem;
         padding: 0.35rem 0.45rem;
@@ -4865,14 +5086,16 @@ Observacao:
 
     .page-dashboard .sidebar-link.is-active,
     .page-treinos .sidebar-link.is-active,
-    .page-financeiro .sidebar-link.is-active {
+    .page-financeiro .sidebar-link.is-active,
+    .page-configuracoes .sidebar-link.is-active {
         color: var(--primary);
         background: transparent;
     }
 
     .page-dashboard .mobile-menu-toggle:checked ~ .sidebar-nav .sidebar-link,
     .page-treinos .mobile-menu-toggle:checked ~ .sidebar-nav .sidebar-link,
-    .page-financeiro .mobile-menu-toggle:checked ~ .sidebar-nav .sidebar-link {
+    .page-financeiro .mobile-menu-toggle:checked ~ .sidebar-nav .sidebar-link,
+    .page-configuracoes .mobile-menu-toggle:checked ~ .sidebar-nav .sidebar-link {
         flex: 0 0 auto;
         min-height: 3.1rem;
         flex-direction: row;
@@ -4886,7 +5109,8 @@ Observacao:
 
     .page-dashboard .mobile-menu-toggle:checked ~ .sidebar-nav .sidebar-link.is-active,
     .page-treinos .mobile-menu-toggle:checked ~ .sidebar-nav .sidebar-link.is-active,
-    .page-financeiro .mobile-menu-toggle:checked ~ .sidebar-nav .sidebar-link.is-active {
+    .page-financeiro .mobile-menu-toggle:checked ~ .sidebar-nav .sidebar-link.is-active,
+    .page-configuracoes .mobile-menu-toggle:checked ~ .sidebar-nav .sidebar-link.is-active {
         background: var(--primary);
         border-color: var(--primary);
         color: #ffffff;
@@ -4894,26 +5118,30 @@ Observacao:
 
     .page-dashboard .dashboard-main,
     .page-treinos .dashboard-main,
-    .page-financeiro .dashboard-main {
+    .page-financeiro .dashboard-main,
+    .page-configuracoes .dashboard-main {
         padding: 7.6rem 1rem calc(7.75rem + env(safe-area-inset-bottom));
     }
 
     .page-dashboard .dashboard-header,
     .page-treinos .dashboard-header,
-    .page-financeiro .dashboard-header {
+    .page-financeiro .dashboard-header,
+    .page-configuracoes .dashboard-header {
         gap: 0.85rem;
     }
 
     .page-dashboard .dashboard-title,
     .page-treinos .dashboard-title,
-    .page-financeiro .dashboard-title {
+    .page-financeiro .dashboard-title,
+    .page-configuracoes .dashboard-title {
         font-size: clamp(3rem, 15vw, 4.35rem);
         line-height: 0.9;
     }
 
     .page-dashboard .dashboard-subtitle,
     .page-treinos .dashboard-subtitle,
-    .page-financeiro .dashboard-subtitle {
+    .page-financeiro .dashboard-subtitle,
+    .page-configuracoes .dashboard-subtitle {
         margin-top: 0.55rem;
         font-size: 1rem;
         line-height: 1.38;
@@ -6484,11 +6712,50 @@ Observacao:
         transform: none;
     }
 
-    body.mobile-nav-open::before {
+body.mobile-nav-open::before {
         content: "";
         position: fixed;
         z-index: 35;
         inset: 0;
         background: rgba(0, 0, 0, 0.38);
+    }
+}
+
+@media (max-width: 760px) {
+    .page-configuracoes .config-layout-grid,
+    .page-configuracoes .config-field-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .page-configuracoes .config-panel {
+        padding: 1rem;
+    }
+
+    .page-configuracoes .config-header-actions {
+        width: 100%;
+    }
+
+    .page-configuracoes .config-header-actions .button,
+    .page-configuracoes .config-header-actions .ui-btn {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    .page-configuracoes .config-preview-hero h3 {
+        font-size: clamp(2.25rem, 12vw, 3.1rem);
+    }
+
+    .page-configuracoes .config-toggle-card {
+        align-items: flex-start;
+    }
+
+    .page-configuracoes .config-toggle-card input[type="checkbox"] {
+        margin-top: 0.2rem;
+    }
+
+    .page-configuracoes .config-header-actions,
+    .page-configuracoes .config-header-actions .button,
+    .page-configuracoes .config-header-actions .ui-btn {
+        width: 100%;
     }
 }
