@@ -2433,12 +2433,14 @@ select:focus {
     grid-template-columns: minmax(300px, 0.78fr) minmax(0, 1.62fr);
     gap: 1rem;
     align-items: stretch;
+    min-width: 0;
 }
 
 .mensagens-panel {
     border: 1px solid rgba(255, 255, 255, 0.08);
     background: rgba(17, 17, 22, 0.96);
     min-height: 420px;
+    min-width: 0;
 }
 
 .mensagens-panel-header {
@@ -2536,6 +2538,7 @@ select:focus {
     display: grid;
     align-content: start;
     gap: 0.8rem;
+    min-width: 0;
 }
 
 .mensagens-thread-empty {
@@ -2562,9 +2565,11 @@ select:focus {
 
 .mensagens-message {
     max-width: min(72%, 430px);
+    min-width: 0;
     padding: 0.9rem 1rem;
     border: 1px solid rgba(255, 255, 255, 0.08);
     background: rgba(255, 255, 255, 0.02);
+    overflow-wrap: anywhere;
 }
 
 .mensagens-message.is-own {
@@ -2588,6 +2593,8 @@ select:focus {
     margin-top: 0.5rem;
     line-height: 1.6;
     white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 .mensagens-thread-form {
