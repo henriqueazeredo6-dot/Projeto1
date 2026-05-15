@@ -1226,7 +1226,7 @@ select:focus {
 .treinos-modal {
     position: relative;
     z-index: 1;
-    width: min(100%, 670px);
+    width: min(100%, 760px);
     border: 1px solid rgba(255, 255, 255, 0.08);
     background: #17181f;
     padding: 1.1rem;
@@ -1259,6 +1259,22 @@ select:focus {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 0.8rem;
+}
+
+.treinos-search-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: stretch;
+}
+
+.treinos-search-row input {
+    min-width: 0;
+}
+
+.treinos-add-exercise-button {
+    min-height: 2.95rem;
+    height: 2.95rem;
+    padding: 0 1.1rem;
+    font-size: 0.95rem;
 }
 
 .treinos-modal .field {

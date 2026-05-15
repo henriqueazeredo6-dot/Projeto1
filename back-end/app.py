@@ -940,7 +940,37 @@ def _students() -> List[Dict[str, Any]]:
 
 def _parse_exercises(raw: Any) -> List[Dict[str, Any]]:
     if isinstance(raw, list):
-        items = [str(item).strip() for item in raw if str(item).strip()]
+        parsed_items: List[Dict[str, Any]] = []
+        for index, item in enumerate(raw, start=1):
+            if isinstance(item, dict):
+                name = _first(item, "nome", "name", "exercicio", default="").strip()
+                if not name:
+                    continue
+                parsed_items.append(
+                    {
+                        "id": _first(item, "id", default=f"ex-{index}"),
+                        "nome": name,
+                        "series": _first(item, "series", default="3"),
+                        "repeticoes": _first(item, "repeticoes", "reps", default="12"),
+                        "descanso": _first(item, "descanso", default="60s"),
+                        "prescricao": _first(item, "prescricao", default=""),
+                        "status": _first(item, "status", default="Pendente"),
+                    }
+                )
+            else:
+                text_item = str(item).strip()
+                if text_item:
+                    parsed_items.append(
+                        {
+                            "id": f"ex-{index}",
+                            "nome": text_item.split("-", 1)[0].strip(),
+                            "series": "3",
+                            "repeticoes": "12",
+                            "descanso": "60s",
+                            "status": "Pendente",
+                        }
+                    )
+        return parsed_items
     else:
         text = str(raw or "").replace("\r", "\n")
         text = text.replace(";", "\n").replace("|", "\n")
@@ -979,6 +1009,7 @@ def _trainings(aluno_id: Optional[str] = None) -> List[Dict[str, Any]]:
                 "grupo_muscular": _first(row, "grupo_muscular", default="Treino personalizado"),
                 "observacoes": _first(row, "observacoes", "observacao", "notes", default=""),
                 "exercicios_raw": exercises_raw,
+                "exercicios": exercises,
                 "exercicios_lista": exercises,
                 "total_exercicios": _to_int(_first(row, "total_exercicios", default=len(exercises))) or len(exercises),
                 "atualizado_em": _fmt_date(_first(row, "updated_at", "created_at", "data_criacao")),
@@ -1719,17 +1750,21 @@ def excluir_aluno(aluno_id: str):
 def treinos():
     alunos_lista = _students()
     aluno_id = request.args.get("aluno_id", "")
+    treino_visualizacao_id = request.args.get("visualizar_treino_id", "")
     treino_edicao_id = request.args.get("editar_treino_id", "")
     treino_exclusao_id = request.args.get("excluir_treino_id", "")
     aluno_selecionado = next((aluno for aluno in alunos_lista if aluno["id"] == aluno_id), None)
     treinos_lista = _trainings(aluno_selecionado["id"]) if aluno_selecionado else []
+    treino_visualizacao = next((treino for treino in treinos_lista if treino["id"] == treino_visualizacao_id), {})
     treino_edicao = next((treino for treino in treinos_lista if treino["id"] == treino_edicao_id), {})
     treino_exclusao = next((treino for treino in treinos_lista if treino["id"] == treino_exclusao_id), {})
     return render_template(
         "treinos.html",
         alunos=alunos_lista,
+        exercicios=_exercises(),
         aluno_selecionado=aluno_selecionado,
         treinos=treinos_lista,
+        treino_visualizacao=treino_visualizacao,
         treino_edicao=treino_edicao,
         treino_exclusao=treino_exclusao,
         url_treinos_aluno_base="/treinos/aluno",
@@ -1760,7 +1795,7 @@ def visualizar_treino(treino_id: str):
     if not treino:
         flash("Treino nao encontrado.", "error")
         return redirect(url_for("treinos"))
-    return redirect(url_for("treinos", aluno_id=treino.get("aluno_id", ""), editar_treino_id=treino_id) + "#editar-treino-modal")
+    return redirect(url_for("treinos", aluno_id=treino.get("aluno_id", ""), visualizar_treino_id=treino_id) + "#visualizar-treino-modal")
 
 
 @app.get("/treinos/visualizar")
@@ -1795,16 +1830,33 @@ def criar_treino():
     if csrf_error:
         flash(csrf_error, "error")
         return redirect(url_for("treinos"))
-    result = _insert(
-        TABLE_TREINOS,
-        {
-            "descricao": request.form.get("nome"),
-            "aluno_id": request.form.get("aluno_id"),
-            "observacao": request.form.get("exercicios_raw") or request.form.get("observacoes"),
-            "data_criacao": datetime.utcnow().date().isoformat(),
-            "created_at": datetime.utcnow().isoformat(),
-        },
-    )
+    exercicios_raw = request.form.get("exercicios_raw") or ""
+    exercicios = [item.strip() for item in exercicios_raw.replace("\r", "\n").replace(";", "\n").split("\n") if item.strip()]
+    payload = {
+        "nome": request.form.get("nome"),
+        "aluno_id": request.form.get("aluno_id"),
+        "observacoes": request.form.get("observacoes"),
+        "exercicios_raw": exercicios_raw,
+        "exercicios": exercicios,
+        "created_at": datetime.utcnow().isoformat(),
+    }
+    result = _insert(TABLE_TREINOS, payload)
+    if not result["ok"] and (
+        _missing_column_error(result["error"], "nome")
+        or _missing_column_error(result["error"], "exercicios")
+        or _missing_column_error(result["error"], "exercicios_raw")
+        or _missing_column_error(result["error"], "observacoes")
+    ):
+        result = _insert(
+            TABLE_TREINOS,
+            {
+                "descricao": request.form.get("nome"),
+                "aluno_id": request.form.get("aluno_id"),
+                "observacao": exercicios_raw or request.form.get("observacoes"),
+                "data_criacao": datetime.utcnow().date().isoformat(),
+                "created_at": datetime.utcnow().isoformat(),
+            },
+        )
     flash("Treino criado com sucesso." if result["ok"] else (result["error"] or "Nao foi possivel criar o treino."), "success" if result["ok"] else "error")
     return redirect(request.form.get("origem_url") or url_for("treinos", aluno_id=request.form.get("aluno_id", "")))
 
@@ -1817,15 +1869,31 @@ def editar_treino(treino_id: str):
     if csrf_error:
         flash(csrf_error, "error")
         return redirect(url_for("treinos"))
-    result = _update(
-        TABLE_TREINOS,
-        treino_id,
-        {
-            "descricao": request.form.get("nome"),
-            "aluno_id": request.form.get("aluno_id"),
-            "observacao": request.form.get("exercicios_raw") or request.form.get("observacoes"),
-        },
-    )
+    exercicios_raw = request.form.get("exercicios_raw") or ""
+    exercicios = [item.strip() for item in exercicios_raw.replace("\r", "\n").replace(";", "\n").split("\n") if item.strip()]
+    payload = {
+        "nome": request.form.get("nome"),
+        "aluno_id": request.form.get("aluno_id"),
+        "observacoes": request.form.get("observacoes"),
+        "exercicios_raw": exercicios_raw,
+        "exercicios": exercicios,
+    }
+    result = _update(TABLE_TREINOS, treino_id, payload)
+    if not result["ok"] and (
+        _missing_column_error(result["error"], "nome")
+        or _missing_column_error(result["error"], "exercicios")
+        or _missing_column_error(result["error"], "exercicios_raw")
+        or _missing_column_error(result["error"], "observacoes")
+    ):
+        result = _update(
+            TABLE_TREINOS,
+            treino_id,
+            {
+                "descricao": request.form.get("nome"),
+                "aluno_id": request.form.get("aluno_id"),
+                "observacao": exercicios_raw or request.form.get("observacoes"),
+            },
+        )
     flash("Treino atualizado com sucesso." if result["ok"] else (result["error"] or "Nao foi possivel atualizar o treino."), "success" if result["ok"] else "error")
     return redirect(url_for("treinos", aluno_id=request.form.get("aluno_id", "")))
 
