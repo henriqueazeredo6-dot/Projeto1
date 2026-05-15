@@ -1296,7 +1296,10 @@ def _messages_for_student(contact_id: Optional[str]) -> Dict[str, Any]:
 
 def _payment_rows() -> List[Dict[str, Any]]:
     rows = _optional_rows(TABLE_PAGAMENTOS, order="data_parcela", desc=True)
-    alunos_por_id = {row["id"]: row for row in _students()}
+    alunos = _students()
+    planos = _plans()
+    alunos_por_id = {row["id"]: row for row in alunos}
+    planos_por_aluno = {row["id"]: row["planos"] for row in _student_plan_rows(alunos, planos)}
     if not rows:
         return [
             {
@@ -1304,6 +1307,8 @@ def _payment_rows() -> List[Dict[str, Any]]:
                 "aluno_id": aluno["id"],
                 "aluno_nome": aluno["nome"],
                 "email": aluno["email"],
+                "planos": planos_por_aluno.get(aluno["id"], []),
+                "plano_resumo": ", ".join(plano["nome"] for plano in planos_por_aluno.get(aluno["id"], [])) or "Sem plano",
                 "valor": 0,
                 "status": "pendente",
                 "status_label": "Pendente",
@@ -1316,6 +1321,8 @@ def _payment_rows() -> List[Dict[str, Any]]:
     normalized: List[Dict[str, Any]] = []
     for row in rows:
         aluno_ref = alunos_por_id.get(_first(row, "aluno_id", default=""), {})
+        aluno_id = _first(row, "aluno_id", default="")
+        planos_aluno = planos_por_aluno.get(aluno_id, [])
         status = _payment_status_slug(_first(row, "status_parcela", "status", "status_pagamento", default="pendente"))
         normalized.append(
             {
@@ -1323,6 +1330,8 @@ def _payment_rows() -> List[Dict[str, Any]]:
                 "id": row.get("id", ""),
                 "aluno_nome": _first(row, "aluno_nome", default=aluno_ref.get("nome", "Aluno")),
                 "email": _first(row, "email", default=aluno_ref.get("email", "")),
+                "planos": planos_aluno,
+                "plano_resumo": ", ".join(plano["nome"] for plano in planos_aluno) or "Sem plano",
                 "status": status,
                 "status_label": _human_status(status).upper(),
                 "status_color": "paid" if status == "pago" else "pending" if status == "pendente" else "late",
@@ -1356,6 +1365,48 @@ def _plans() -> List[Dict[str, Any]]:
             }
         )
     return normalized
+
+
+def _student_plan_rows(alunos: List[Dict[str, Any]], planos: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    planos_por_id = {str(plano.get("id", "")): plano for plano in planos}
+    rows: List[Dict[str, Any]] = []
+    for aluno in alunos:
+        linked_plan_ids: List[str] = []
+        raw_values = [
+            _first(aluno, "plano_id", default=""),
+            aluno.get("plano") if str(aluno.get("plano", "")).strip() in planos_por_id else "",
+            _first(aluno, "planos", "planos_ids", "plano_ids", default=[]),
+        ]
+        for raw_value in raw_values:
+            values = raw_value if isinstance(raw_value, list) else [raw_value]
+            for value in values:
+                plan_id = str(value or "").strip()
+                if plan_id and plan_id not in linked_plan_ids:
+                    linked_plan_ids.append(plan_id)
+
+        for plano in planos:
+            aluno_id = str(_first(plano, "aluno_id", default="")).strip()
+            if aluno_id and aluno_id == str(aluno.get("id", "")) and str(plano.get("id", "")) not in linked_plan_ids:
+                linked_plan_ids.append(str(plano.get("id", "")))
+
+        linked_plans: List[Dict[str, Any]] = []
+        for plan_id in linked_plan_ids:
+            plano_ref = planos_por_id.get(plan_id)
+            if plano_ref:
+                linked_plans.append(plano_ref)
+            elif plan_id and plan_id.lower() not in {"nao definido", "não definido"}:
+                linked_plans.append({"id": plan_id, "nome": plan_id, "preco": "", "periodo": ""})
+
+        rows.append(
+            {
+                "id": aluno.get("id", ""),
+                "nome": aluno.get("nome", "Aluno"),
+                "email": aluno.get("email", ""),
+                "planos": linked_plans,
+                "total_planos": len(linked_plans),
+            }
+        )
+    return rows
 
 
 def _db_plan_options() -> List[Dict[str, Any]]:
@@ -2415,6 +2466,7 @@ def upload_mensagem_redirect():
 def financeiro():
     pagamentos = _payment_rows()
     planos = _plans()
+    alunos = _students()
     plano_edicao_id = request.args.get("editar_plano_id", "")
     plano_edicao = next((plano for plano in planos if str(plano.get("id")) == str(plano_edicao_id)), {})
     receita = sum(_to_float(_first(item, "valor", default=0)) or 0 for item in pagamentos if item.get("status") == "pago")
@@ -2422,6 +2474,8 @@ def financeiro():
         "financeiro.html",
         pagamentos=pagamentos,
         planos=planos,
+        alunos=alunos,
+        alunos_planos=_student_plan_rows(alunos, planos),
         plano_edicao=plano_edicao,
         receita_estimada=_currency(receita),
         receita_descricao="Recebimentos registrados",
@@ -2486,7 +2540,24 @@ def criar_plano():
     if not result["ok"] and _missing_column_error(result["error"], "duracao_dias"):
         payload.pop("duracao_dias", None)
         result = _insert(TABLE_PLANOS, payload)
-    flash("Plano criado com sucesso." if result["ok"] else _plan_table_error_message(result["error"]), "success" if result["ok"] else "error")
+    aluno_ids = request.form.getlist("aluno_ids")
+    legacy_aluno_id = request.form.get("aluno_id", "")
+    if legacy_aluno_id and legacy_aluno_id not in aluno_ids:
+        aluno_ids.append(legacy_aluno_id)
+    alunos_vinculados = True
+    if result["ok"] and aluno_ids:
+        plano_criado = result["data"][0] if result.get("data") else {}
+        plano_id = plano_criado.get("id")
+        if plano_id:
+            for aluno_id in aluno_ids:
+                vinculo = _update(TABLE_ALUNOS, aluno_id, {"plano": plano_id})
+                if not vinculo["ok"] and _missing_column_error(vinculo["error"], "plano"):
+                    vinculo = _update(TABLE_ALUNOS, aluno_id, {"plano_id": plano_id})
+                alunos_vinculados = alunos_vinculados and vinculo["ok"]
+    if result["ok"] and aluno_ids and not alunos_vinculados:
+        flash("Plano criado, mas nao foi possivel vincular todos os alunos selecionados.", "error")
+    else:
+        flash("Plano criado com sucesso." if result["ok"] else _plan_table_error_message(result["error"]), "success" if result["ok"] else "error")
     return redirect(url_for("financeiro"))
 
 

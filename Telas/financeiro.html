@@ -117,6 +117,7 @@
                         <thead>
                             <tr>
                                 <th>Aluno</th>
+                                <th>Plano</th>
                                 <th>Email</th>
                                 <th>Status</th>
                                 <th>Alterar status</th>
@@ -132,6 +133,20 @@
                             {% endif %}
                             <tr>
                                 <td>{{ pagamento.aluno_nome }}</td>
+                                <td>
+                                    <div class="financeiro-table-plan-tags">
+                                        {% if pagamento.planos %}
+                                            {% for plano in pagamento.planos %}
+                                            <span class="financeiro-plan-tag">
+                                                {{ plano.nome }}
+                                                {% if plano.preco %}<small>{{ plano.preco }}</small>{% endif %}
+                                            </span>
+                                            {% endfor %}
+                                        {% else %}
+                                            <span class="financeiro-plan-tag financeiro-plan-tag-empty">Sem plano</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
                                 <td>{{ pagamento.email }}</td>
                                 <td>
                                     <span class="financeiro-status financeiro-status-{{ status_normalizado }}">
@@ -165,7 +180,7 @@
                             </tr>
                             {% else %}
                             <tr>
-                                <td colspan="4" class="financeiro-empty-row">Nenhum pagamento encontrado.</td>
+                                <td colspan="5" class="financeiro-empty-row">Nenhum pagamento encontrado.</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -230,6 +245,21 @@
                                 <label for="duracao_plano">Duração (dias)</label>
                                 <input id="duracao_plano" name="duracao_dias" type="number" min="1" value="30" required>
                             </div>
+                        </div>
+
+                        <div class="field">
+                            <label>Vincular alunos</label>
+                            <div class="financeiro-student-select-list" aria-label="Selecionar alunos para o plano">
+                                {% for aluno in alunos|default([], true) %}
+                                <label class="financeiro-student-option">
+                                    <input type="checkbox" name="aluno_ids" value="{{ aluno.id }}">
+                                    <span>{{ aluno.nome }}</span>
+                                </label>
+                                {% else %}
+                                <p class="financeiro-helper-text">Nenhum aluno cadastrado para vincular.</p>
+                                {% endfor %}
+                            </div>
+                            <p class="financeiro-helper-text">Selecione um ou mais alunos, ou deixe sem marcar para criar o plano sem vínculo.</p>
                         </div>
 
                         <div class="student-checkbox">
