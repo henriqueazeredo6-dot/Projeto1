@@ -44,7 +44,7 @@
                     <p class="agenda-date-heading">{{ data_referencia|default('03/04/2026', true) }}</p>
                 </div>
 
-                <a class="button dashboard-add-button" href="#nova-aula">Agendar aula</a>
+                <a class="button dashboard-add-button" href="#nova-aula">Gerenciar horários</a>
             </header>
 
             {% if sucesso %}
@@ -178,48 +178,87 @@
                 {% endfor %}
             </section>
 
-            <section class="agenda-form-panel" id="nova-aula" aria-label="Agendar nova aula">
-                <div class="agenda-form-card">
-                    <div class="student-modal-header">
-                        <h2>Nova aula</h2>
+            <section class="agenda-form-panel" id="nova-aula" aria-label="Gerenciar horários da agenda">
+                <div class="agenda-form-grid">
+                    <div class="agenda-form-card">
+                        <div class="student-modal-header">
+                            <h2>Liberar horário</h2>
+                        </div>
+
+                        <form class="student-form" action="{{ criar_aula_url|default('/agenda', true) }}" method="post">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="tipo_registro" value="disponibilidade">
+
+                            <div class="field">
+                                <label for="titulo_disponibilidade">Título</label>
+                                <input id="titulo_disponibilidade" name="titulo" type="text" placeholder="Ex: Horário livre para aula">
+                            </div>
+
+                            <div class="agenda-form-row">
+                                <div class="field">
+                                    <label for="inicio_disponibilidade">Início</label>
+                                    <input id="inicio_disponibilidade" name="inicio" type="datetime-local" required>
+                                </div>
+
+                                <div class="field">
+                                    <label for="termino_hora_disponibilidade">Término</label>
+                                    <input id="termino_hora_disponibilidade" name="termino_hora" type="time" required>
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <label for="observacoes_disponibilidade">Observações</label>
+                                <textarea id="observacoes_disponibilidade" name="observacoes" rows="4" placeholder="Informações para o aluno sobre esse horário..."></textarea>
+                            </div>
+
+                            <button class="button-block" type="submit">Publicar horário</button>
+                        </form>
                     </div>
 
-                    <form class="student-form" action="{{ criar_aula_url|default('/agenda', true) }}" method="post">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <div class="field">
-                            <label for="titulo">Título</label>
-                            <input id="titulo" name="titulo" type="text" placeholder="Ex: Treino personalizado" required>
+                    <div class="agenda-form-card">
+                        <div class="student-modal-header">
+                            <h2>Agendar com aluno</h2>
                         </div>
 
-                        <div class="field">
-                            <label for="aluno_id">Aluno</label>
-                            <select id="aluno_id" name="aluno_id" required>
-                                <option value="">Selecione um aluno</option>
-                                {% for aluno in alunos %}
-                                <option value="{{ aluno.id }}">{{ aluno.nome }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+                        <form class="student-form" action="{{ criar_aula_url|default('/agenda', true) }}" method="post">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="tipo_registro" value="agendamento">
 
-                        <div class="agenda-form-row">
                             <div class="field">
-                                <label for="inicio">Início</label>
-                                <input id="inicio" name="inicio" type="datetime-local" required>
+                                <label for="titulo_agendamento">Título</label>
+                                <input id="titulo_agendamento" name="titulo" type="text" placeholder="Ex: Treino personalizado" required>
                             </div>
 
                             <div class="field">
-                                <label for="termino">Término</label>
-                                <input id="termino" name="termino" type="datetime-local" required>
+                                <label for="aluno_id">Aluno</label>
+                                <select id="aluno_id" name="aluno_id" required>
+                                    <option value="">Selecione um aluno</option>
+                                    {% for aluno in alunos %}
+                                    <option value="{{ aluno.id }}">{{ aluno.nome }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
-                        </div>
 
-                        <div class="field">
-                            <label for="observacoes">Observações</label>
-                            <textarea id="observacoes" name="observacoes" rows="4" placeholder="Observações sobre a aula..."></textarea>
-                        </div>
+                            <div class="agenda-form-row">
+                                <div class="field">
+                                    <label for="inicio_agendamento">Início</label>
+                                    <input id="inicio_agendamento" name="inicio" type="datetime-local" required>
+                                </div>
 
-                        <button class="button-block" type="submit">Agendar aula</button>
-                    </form>
+                                <div class="field">
+                                    <label for="termino_hora_agendamento">Término</label>
+                                    <input id="termino_hora_agendamento" name="termino_hora" type="time" required>
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <label for="observacoes_agendamento">Observações</label>
+                                <textarea id="observacoes_agendamento" name="observacoes" rows="4" placeholder="Observações sobre a aula..."></textarea>
+                            </div>
+
+                            <button class="button-block" type="submit">Agendar aula</button>
+                        </form>
+                    </div>
                 </div>
             </section>
         </main>
