@@ -2723,6 +2723,37 @@ select:focus {
     min-height: 100%;
 }
 
+.anamnese-panel-header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: -0.1rem -0.1rem 1rem;
+    padding: 0.1rem 0.1rem 0.85rem;
+    background: #111116;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.anamnese-panel-header .anamnese-form-title {
+    margin-bottom: 0;
+}
+
+.anamnese-save-hint {
+    margin-top: 0.4rem;
+    color: #8f95a1;
+    font-size: 0.86rem;
+    line-height: 1.35;
+}
+
+.anamnese-save-top {
+    min-height: 2.6rem;
+    padding: 0 1.15rem;
+    flex-shrink: 0;
+}
+
 .anamnese-form {
     margin: 0;
 }
@@ -2744,6 +2775,14 @@ select:focus {
 .anamnese-submit {
     width: 100%;
     margin-top: 1rem;
+}
+
+.anamnese-save-row {
+    position: sticky;
+    bottom: 0;
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    background: #111116;
 }
 
 .anamnese-empty-panel {
