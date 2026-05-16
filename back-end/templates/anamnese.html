@@ -103,9 +103,15 @@
 
                 {% if aluno_ativo and aluno_ativo.id %}
                 <section class="avaliacao-panel anamnese-form-panel" aria-label="Formulário de anamnese">
-                    <h2 class="anamnese-form-title">Anamnese de {{ aluno_ativo.nome|default('Aluno', true) }}</h2>
+                    <div class="anamnese-panel-header">
+                        <div>
+                            <h2 class="anamnese-form-title">Anamnese de {{ aluno_ativo.nome|default('Aluno', true) }}</h2>
+                            <p class="anamnese-save-hint">Revise os campos e salve as alterações deste aluno.</p>
+                        </div>
+                        <button class="button anamnese-save-top" type="submit" form="anamnese-form">Salvar</button>
+                    </div>
 
-                    <form class="anamnese-form" action="{{ salvar_anamnese_url|default('/anamnese/salvar', true) }}" method="post">
+                    <form id="anamnese-form" class="anamnese-form" action="{{ salvar_anamnese_url|default('/anamnese/salvar', true) }}" method="post">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="aluno_id" value="{{ aluno_ativo.id }}">
                         <input type="hidden" name="profissional_id" value="{{ profissional_id|default('', true) }}">
@@ -141,7 +147,9 @@
                             <textarea id="observacoes" name="observacoes" rows="4" placeholder="Outras observações relevantes...">{{ anamnese.observacoes|default('', true) }}</textarea>
                         </div>
 
-                        <button class="button anamnese-submit" type="submit">Salvar anamnese</button>
+                        <div class="anamnese-save-row">
+                            <button class="button anamnese-submit" type="submit">Salvar</button>
+                        </div>
                     </form>
                 </section>
                 {% else %}
