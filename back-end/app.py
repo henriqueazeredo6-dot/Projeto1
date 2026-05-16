@@ -1,6 +1,7 @@
 import os
 import json
 import secrets
+from io import BytesIO
 from pathlib import Path
 from datetime import datetime, timedelta
 from functools import wraps
@@ -8,7 +9,7 @@ from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from dotenv import load_dotenv
-from flask import Flask, flash, get_flashed_messages, redirect, render_template, request, session, url_for
+from flask import Flask, flash, get_flashed_messages, redirect, render_template, request, send_file, session, url_for
 from google.auth.transport.requests import Request as GoogleAuthRequest
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
@@ -801,9 +802,25 @@ def _current_student_row() -> Optional[Dict[str, Any]]:
                 "plano": "Teste",
             }
         return None
-    by_email = _select_first_by(TABLE_ALUNOS, "email", current["email"])
+    current_email = str(current["email"] or "").strip().lower()
+    current_user_id = str(current["id"] or "").strip()
+    current_auth_user_id = str(current["auth_user_id"] or "").strip()
+
+    by_email = _select_first_by(TABLE_ALUNOS, "email", current_email)
     if by_email["ok"] and by_email["data"]:
         return by_email["data"]
+
+    for row in _load_rows(TABLE_ALUNOS):
+        row_email = str(_first(row, "email", default="")).strip().lower()
+        row_id = str(_first(row, "id", default="")).strip()
+        row_auth_user_id = str(_first(row, "auth_user_id", default="")).strip()
+        if current_email and row_email == current_email:
+            return row
+        if current_auth_user_id and row_auth_user_id == current_auth_user_id:
+            return row
+        if current_user_id and row_id == current_user_id:
+            return row
+
     if DEV_BYPASS_AUTH:
         return {
             "id": DEV_ALUNO_ID,
@@ -940,7 +957,37 @@ def _students() -> List[Dict[str, Any]]:
 
 def _parse_exercises(raw: Any) -> List[Dict[str, Any]]:
     if isinstance(raw, list):
-        items = [str(item).strip() for item in raw if str(item).strip()]
+        parsed_items: List[Dict[str, Any]] = []
+        for index, item in enumerate(raw, start=1):
+            if isinstance(item, dict):
+                name = _first(item, "nome", "name", "exercicio", default="").strip()
+                if not name:
+                    continue
+                parsed_items.append(
+                    {
+                        "id": _first(item, "id", default=f"ex-{index}"),
+                        "nome": name,
+                        "series": _first(item, "series", default="3"),
+                        "repeticoes": _first(item, "repeticoes", "reps", default="12"),
+                        "descanso": _first(item, "descanso", default="60s"),
+                        "prescricao": _first(item, "prescricao", default=""),
+                        "status": _first(item, "status", default="Pendente"),
+                    }
+                )
+            else:
+                text_item = str(item).strip()
+                if text_item:
+                    parsed_items.append(
+                        {
+                            "id": f"ex-{index}",
+                            "nome": text_item.split("-", 1)[0].strip(),
+                            "series": "3",
+                            "repeticoes": "12",
+                            "descanso": "60s",
+                            "status": "Pendente",
+                        }
+                    )
+        return parsed_items
     else:
         text = str(raw or "").replace("\r", "\n")
         text = text.replace(";", "\n").replace("|", "\n")
@@ -979,6 +1026,7 @@ def _trainings(aluno_id: Optional[str] = None) -> List[Dict[str, Any]]:
                 "grupo_muscular": _first(row, "grupo_muscular", default="Treino personalizado"),
                 "observacoes": _first(row, "observacoes", "observacao", "notes", default=""),
                 "exercicios_raw": exercises_raw,
+                "exercicios": exercises,
                 "exercicios_lista": exercises,
                 "total_exercicios": _to_int(_first(row, "total_exercicios", default=len(exercises))) or len(exercises),
                 "atualizado_em": _fmt_date(_first(row, "updated_at", "created_at", "data_criacao")),
@@ -1056,7 +1104,7 @@ def _schedule_rows() -> List[Dict[str, Any]]:
     return normalized
 
 
-def _assessment_metrics(row: Dict[str, Any]) -> Dict[str, Any]:
+def _assessment_metrics_legacy(row: Dict[str, Any]) -> Dict[str, Any]:
     peso = _to_float(_first(row, "peso"))
     altura_cm = _to_float(_first(row, "estatura", "altura"))
     gordura = _to_float(_first(row, "gordura", "percentual_gordura"))
@@ -1120,8 +1168,72 @@ def _assessment_metrics(row: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
+def _assessment_metrics(row: Dict[str, Any]) -> Dict[str, Any]:
+    peso = _to_float(_first(row, "peso"))
+    altura_cm = _to_float(_first(row, "estatura", "altura"))
+    gordura = _to_float(_first(row, "gordura", "percentual_gordura"))
+    cintura = _to_float(_first(row, "cintura"))
+    quadril = _to_float(_first(row, "quadril"))
+    imc: Optional[float] = None
+    if peso and altura_cm:
+        altura_m = altura_cm / 100
+        if altura_m > 0:
+            imc = peso / (altura_m * altura_m)
+    massa_gorda = peso * (gordura / 100) if peso is not None and gordura is not None else None
+    massa_magra = peso - massa_gorda if peso is not None and massa_gorda is not None else None
+    relacao = cintura / quadril if cintura and quadril else None
+    soma_dobras = sum(
+        item
+        for item in [
+            _to_float(_first(row, "tricipital")),
+            _to_float(_first(row, "subscapular")),
+            _to_float(_first(row, "suprailiaca")),
+            _to_float(_first(row, "abdominal")),
+            _to_float(_first(row, "peitoral")),
+            _to_float(_first(row, "coxa")),
+            _to_float(_first(row, "perna")),
+        ]
+        if item is not None
+    )
+    if gordura is None:
+        classificacao_gordura = "Não informada"
+    elif gordura <= 14:
+        classificacao_gordura = "Excelente"
+    elif gordura <= 20:
+        classificacao_gordura = "Boa"
+    elif gordura <= 25:
+        classificacao_gordura = "Moderada"
+    else:
+        classificacao_gordura = "Alta"
+    if imc is None:
+        classificacao_imc = "Não informada"
+    elif imc < 18.5:
+        classificacao_imc = "Baixo peso"
+    elif imc < 25:
+        classificacao_imc = "Peso normal"
+    elif imc < 30:
+        classificacao_imc = "Sobrepeso"
+    else:
+        classificacao_imc = "Obesidade"
+    peso_ideal = None
+    if massa_magra is not None:
+        peso_ideal = massa_magra / (1 - 0.14)
+    return {
+        "imc": f"{imc:.2f}".replace(".", ",") if imc is not None else "—",
+        "gordura": f"{gordura:.0f}%" if gordura is not None and gordura.is_integer() else (f"{gordura:.2f}%".replace(".", ",") if gordura is not None else "—"),
+        "massa_gorda": f"{massa_gorda:.2f} kg".replace(".", ",") if massa_gorda is not None else "—",
+        "massa_magra": f"{massa_magra:.2f} kg".replace(".", ",") if massa_magra is not None else "—",
+        "classificacao": classificacao_imc,
+        "classificacao_gordura": classificacao_gordura,
+        "gordura_nivel": classificacao_gordura,
+        "peso_ideal": f"{peso_ideal:.2f} kg".replace(".", ",") if peso_ideal is not None else "—",
+        "soma_dobras": f"{soma_dobras:.0f} mm" if soma_dobras else "—",
+        "relacao_cq": f"{relacao:.2f}".replace(".", ",") if relacao is not None else "—",
+    }
+
+
 def _assessments(aluno_id: Optional[str] = None) -> List[Dict[str, Any]]:
-    rows = _load_rows(TABLE_AVALIACOES, filters={"aluno_id": aluno_id} if aluno_id else None)
+    rows = _load_rows(TABLE_AVALIACOES, filters={"aluno_id": aluno_id} if aluno_id else None, order="data", desc=True)
     alunos_por_id = {row["id"]: row for row in _students()}
     normalized: List[Dict[str, Any]] = []
     for row in rows:
@@ -1142,6 +1254,7 @@ def _assessments(aluno_id: Optional[str] = None) -> List[Dict[str, Any]]:
                 "status_label": metrics["classificacao"],
                 "resumo": metrics["classificacao"],
                 "objetivo": _first(row, "objetivo", default="Nao informado"),
+                "exportar_pdf_url": url_for("exportar_avaliacao_pdf", avaliacao_id=row.get("id", "")) if row.get("id") else "",
             }
         )
     return normalized
@@ -1169,6 +1282,425 @@ def _exercises() -> List[Dict[str, Any]]:
             }
         )
     return normalized
+
+
+def _safe_pdf_filename(text: Any, *, fallback: str = "avaliacao") -> str:
+    raw = str(text or "").strip().lower()
+    if not raw:
+        return fallback
+    sanitized = []
+    for char in raw:
+        if char.isalnum():
+            sanitized.append(char)
+        elif char in {" ", "-", "_"}:
+            sanitized.append("-")
+    compact = "".join(sanitized).strip("-")
+    while "--" in compact:
+        compact = compact.replace("--", "-")
+    return compact or fallback
+
+
+def _avaliacao_pdf_document_legacy(avaliacao: Dict[str, Any]) -> BytesIO:
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+    from reportlab.lib.units import mm
+    from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        leftMargin=16 * mm,
+        rightMargin=16 * mm,
+        topMargin=16 * mm,
+        bottomMargin=14 * mm,
+        title="Laudo de Avaliacao Fisica",
+        author=BRAND_NAME,
+    )
+
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(name="ConfieKicker", fontName="Helvetica-Bold", fontSize=8, leading=10, textColor=colors.HexColor("#ff5a0a"), spaceAfter=6))
+    styles.add(ParagraphStyle(name="ConfieTitle", fontName="Helvetica-Bold", fontSize=24, leading=27, textColor=colors.HexColor("#111111"), spaceAfter=8))
+    styles.add(ParagraphStyle(name="ConfieBody", fontName="Helvetica", fontSize=10.5, leading=14, textColor=colors.HexColor("#2d313a")))
+    styles.add(ParagraphStyle(name="ConfieSmall", fontName="Helvetica", fontSize=9, leading=12, textColor=colors.HexColor("#5f6674")))
+    styles.add(ParagraphStyle(name="ConfieCardLabel", fontName="Helvetica-Bold", fontSize=8, leading=10, textColor=colors.HexColor("#727a89")))
+    styles.add(ParagraphStyle(name="ConfieCardValue", fontName="Helvetica-Bold", fontSize=18, leading=21, textColor=colors.HexColor("#111111")))
+    styles.add(ParagraphStyle(name="ConfieSection", fontName="Helvetica-Bold", fontSize=15, leading=18, textColor=colors.HexColor("#111111"), spaceAfter=8))
+
+    aluno_nome = _first(avaliacao, "aluno_nome", default="Aluno")
+    resumo_cards = [
+        ("PESO", _first(avaliacao, "peso", default="—")),
+        ("IMC", _first(avaliacao, "imc", default="—")),
+        ("% GORDURA", _first(avaliacao, "gordura", default="—")),
+        ("MASSA MAGRA", _first(avaliacao, "massa_magra", default="—")),
+    ]
+    leitura_cards = [
+        ("CLASSIFICACAO", _first(avaliacao, "classificacao", default="—")),
+        ("% GORDURA", _first(avaliacao, "gordura_nivel", default="—")),
+        ("MASSA GORDA", _first(avaliacao, "massa_gorda", default="—")),
+        ("PESO IDEAL", _first(avaliacao, "peso_ideal", default="—")),
+        ("RELACAO C/Q", _first(avaliacao, "relacao_cq", default="—")),
+        ("SOMA DAS DOBRAS", _first(avaliacao, "soma_dobras", default="—")),
+    ]
+    medidas_cards = [
+        ("TRICIPITAL", _first(avaliacao, "tricipital", default="—")),
+        ("SUBSCAPULAR", _first(avaliacao, "subscapular", default="—")),
+        ("SUPRAILIACA", _first(avaliacao, "suprailiaca", default="—")),
+        ("ABDOMINAL", _first(avaliacao, "abdominal", default="—")),
+        ("PEITORAL", _first(avaliacao, "peitoral", default="—")),
+        ("COXA", _first(avaliacao, "coxa", default="—")),
+        ("PERNA", _first(avaliacao, "perna", default="—")),
+        ("BRACO DIREITO", _first(avaliacao, "braco_direito", default="—")),
+        ("PEITORAL CIRC.", _first(avaliacao, "peitoral_circ", default="—")),
+        ("CINTURA", _first(avaliacao, "cintura", default="—")),
+        ("QUADRIL", _first(avaliacao, "quadril", default="—")),
+        ("COXA DIREITA", _first(avaliacao, "coxa_direita", default="—")),
+        ("PERNA DIREITA", _first(avaliacao, "perna_direita", default="—")),
+    ]
+
+    story = [
+        Paragraph(BRAND_NAME, styles["ConfieKicker"]),
+        Paragraph("LAUDO DE AVALIACAO FISICA", styles["ConfieTitle"]),
+        Paragraph(
+            f"<b>Aluno:</b> {aluno_nome}<br/><b>Data da avaliacao:</b> {_first(avaliacao, 'data', default='—')}<br/><b>Classificacao:</b> {_first(avaliacao, 'classificacao', default='—')}",
+            styles["ConfieBody"],
+        ),
+        Spacer(1, 8),
+    ]
+
+    summary_table = Table(
+        [[Paragraph(label, styles["ConfieCardLabel"]), Paragraph(value, styles["ConfieCardValue"])] for label, value in resumo_cards],
+        colWidths=[38 * mm, 43 * mm],
+    )
+    summary_table.setStyle(
+        TableStyle(
+            [
+                ("BOX", (0, 0), (-1, -1), 0.7, colors.HexColor("#dadde5")),
+                ("INNERGRID", (0, 0), (-1, -1), 0.7, colors.HexColor("#dadde5")),
+                ("BACKGROUND", (0, 0), (-1, -1), colors.white),
+                ("LEFTPADDING", (0, 0), (-1, -1), 7),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 7),
+                ("TOPPADDING", (0, 0), (-1, -1), 8),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+            ]
+        )
+    )
+    story.extend([summary_table, Spacer(1, 12)])
+
+    story.append(Paragraph("LEITURA CORPORAL", styles["ConfieSection"]))
+    leitura_rows = []
+    for index in range(0, len(leitura_cards), 2):
+        left = leitura_cards[index]
+        right = leitura_cards[index + 1] if index + 1 < len(leitura_cards) else ("", "")
+        leitura_rows.append(
+            [
+                Paragraph(f"<b>{left[0]}</b><br/>{left[1]}", styles["ConfieBody"]),
+                Paragraph(f"<b>{right[0]}</b><br/>{right[1]}", styles["ConfieBody"]) if right[0] else "",
+            ]
+        )
+    leitura_table = Table(leitura_rows, colWidths=[86 * mm, 86 * mm])
+    leitura_table.setStyle(
+        TableStyle(
+            [
+                ("BOX", (0, 0), (-1, -1), 0.7, colors.HexColor("#dadde5")),
+                ("INNERGRID", (0, 0), (-1, -1), 0.7, colors.HexColor("#dadde5")),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 8),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+                ("TOPPADDING", (0, 0), (-1, -1), 9),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 9),
+            ]
+        )
+    )
+    story.extend([leitura_table, Spacer(1, 12)])
+
+    story.append(Paragraph("DOBRAS E PERIMETROS", styles["ConfieSection"]))
+    medidas_rows = []
+    for index in range(0, len(medidas_cards), 2):
+        left = medidas_cards[index]
+        right = medidas_cards[index + 1] if index + 1 < len(medidas_cards) else ("", "")
+        medidas_rows.append(
+            [
+                Paragraph(f"<b>{left[0]}</b><br/>{left[1]}", styles["ConfieBody"]),
+                Paragraph(f"<b>{right[0]}</b><br/>{right[1]}", styles["ConfieBody"]) if right[0] else "",
+            ]
+        )
+    medidas_table = Table(medidas_rows, colWidths=[86 * mm, 86 * mm])
+    medidas_table.setStyle(
+        TableStyle(
+            [
+                ("BOX", (0, 0), (-1, -1), 0.7, colors.HexColor("#dadde5")),
+                ("INNERGRID", (0, 0), (-1, -1), 0.7, colors.HexColor("#dadde5")),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 8),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+                ("TOPPADDING", (0, 0), (-1, -1), 9),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 9),
+            ]
+        )
+    )
+    story.extend([medidas_table, Spacer(1, 12)])
+
+    observacoes = _first(avaliacao, "observacoes", default="")
+    if observacoes:
+        story.append(Paragraph("OBSERVACOES", styles["ConfieSection"]))
+        story.append(Paragraph(observacoes.replace("\n", "<br/>"), styles["ConfieBody"]))
+        story.append(Spacer(1, 10))
+
+    story.append(Paragraph("Documento gerado pela plataforma CONFIE Personal.", styles["ConfieSmall"]))
+    doc.build(story)
+    buffer.seek(0)
+    return buffer
+
+
+def _avaliacao_pdf_document(avaliacao: Dict[str, Any]) -> BytesIO:
+    from reportlab.lib.colors import HexColor
+    from reportlab.lib.pagesizes import A4
+    from reportlab.pdfbase.pdfmetrics import stringWidth
+    from reportlab.pdfgen import canvas
+
+    buffer = BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=A4)
+    pdf.setTitle("Laudo de Avaliação Física")
+    pdf.setAuthor(BRAND_NAME)
+
+    page_width, page_height = A4
+    orange = HexColor("#ff5a0a")
+    orange_light = HexColor("#ffb79d")
+    brown = HexColor("#a35b38")
+    black = HexColor("#111216")
+    muted = HexColor("#5d606b")
+    border = HexColor("#d4d7de")
+    line = HexColor("#111216")
+
+    aluno_nome = _first(avaliacao, "aluno_nome", default="Aluno")
+    data_avaliacao = _first(avaliacao, "data", default="—")
+    classificacao = _first(avaliacao, "classificacao", default="—")
+
+    def clean(value: Any, default: str = "—") -> str:
+        text = str(value if value is not None else "").strip()
+        if not text or text in {"â€”", "None"}:
+            return default
+        return text
+
+    def with_unit(value: Any, unit: str) -> str:
+        text = clean(value)
+        if text == "—":
+            return text
+        lower = text.lower()
+        if unit.lower() in lower or "%" in lower:
+            return text
+        return f"{text} {unit}"
+
+    def tracked(text: str) -> str:
+        return " ".join(str(text).upper())
+
+    def fit_font(text: str, font_name: str, size: float, max_width: float, min_size: float = 7) -> float:
+        current = size
+        while current > min_size and stringWidth(text, font_name, current) > max_width:
+            current -= 0.5
+        return current
+
+    def draw_wrapped_text(text: str, x: float, y: float, width: float, font_size: float, leading: float, color: Any = muted) -> None:
+        words = clean(text, "").split()
+        if not words:
+            return
+        pdf.setFillColor(color)
+        pdf.setFont("Helvetica", font_size)
+        current = ""
+        cursor_y = y
+        for word in words:
+            candidate = f"{current} {word}".strip()
+            if stringWidth(candidate, "Helvetica", font_size) <= width:
+                current = candidate
+                continue
+            pdf.drawString(x, cursor_y, current)
+            cursor_y -= leading
+            current = word
+        if current:
+            pdf.drawString(x, cursor_y, current)
+
+    def draw_chrome(page_number: int) -> None:
+        emitted_at = datetime.now().strftime("%d/%m/%Y, %H:%M")
+        pdf.setFillColor(black)
+        pdf.setFont("Helvetica", 8)
+        pdf.drawString(24, page_height - 22, emitted_at)
+        pdf.drawCentredString(page_width / 2, page_height - 22, "Laudo de Avaliação Física")
+        pdf.drawString(24, 18, "about:blank")
+        pdf.drawRightString(page_width - 24, 18, f"{page_number}/2")
+
+    def draw_box(x: float, y: float, width: float, height: float, stroke: Any = border, stroke_width: float = 0.7) -> None:
+        pdf.setStrokeColor(stroke)
+        pdf.setLineWidth(stroke_width)
+        pdf.rect(x, y, width, height, stroke=1, fill=0)
+
+    def draw_card(x: float, y: float, width: float, height: float, label: str, value: Any, value_size: float = 16) -> None:
+        draw_box(x, y, width, height)
+        pdf.setFillColor(muted)
+        pdf.setFont("Helvetica", 9)
+        label_lines = str(label).split("\n")
+        for index, label_line in enumerate(label_lines):
+            pdf.drawString(x + 12, y + height - 21 - (index * 11), tracked(label_line))
+
+        value_text = clean(value)
+        size = fit_font(value_text.replace("\n", " "), "Helvetica-Bold", value_size, width - 24, 8)
+        pdf.setFillColor(black)
+        pdf.setFont("Helvetica-Bold", size)
+        value_y = y + 18 if len(label_lines) == 1 else y + 16
+        if "\n" in value_text:
+            parts = value_text.split("\n")
+            for index, part in enumerate(parts):
+                pdf.drawString(x + 12, value_y + (len(parts) - index - 1) * (size + 1), part)
+        else:
+            if len(label_lines) > 1:
+                value_y = y + 11
+            pdf.drawString(x + 12, value_y, value_text)
+
+    def draw_table_box(x: float, y: float, width: float, height: float, title: str, rows: List[tuple[str, str]]) -> None:
+        draw_box(x, y, width, height)
+        pdf.setFillColor(black)
+        pdf.setFont("Helvetica-Bold", 18)
+        pdf.drawString(x + 13, y + height - 29, title)
+        pdf.setFillColor(muted)
+        pdf.setFont("Helvetica-Bold", 8.5)
+        pdf.drawString(x + 13, y + height - 60, tracked("Medida"))
+        pdf.drawString(x + width * 0.62, y + height - 60, tracked("Valor"))
+        cursor_y = y + height - 70
+        pdf.setStrokeColor(line)
+        pdf.setLineWidth(0.7)
+        pdf.line(x + 13, cursor_y, x + width - 13, cursor_y)
+        pdf.setFillColor(black)
+        pdf.setFont("Helvetica", 12.5)
+        for label, value in rows:
+            cursor_y -= 19
+            pdf.drawString(x + 13, cursor_y, label)
+            pdf.drawString(x + width * 0.62, cursor_y, clean(value))
+            pdf.line(x + 13, cursor_y - 8, x + width - 13, cursor_y - 8)
+
+    resumo_cards = [
+        ("PESO", with_unit(_first(avaliacao, "peso", default="—"), "kg")),
+        ("IMC", _first(avaliacao, "imc", default="—")),
+        ("% GORDURA", _first(avaliacao, "gordura", default="—")),
+        ("MASSA MAGRA", with_unit(_first(avaliacao, "massa_magra", default="—"), "kg")),
+    ]
+    leitura_cards = [
+        ("CLASSIFICAÇÃO", classificacao),
+        ("% GORDURA", _first(avaliacao, "gordura_nivel", "classificacao_gordura", default="—")),
+        ("MASSA GORDA", with_unit(_first(avaliacao, "massa_gorda", default="—"), "kg")),
+        ("PESO IDEAL", with_unit(_first(avaliacao, "peso_ideal", default="—"), "kg")),
+        ("RELAÇÃO C/Q", _first(avaliacao, "relacao_cq", default="—")),
+        ("SOMA DE\nDOBRAS", with_unit(_first(avaliacao, "soma_dobras", default="—"), "mm")),
+    ]
+    dobras = [
+        ("Tricipital", with_unit(_first(avaliacao, "tricipital", default="—"), "mm")),
+        ("Subscapular", with_unit(_first(avaliacao, "subscapular", default="—"), "mm")),
+        ("Suprailíaca", with_unit(_first(avaliacao, "suprailiaca", default="—"), "mm")),
+        ("Abdominal", with_unit(_first(avaliacao, "abdominal", default="—"), "mm")),
+        ("Peitoral", with_unit(_first(avaliacao, "peitoral", default="—"), "mm")),
+        ("Coxa", with_unit(_first(avaliacao, "coxa", default="—"), "mm")),
+        ("Perna", with_unit(_first(avaliacao, "perna", default="—"), "mm")),
+    ]
+    circunferencias = [
+        ("Braço direito", with_unit(_first(avaliacao, "braco_direito", default="—"), "cm")),
+        ("Peitoral", with_unit(_first(avaliacao, "peitoral_circ", "peitoral_circunferencia", default="—"), "cm")),
+        ("Cintura", with_unit(_first(avaliacao, "cintura", default="—"), "cm")),
+        ("Quadril", with_unit(_first(avaliacao, "quadril", default="—"), "cm")),
+        ("Coxa direita", with_unit(_first(avaliacao, "coxa_direita", default="—"), "cm")),
+        ("Perna direita", with_unit(_first(avaliacao, "perna_direita", default="—"), "cm")),
+    ]
+
+    draw_chrome(1)
+    draw_box(34, 585, 528, 222)
+    pdf.setFillColor(orange)
+    pdf.setFont("Helvetica-Bold", 11)
+    pdf.drawString(56, 775, "C O N F I E  P E R S O N A L")
+    draw_box(275, 760, 266, 25, orange_light, 0.7)
+    pdf.setFillColor(brown)
+    header_title = "L A U D O  P R O F I S S I O N A L  D E  A V A L I A Ç Ã O  F Í S I C A"
+    pdf.setFont("Helvetica-Bold", fit_font(header_title, "Helvetica-Bold", 9.5, 244, 7))
+    pdf.drawCentredString(408, 769.5, header_title)
+    pdf.setFillColor(black)
+    aluno_size = fit_font(str(aluno_nome).upper(), "Helvetica-Bold", 28, 430, 18)
+    pdf.setFont("Helvetica-Bold", aluno_size)
+    pdf.drawString(56, 723, str(aluno_nome).upper())
+    pdf.setFillColor(muted)
+    pdf.setFont("Helvetica", 12)
+    pdf.drawString(56, 702, f"Data da avaliação: {data_avaliacao} • Classificação: {classificacao}")
+
+    for index, (label, value) in enumerate(resumo_cards):
+        draw_card([56, 180, 304, 428][index], 607, 114, 82, label, value, 18)
+
+    draw_box(34, 314, 306, 261)
+    pdf.setFillColor(black)
+    pdf.setFont("Helvetica-Bold", 18)
+    pdf.drawString(47, 546, "DESTAQUES DA AVALIAÇÃO")
+    for position, (label, value) in zip([(47, 471), (192, 471), (47, 404), (192, 404), (47, 337), (192, 337)], leitura_cards):
+        draw_card(position[0], position[1], 135, 57, label, value, 14)
+
+    draw_box(352, 314, 210, 261)
+    pdf.setFillColor(black)
+    pdf.setFont("Helvetica-Bold", 18)
+    pdf.drawString(365, 546, "FICHA BASE")
+    draw_card(365, 452, 72, 77, "IDADE", with_unit(_first(avaliacao, "idade", default="—"), "anos"), 15)
+    draw_card(446, 452, 103, 77, "SEXO", _first(avaliacao, "sexo", default="Masculino"), 15)
+    draw_card(365, 366, 72, 77, "ALTURA", with_unit(_first(avaliacao, "altura", "estatura", default="—"), "cm"), 15)
+    draw_card(446, 366, 103, 77, "PESO", with_unit(_first(avaliacao, "peso", default="—"), "kg"), 15)
+
+    pdf.showPage()
+    draw_chrome(2)
+    draw_table_box(34, 545, 258, 252, "DOBRAS CUTÂNEAS", dobras)
+    draw_table_box(304, 545, 258, 252, "CIRCUNFERÊNCIAS", circunferencias)
+
+    draw_box(34, 397, 258, 135)
+    pdf.setFillColor(muted)
+    pdf.setFont("Helvetica", 9)
+    pdf.drawString(48, 510, tracked("Responsável técnico"))
+    pdf.setFillColor(black)
+    pdf.setFont("Helvetica-Bold", 18)
+    pdf.drawString(48, 482, "CONFIE Personal")
+    pdf.setStrokeColor(muted)
+    pdf.setLineWidth(0.7)
+    pdf.line(48, 444, 278, 444)
+    pdf.setFillColor(muted)
+    pdf.setFont("Helvetica", 10.5)
+    pdf.drawString(48, 426, "Assinatura / carimbo profissional")
+
+    draw_box(304, 397, 258, 135)
+    pdf.setFillColor(muted)
+    pdf.setFont("Helvetica", 9)
+    pdf.drawString(318, 510, tracked("Entrega do laudo"))
+    draw_wrapped_text(
+        "Documento gerado para acompanhamento da evolução física e apoio ao planejamento de treino.",
+        318,
+        490,
+        212,
+        12,
+        14,
+        muted,
+    )
+    pdf.setStrokeColor(muted)
+    pdf.line(318, 431, 548, 431)
+    pdf.setFillColor(muted)
+    pdf.setFont("Helvetica", 10.5)
+    pdf.drawString(318, 413, f"Data de emissão: {data_avaliacao}")
+
+    pdf.setStrokeColor(line)
+    pdf.setLineWidth(0.8)
+    pdf.line(34, 382, 562, 382)
+    draw_wrapped_text(
+        "Este laudo resume as principais métricas coletadas na avaliação física e deve ser interpretado em conjunto com o histórico do aluno, objetivos e acompanhamento profissional.",
+        34,
+        363,
+        528,
+        10,
+        15,
+        muted,
+    )
+
+    pdf.save()
+    buffer.seek(0)
+    return buffer
 
 
 def _get_or_create_muscle_group_id(nome: Any) -> Optional[str]:
@@ -1265,7 +1797,10 @@ def _messages_for_student(contact_id: Optional[str]) -> Dict[str, Any]:
 
 def _payment_rows() -> List[Dict[str, Any]]:
     rows = _optional_rows(TABLE_PAGAMENTOS, order="data_parcela", desc=True)
-    alunos_por_id = {row["id"]: row for row in _students()}
+    alunos = _students()
+    planos = _plans()
+    alunos_por_id = {row["id"]: row for row in alunos}
+    planos_por_aluno = {row["id"]: row["planos"] for row in _student_plan_rows(alunos, planos)}
     if not rows:
         return [
             {
@@ -1273,6 +1808,8 @@ def _payment_rows() -> List[Dict[str, Any]]:
                 "aluno_id": aluno["id"],
                 "aluno_nome": aluno["nome"],
                 "email": aluno["email"],
+                "planos": planos_por_aluno.get(aluno["id"], []),
+                "plano_resumo": ", ".join(plano["nome"] for plano in planos_por_aluno.get(aluno["id"], [])) or "Sem plano",
                 "valor": 0,
                 "status": "pendente",
                 "status_label": "Pendente",
@@ -1285,6 +1822,8 @@ def _payment_rows() -> List[Dict[str, Any]]:
     normalized: List[Dict[str, Any]] = []
     for row in rows:
         aluno_ref = alunos_por_id.get(_first(row, "aluno_id", default=""), {})
+        aluno_id = _first(row, "aluno_id", default="")
+        planos_aluno = planos_por_aluno.get(aluno_id, [])
         status = _payment_status_slug(_first(row, "status_parcela", "status", "status_pagamento", default="pendente"))
         normalized.append(
             {
@@ -1292,6 +1831,8 @@ def _payment_rows() -> List[Dict[str, Any]]:
                 "id": row.get("id", ""),
                 "aluno_nome": _first(row, "aluno_nome", default=aluno_ref.get("nome", "Aluno")),
                 "email": _first(row, "email", default=aluno_ref.get("email", "")),
+                "planos": planos_aluno,
+                "plano_resumo": ", ".join(plano["nome"] for plano in planos_aluno) or "Sem plano",
                 "status": status,
                 "status_label": _human_status(status).upper(),
                 "status_color": "paid" if status == "pago" else "pending" if status == "pendente" else "late",
@@ -1325,6 +1866,48 @@ def _plans() -> List[Dict[str, Any]]:
             }
         )
     return normalized
+
+
+def _student_plan_rows(alunos: List[Dict[str, Any]], planos: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    planos_por_id = {str(plano.get("id", "")): plano for plano in planos}
+    rows: List[Dict[str, Any]] = []
+    for aluno in alunos:
+        linked_plan_ids: List[str] = []
+        raw_values = [
+            _first(aluno, "plano_id", default=""),
+            aluno.get("plano") if str(aluno.get("plano", "")).strip() in planos_por_id else "",
+            _first(aluno, "planos", "planos_ids", "plano_ids", default=[]),
+        ]
+        for raw_value in raw_values:
+            values = raw_value if isinstance(raw_value, list) else [raw_value]
+            for value in values:
+                plan_id = str(value or "").strip()
+                if plan_id and plan_id not in linked_plan_ids:
+                    linked_plan_ids.append(plan_id)
+
+        for plano in planos:
+            aluno_id = str(_first(plano, "aluno_id", default="")).strip()
+            if aluno_id and aluno_id == str(aluno.get("id", "")) and str(plano.get("id", "")) not in linked_plan_ids:
+                linked_plan_ids.append(str(plano.get("id", "")))
+
+        linked_plans: List[Dict[str, Any]] = []
+        for plan_id in linked_plan_ids:
+            plano_ref = planos_por_id.get(plan_id)
+            if plano_ref:
+                linked_plans.append(plano_ref)
+            elif plan_id and plan_id.lower() not in {"nao definido", "não definido"}:
+                linked_plans.append({"id": plan_id, "nome": plan_id, "preco": "", "periodo": ""})
+
+        rows.append(
+            {
+                "id": aluno.get("id", ""),
+                "nome": aluno.get("nome", "Aluno"),
+                "email": aluno.get("email", ""),
+                "planos": linked_plans,
+                "total_planos": len(linked_plans),
+            }
+        )
+    return rows
 
 
 def _db_plan_options() -> List[Dict[str, Any]]:
@@ -1608,20 +2191,60 @@ def alunos():
         if csrf_error:
             flash(csrf_error, "error")
             return redirect(url_for("alunos"))
+        nome = request.form.get("nome", "").strip()
+        email = request.form.get("email", "").strip().lower()
+        senha_inicial = request.form.get("senha", "").strip()
+        criar_login = request.form.get("criar_login") == "1"
+        status_aluno = _slug_status(request.form.get("status") or "ativo")
+        if status_aluno not in {"ativo", "inativo"}:
+            status_aluno = "ativo"
+        if criar_login and not email:
+            flash("Para criar login para o aluno, informe um email.", "error")
+            return redirect(url_for("alunos") + "#novo-aluno")
+        if criar_login:
+            existing = _find_user_by_email(email)
+            if existing["ok"] and existing["data"]:
+                flash("Ja existe um usuario com esse email. Use outro email para criar o login do aluno.", "error")
+                return redirect(url_for("alunos") + "#novo-aluno")
         plano_id = _resolve_plan_id(request.form.get("plano"))
         payload = {
-            "nome": request.form.get("nome"),
-            "email": request.form.get("email"),
+            "nome": nome,
+            "email": email,
             "telefone": request.form.get("telefone"),
             "objetivo": request.form.get("objetivo"),
             "data_nascimento": request.form.get("data_nascimento") or request.form.get("nascimento"),
             "experiencias_anteriores": request.form.get("experiencias_anteriores"),
             "restricoes_fisicas": request.form.get("restricoes_fisicas"),
-            "status": request.form.get("status") or "ativo",
+            "status": status_aluno,
             "plano": plano_id,
         }
         result = _insert(TABLE_ALUNOS, payload)
-        flash("Aluno criado com sucesso." if result["ok"] else (result["error"] or "Nao foi possivel criar o aluno."), "success" if result["ok"] else "error")
+        if not result["ok"]:
+            flash(result["error"] or "Nao foi possivel criar o aluno.", "error")
+            return redirect(url_for("alunos"))
+        if criar_login:
+            login_password = senha_inicial or "1111"
+            user_payload = {
+                "nome": nome,
+                "email": email,
+                "tipo_conta": "Aluno",
+                "nascimento": request.form.get("data_nascimento") or request.form.get("nascimento"),
+                "senha_hash": generate_password_hash(login_password),
+            }
+            user_result = _insert(TABLE_USUARIOS, user_payload)
+            if not user_result["ok"]:
+                flash(
+                    "Aluno criado, mas nao foi possivel criar o login. "
+                    + (user_result["error"] or "Verifique a tabela de usuarios."),
+                    "error",
+                )
+                return redirect(url_for("alunos"))
+            if senha_inicial:
+                flash("Aluno criado com sucesso e login liberado.", "success")
+            else:
+                flash("Aluno criado com sucesso. Como a senha ficou em branco, o login inicial foi definido como 1111.", "success")
+            return redirect(url_for("alunos"))
+        flash("Aluno criado com sucesso.", "success")
         return redirect(url_for("alunos"))
 
     search = request.args.get("busca", "").strip().lower()
@@ -1635,7 +2258,7 @@ def alunos():
         form = {
             **aluno_edicao,
             "plano": aluno_edicao.get("plano_id", ""),
-            "status": _slug_status(aluno_edicao.get("status", "ativo")),
+            "status": _slug_status(aluno_edicao.get("status", "ativo")) if _slug_status(aluno_edicao.get("status", "ativo")) in {"ativo", "inativo"} else "ativo",
         }
     return render_template(
         "alunos.html",
@@ -1684,12 +2307,15 @@ def editar_aluno(aluno_id: str):
         if csrf_error:
             flash(csrf_error, "error")
             return redirect(url_for("editar_aluno", aluno_id=aluno_id))
+        status_aluno = _slug_status(request.form.get("status") or "ativo")
+        if status_aluno not in {"ativo", "inativo"}:
+            status_aluno = "ativo"
         payload = {
             "nome": request.form.get("nome"),
             "email": request.form.get("email"),
             "telefone": request.form.get("telefone"),
             "objetivo": request.form.get("objetivo"),
-            "status": request.form.get("status"),
+            "status": status_aluno,
             "plano": _resolve_plan_id(request.form.get("plano")),
         }
         result = _update(TABLE_ALUNOS, aluno_id, payload)
@@ -1719,17 +2345,21 @@ def excluir_aluno(aluno_id: str):
 def treinos():
     alunos_lista = _students()
     aluno_id = request.args.get("aluno_id", "")
+    treino_visualizacao_id = request.args.get("visualizar_treino_id", "")
     treino_edicao_id = request.args.get("editar_treino_id", "")
     treino_exclusao_id = request.args.get("excluir_treino_id", "")
     aluno_selecionado = next((aluno for aluno in alunos_lista if aluno["id"] == aluno_id), None)
     treinos_lista = _trainings(aluno_selecionado["id"]) if aluno_selecionado else []
+    treino_visualizacao = next((treino for treino in treinos_lista if treino["id"] == treino_visualizacao_id), {})
     treino_edicao = next((treino for treino in treinos_lista if treino["id"] == treino_edicao_id), {})
     treino_exclusao = next((treino for treino in treinos_lista if treino["id"] == treino_exclusao_id), {})
     return render_template(
         "treinos.html",
         alunos=alunos_lista,
+        exercicios=_exercises(),
         aluno_selecionado=aluno_selecionado,
         treinos=treinos_lista,
+        treino_visualizacao=treino_visualizacao,
         treino_edicao=treino_edicao,
         treino_exclusao=treino_exclusao,
         url_treinos_aluno_base="/treinos/aluno",
@@ -1760,7 +2390,7 @@ def visualizar_treino(treino_id: str):
     if not treino:
         flash("Treino nao encontrado.", "error")
         return redirect(url_for("treinos"))
-    return redirect(url_for("treinos", aluno_id=treino.get("aluno_id", ""), editar_treino_id=treino_id) + "#editar-treino-modal")
+    return redirect(url_for("treinos", aluno_id=treino.get("aluno_id", ""), visualizar_treino_id=treino_id) + "#visualizar-treino-modal")
 
 
 @app.get("/treinos/visualizar")
@@ -1795,16 +2425,33 @@ def criar_treino():
     if csrf_error:
         flash(csrf_error, "error")
         return redirect(url_for("treinos"))
-    result = _insert(
-        TABLE_TREINOS,
-        {
-            "descricao": request.form.get("nome"),
-            "aluno_id": request.form.get("aluno_id"),
-            "observacao": request.form.get("exercicios_raw") or request.form.get("observacoes"),
-            "data_criacao": datetime.utcnow().date().isoformat(),
-            "created_at": datetime.utcnow().isoformat(),
-        },
-    )
+    exercicios_raw = request.form.get("exercicios_raw") or ""
+    exercicios = [item.strip() for item in exercicios_raw.replace("\r", "\n").replace(";", "\n").split("\n") if item.strip()]
+    payload = {
+        "nome": request.form.get("nome"),
+        "aluno_id": request.form.get("aluno_id"),
+        "observacoes": request.form.get("observacoes"),
+        "exercicios_raw": exercicios_raw,
+        "exercicios": exercicios,
+        "created_at": datetime.utcnow().isoformat(),
+    }
+    result = _insert(TABLE_TREINOS, payload)
+    if not result["ok"] and (
+        _missing_column_error(result["error"], "nome")
+        or _missing_column_error(result["error"], "exercicios")
+        or _missing_column_error(result["error"], "exercicios_raw")
+        or _missing_column_error(result["error"], "observacoes")
+    ):
+        result = _insert(
+            TABLE_TREINOS,
+            {
+                "descricao": request.form.get("nome"),
+                "aluno_id": request.form.get("aluno_id"),
+                "observacao": exercicios_raw or request.form.get("observacoes"),
+                "data_criacao": datetime.utcnow().date().isoformat(),
+                "created_at": datetime.utcnow().isoformat(),
+            },
+        )
     flash("Treino criado com sucesso." if result["ok"] else (result["error"] or "Nao foi possivel criar o treino."), "success" if result["ok"] else "error")
     return redirect(request.form.get("origem_url") or url_for("treinos", aluno_id=request.form.get("aluno_id", "")))
 
@@ -1817,15 +2464,31 @@ def editar_treino(treino_id: str):
     if csrf_error:
         flash(csrf_error, "error")
         return redirect(url_for("treinos"))
-    result = _update(
-        TABLE_TREINOS,
-        treino_id,
-        {
-            "descricao": request.form.get("nome"),
-            "aluno_id": request.form.get("aluno_id"),
-            "observacao": request.form.get("exercicios_raw") or request.form.get("observacoes"),
-        },
-    )
+    exercicios_raw = request.form.get("exercicios_raw") or ""
+    exercicios = [item.strip() for item in exercicios_raw.replace("\r", "\n").replace(";", "\n").split("\n") if item.strip()]
+    payload = {
+        "nome": request.form.get("nome"),
+        "aluno_id": request.form.get("aluno_id"),
+        "observacoes": request.form.get("observacoes"),
+        "exercicios_raw": exercicios_raw,
+        "exercicios": exercicios,
+    }
+    result = _update(TABLE_TREINOS, treino_id, payload)
+    if not result["ok"] and (
+        _missing_column_error(result["error"], "nome")
+        or _missing_column_error(result["error"], "exercicios")
+        or _missing_column_error(result["error"], "exercicios_raw")
+        or _missing_column_error(result["error"], "observacoes")
+    ):
+        result = _update(
+            TABLE_TREINOS,
+            treino_id,
+            {
+                "descricao": request.form.get("nome"),
+                "aluno_id": request.form.get("aluno_id"),
+                "observacao": exercicios_raw or request.form.get("observacoes"),
+            },
+        )
     flash("Treino atualizado com sucesso." if result["ok"] else (result["error"] or "Nao foi possivel atualizar o treino."), "success" if result["ok"] else "error")
     return redirect(url_for("treinos", aluno_id=request.form.get("aluno_id", "")))
 
@@ -2044,6 +2707,27 @@ def avaliacoes():
         csrf_form_token=_csrf_token,
         **_personal_context("avaliacoes"),
     )
+
+
+@app.get("/avaliacoes/<avaliacao_id>/pdf")
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def exportar_avaliacao_pdf(avaliacao_id: str):
+    result = _select_one(TABLE_AVALIACOES, avaliacao_id)
+    if not result["ok"] or not result["data"]:
+        flash("Avaliacao nao encontrada.", "error")
+        return redirect(url_for("avaliacoes"))
+    avaliacao = next((item for item in _assessments(_first(result["data"], "aluno_id", default=None)) if item.get("id") == avaliacao_id), None)
+    if not avaliacao:
+        flash("Nao foi possivel montar o laudo da avaliacao.", "error")
+        return redirect(url_for("avaliacoes"))
+    try:
+        pdf_buffer = _avaliacao_pdf_document(avaliacao)
+    except ModuleNotFoundError:
+        flash("A biblioteca de PDF ainda nao esta instalada. Rode pip install -r requirements.txt.", "error")
+        return redirect(url_for("avaliacoes", aluno_id=avaliacao.get("aluno_id", "")))
+    filename = f"laudo-avaliacao-{_safe_pdf_filename(avaliacao.get('aluno_nome'))}-{_safe_pdf_filename(avaliacao.get('data'))}.pdf"
+    return send_file(pdf_buffer, mimetype="application/pdf", as_attachment=True, download_name=filename)
 
 
 @app.route("/evolucao", methods=["GET", "POST"])
@@ -2347,6 +3031,7 @@ def upload_mensagem_redirect():
 def financeiro():
     pagamentos = _payment_rows()
     planos = _plans()
+    alunos = _students()
     plano_edicao_id = request.args.get("editar_plano_id", "")
     plano_edicao = next((plano for plano in planos if str(plano.get("id")) == str(plano_edicao_id)), {})
     receita = sum(_to_float(_first(item, "valor", default=0)) or 0 for item in pagamentos if item.get("status") == "pago")
@@ -2354,6 +3039,8 @@ def financeiro():
         "financeiro.html",
         pagamentos=pagamentos,
         planos=planos,
+        alunos=alunos,
+        alunos_planos=_student_plan_rows(alunos, planos),
         plano_edicao=plano_edicao,
         receita_estimada=_currency(receita),
         receita_descricao="Recebimentos registrados",
@@ -2418,7 +3105,24 @@ def criar_plano():
     if not result["ok"] and _missing_column_error(result["error"], "duracao_dias"):
         payload.pop("duracao_dias", None)
         result = _insert(TABLE_PLANOS, payload)
-    flash("Plano criado com sucesso." if result["ok"] else _plan_table_error_message(result["error"]), "success" if result["ok"] else "error")
+    aluno_ids = request.form.getlist("aluno_ids")
+    legacy_aluno_id = request.form.get("aluno_id", "")
+    if legacy_aluno_id and legacy_aluno_id not in aluno_ids:
+        aluno_ids.append(legacy_aluno_id)
+    alunos_vinculados = True
+    if result["ok"] and aluno_ids:
+        plano_criado = result["data"][0] if result.get("data") else {}
+        plano_id = plano_criado.get("id")
+        if plano_id:
+            for aluno_id in aluno_ids:
+                vinculo = _update(TABLE_ALUNOS, aluno_id, {"plano": plano_id})
+                if not vinculo["ok"] and _missing_column_error(vinculo["error"], "plano"):
+                    vinculo = _update(TABLE_ALUNOS, aluno_id, {"plano_id": plano_id})
+                alunos_vinculados = alunos_vinculados and vinculo["ok"]
+    if result["ok"] and aluno_ids and not alunos_vinculados:
+        flash("Plano criado, mas nao foi possivel vincular todos os alunos selecionados.", "error")
+    else:
+        flash("Plano criado com sucesso." if result["ok"] else _plan_table_error_message(result["error"]), "success" if result["ok"] else "error")
     return redirect(url_for("financeiro"))
 
 
@@ -2576,6 +3280,7 @@ def aluno_meu_treino():
         retorno_treinos_destino=url_for("aluno_meu_treino"),
         aluno_treino_detalhe_base="/aluno/meu-treino",
         iniciar_treino_base="/aluno/treino",
+        aluno_treino_execucao_url_base="/aluno/treino",
         **_student_context("meu_treino"),
     )
 
@@ -2587,6 +3292,9 @@ def aluno_meu_treino():
 def iniciar_treino_aluno_redirect():
     aluno = _current_student_row() or {}
     treinos_lista = _trainings(aluno.get("id"))
+    treino_id = request.args.get("treino_id", "")
+    if treino_id and any(item["id"] == treino_id for item in treinos_lista):
+        return redirect(url_for("aluno_treino_execucao", treino_id=treino_id))
     if treinos_lista:
         return redirect(url_for("aluno_treino_execucao", treino_id=treinos_lista[0]["id"]))
     return redirect(url_for("aluno_meu_treino"))
@@ -2611,7 +3319,9 @@ def aluno_treino_execucao(treino_id: str):
         treino_id=treino_id,
         exercicios=exercicios,
         registrar_serie_destino=url_for("registrar_serie_treino", treino_id=treino_id),
+        registrar_serie_url=url_for("registrar_serie_treino", treino_id=treino_id),
         concluir_treino_destino=url_for("concluir_treino_execucao", treino_id=treino_id),
+        concluir_treino_url=url_for("concluir_treino_execucao", treino_id=treino_id),
         treino_proximo_destino="",
         retorno_treinos_destino=url_for("aluno_meu_treino"),
         **_student_context("meu_treino"),
@@ -2726,7 +3436,8 @@ def aluno_mensagens_upload_redirect():
 @role_required("Aluno")
 def evolucao_aluno():
     aluno = _current_student_row() or {}
-    historico = _assessments(aluno.get("id"))
+    aluno_id = str(aluno.get("id") or "").strip()
+    historico = _assessments(aluno_id) if aluno_id else []
     ultima = historico[0] if historico else {}
     anterior = historico[1] if len(historico) > 1 else {}
     variacao = {
@@ -2753,19 +3464,74 @@ def evolucao_aluno():
         total_avaliacoes=len(historico),
         resumo_avaliacao=ultima,
         variacao=variacao,
+        aluno_sincronizado=bool(aluno_id),
+        aviso_sincronizacao="" if aluno_id else "Seu login ainda não está vinculado a um aluno cadastrado. Use o mesmo email do cadastro do aluno para sincronizar a evolução.",
         **_student_context("evolucao"),
     )
 
 
-@app.get("/configuracoes")
-@app.get("/configuracoes.html")
+@app.route("/configuracoes", methods=["GET", "POST"])
+@app.route("/configuracoes.html", methods=["GET", "POST"])
 @login_required
 def configuracoes():
     role = str(session.get("user_role", "")).strip().lower()
     if role == "aluno":
         return redirect(url_for("aluno_dashboard"))
+    usuario = _current_user_row() or {}
+    google_calendar = _google_calendar_context()
+    defaults = {
+        "nome_marca": marca_nome if (marca_nome := BRAND_NAME) else "CONFIE Personal",
+        "botao_principal": "Comecar agora",
+        "titulo_topo": "Transforme",
+        "titulo_destaque": "Seu Treino",
+        "botao_secundario": "Entrar",
+        "rodape": "© 2026 CONFIE Personal. Todos os direitos reservados.",
+        "subtitulo": "Plataforma completa para Personal Trainers gerenciarem alunos, treinos e agendas em um so lugar",
+        "apresentacao_nome": "Diogo Bezzi Jaeger",
+        "apresentacao_resumo": "Bacharel e licenciado em Educacao Fisica desde 2014, com atuacao voltada para saude, performance e acompanhamento individualizado.",
+        "especialidades": "Musculacao, Futebol, Futsal, Natacao e Ginastica Laboral",
+        "formacao_atual": "Resistance Training Specialist (RTS)",
+        "mostrar_apresentacao": True,
+        "mostrar_planos": True,
+        "mostrar_recursos": True,
+    }
+    config = dict(defaults)
+    if request.method == "POST":
+        csrf_error = _require_csrf()
+        if csrf_error:
+            flash(csrf_error, "error")
+        else:
+            if request.form.get("acao") == "restaurar":
+                flash("Configuracoes restauradas para os valores padrao.", "success")
+                return redirect(url_for("configuracoes"))
+            config.update(
+                {
+                    "nome_marca": request.form.get("nome_marca", defaults["nome_marca"]).strip() or defaults["nome_marca"],
+                    "botao_principal": request.form.get("botao_principal", defaults["botao_principal"]).strip() or defaults["botao_principal"],
+                    "titulo_topo": request.form.get("titulo_topo", defaults["titulo_topo"]).strip() or defaults["titulo_topo"],
+                    "titulo_destaque": request.form.get("titulo_destaque", defaults["titulo_destaque"]).strip() or defaults["titulo_destaque"],
+                    "botao_secundario": request.form.get("botao_secundario", defaults["botao_secundario"]).strip() or defaults["botao_secundario"],
+                    "rodape": request.form.get("rodape", defaults["rodape"]).strip() or defaults["rodape"],
+                    "subtitulo": request.form.get("subtitulo", defaults["subtitulo"]).strip() or defaults["subtitulo"],
+                    "apresentacao_nome": request.form.get("apresentacao_nome", defaults["apresentacao_nome"]).strip() or defaults["apresentacao_nome"],
+                    "apresentacao_resumo": request.form.get("apresentacao_resumo", defaults["apresentacao_resumo"]).strip() or defaults["apresentacao_resumo"],
+                    "especialidades": request.form.get("especialidades", defaults["especialidades"]).strip() or defaults["especialidades"],
+                    "formacao_atual": request.form.get("formacao_atual", defaults["formacao_atual"]).strip() or defaults["formacao_atual"],
+                    "mostrar_apresentacao": request.form.get("mostrar_apresentacao") == "on",
+                    "mostrar_planos": request.form.get("mostrar_planos") == "on",
+                    "mostrar_recursos": request.form.get("mostrar_recursos") == "on",
+                }
+            )
+            flash("Previa atualizada. Quando quiser, a persistencia pode ser ligada ao banco.", "success")
     return render_template(
         "configuracoes.html",
+        page_title="CONFIE - Configuracoes",
+        usuario_email=_first(usuario, "email", default=_session_user().get("email", "")),
+        usuario_tipo_conta=_first(usuario, "tipo_conta", default="Personal Trainer"),
+        usuario_nascimento=_fmt_date(_first(usuario, "nascimento", default="")) or "Nao informado",
+        google_calendar=google_calendar,
+        google_calendar_preview=google_calendar.get("events", [])[:3],
+        config=config,
         **_personal_context("configuracoes"),
     )
 

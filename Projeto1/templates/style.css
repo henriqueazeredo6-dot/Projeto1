@@ -1158,12 +1158,15 @@ select:focus {
     border: 1px solid rgba(255, 255, 255, 0.05);
     background: rgba(7, 8, 12, 0.82);
     padding: 1.15rem 1rem 1rem;
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .student-card-header {
     display: flex;
     align-items: center;
     gap: 0.95rem;
+    min-width: 0;
 }
 
 .student-avatar {
@@ -1189,17 +1192,23 @@ select:focus {
     margin-top: 0.2rem;
     color: #666c77;
     font-size: 0.9rem;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 .student-card-body {
     margin-top: 0.9rem;
     display: grid;
     gap: 0.35rem;
+    min-width: 0;
 }
 
 .student-card-body p {
     color: #b2b7c1;
     font-size: 0.9rem;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    white-space: pre-wrap;
 }
 
 .student-card-body strong {
@@ -1334,12 +1343,14 @@ select:focus {
     margin-top: 1.2rem;
     display: grid;
     gap: 0.9rem;
+    min-width: 0;
 }
 
 .agenda-card {
     border: 1px solid rgba(255, 255, 255, 0.08);
     background: rgba(17, 17, 22, 0.96);
     padding: 1.15rem 1.15rem 1.2rem;
+    min-width: 0;
 }
 
 .agenda-card-empty h2 {
@@ -1358,6 +1369,7 @@ select:focus {
     align-items: flex-start;
     justify-content: space-between;
     gap: 1rem;
+    min-width: 0;
 }
 
 .agenda-card-header h2 {
@@ -1790,6 +1802,7 @@ select:focus {
     grid-template-columns: minmax(0, 1.75fr) minmax(320px, 1fr);
     gap: 1rem;
     align-items: start;
+    min-width: 0;
 }
 
 .avaliacao-hero-card {
