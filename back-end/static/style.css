@@ -2592,6 +2592,14 @@ select:-webkit-autofill:focus {
     grid-template-rows: auto 1fr auto;
 }
 
+.page-mensagens .mensagens-thread {
+    min-height: clamp(30rem, calc(100vh - 11rem), 44rem);
+    max-height: calc(100vh - 8.5rem);
+    position: sticky;
+    top: 1rem;
+    overflow: hidden;
+}
+
 .mensagens-thread-header {
     display: grid;
     grid-template-columns: auto 1fr;
@@ -2608,6 +2616,13 @@ select:-webkit-autofill:focus {
     align-content: start;
     gap: 0.8rem;
     min-width: 0;
+}
+
+.page-mensagens .mensagens-thread-body {
+    min-height: 0;
+    padding-bottom: 1rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
 }
 
 .mensagens-thread-empty {
@@ -2670,6 +2685,13 @@ select:-webkit-autofill:focus {
     margin: 0;
     padding: 0.9rem 1rem 1rem;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.page-mensagens .mensagens-thread-form {
+    background: rgba(17, 17, 22, 0.98);
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
 }
 
 .mensagens-form-row {
