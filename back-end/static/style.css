@@ -943,7 +943,7 @@ select:-webkit-autofill:focus {
     font-size: 1.08rem;
     font-weight: 700;
     letter-spacing: 0;
-    text-transform: none;
+    text-transform: uppercase;
     line-height: 1.25;
     color: #ffffff;
 }
@@ -2803,10 +2803,13 @@ select:-webkit-autofill:focus {
 .anamnese-sidebar-title,
 .anamnese-form-title {
     margin-bottom: 0.85rem;
-    font-family: var(--title-font);
-    font-size: 1.35rem;
+    font-family: inherit;
+    font-size: 1.22rem;
+    font-weight: 800;
+    letter-spacing: 0;
     text-transform: uppercase;
-    line-height: 1;
+    line-height: 1.2;
+    color: #ffffff;
 }
 
 .anamnese-contact-list {
@@ -5797,7 +5800,7 @@ Observacao:
         font-size: 1.02rem;
         font-weight: 700;
         letter-spacing: 0;
-        text-transform: none;
+        text-transform: uppercase;
         line-height: 1.25;
         color: #ffffff;
     }
@@ -6008,7 +6011,13 @@ Observacao:
 
     .page-anamnese .anamnese-sidebar-title,
     .page-anamnese .anamnese-form-title {
-        font-size: 1.05rem;
+        font-family: inherit;
+        font-size: 1.12rem;
+        font-weight: 800;
+        letter-spacing: 0;
+        text-transform: uppercase;
+        line-height: 1.2;
+        color: #ffffff;
     }
 
     .page-anamnese .anamnese-mobile-search {
@@ -6073,7 +6082,7 @@ Observacao:
 
     .page-anamnese .anamnese-form-title {
         margin-bottom: 1.4rem;
-        font-size: 1rem;
+        font-size: 1.12rem;
     }
 
     .page-anamnese .anamnese-field + .anamnese-field {
