@@ -46,6 +46,7 @@ TABLE_MENSAGENS = os.getenv("SUPABASE_TABLE_MENSAGENS", "tb_mensagens")
 TABLE_OBSERVACOES = os.getenv("SUPABASE_TABLE_OBSERVACOES", "tb_observacao")
 TABLE_ANAMNESES = os.getenv("SUPABASE_TABLE_ANAMNESES", "tb_anamnese")
 TABLE_PAGAMENTOS = os.getenv("SUPABASE_TABLE_PAGAMENTOS", "tb_parcela")
+TABLE_PAGAMENTOS_FALLBACK = "tb_parcela"
 TABLE_PLANOS = os.getenv("SUPABASE_TABLE_PLANOS", "tb_plano")
 TABLE_EXECUCOES = os.getenv("SUPABASE_TABLE_EXECUCOES", "tb_execucao_treino")
 
@@ -421,6 +422,15 @@ def _payment_status_slug(value: Any) -> str:
 
 def _payment_status_db(value: Any) -> int:
     return PAYMENT_STATUS_TO_DB.get(_slug_status(value), 1)
+
+
+def _payment_table_candidates() -> List[str]:
+    candidates = [TABLE_PAGAMENTOS, TABLE_PAGAMENTOS_FALLBACK]
+    unique: List[str] = []
+    for table in candidates:
+        if table and table not in unique:
+            unique.append(table)
+    return unique
 
 
 def _split_datetime_local(value: Any) -> Dict[str, str]:
@@ -1795,49 +1805,67 @@ def _messages_for_student(contact_id: Optional[str]) -> Dict[str, Any]:
     }
 
 
+def _payment_rows_from_table() -> tuple[str, List[Dict[str, Any]]]:
+    usable_table = TABLE_PAGAMENTOS_FALLBACK
+    for table in _payment_table_candidates():
+        for order_field in ("data_parcela", "atualizado_em", "created_at", None):
+            result = _select(table, order=order_field, desc=True)
+            if result["ok"]:
+                return table, result["data"]
+            if _missing_table_error(result["error"]):
+                break
+            if not _missing_column_error(result["error"], order_field or ""):
+                usable_table = table
+                break
+    return usable_table, []
+
+
+def _payment_table_for_write(row_id: str) -> tuple[str, Optional[Dict[str, Any]]]:
+    first_available = TABLE_PAGAMENTOS_FALLBACK
+    for table in _payment_table_candidates():
+        existing = _select_one(table, row_id)
+        if existing["ok"]:
+            first_available = table
+            if existing["data"]:
+                return table, existing["data"]
+        elif not _missing_table_error(existing["error"]):
+            first_available = table
+    return first_available, None
+
+
 def _payment_rows() -> List[Dict[str, Any]]:
-    rows = _optional_rows(TABLE_PAGAMENTOS, order="data_parcela", desc=True)
+    payment_table, rows = _payment_rows_from_table()
     alunos = _students()
     planos = _plans()
-    alunos_por_id = {row["id"]: row for row in alunos}
     planos_por_aluno = {row["id"]: row["planos"] for row in _student_plan_rows(alunos, planos)}
-    if not rows:
-        return [
-            {
-                "id": aluno["id"],
-                "aluno_id": aluno["id"],
-                "aluno_nome": aluno["nome"],
-                "email": aluno["email"],
-                "planos": planos_por_aluno.get(aluno["id"], []),
-                "plano_resumo": ", ".join(plano["nome"] for plano in planos_por_aluno.get(aluno["id"], [])) or "Sem plano",
-                "valor": 0,
-                "status": "pendente",
-                "status_label": "Pendente",
-                "status_color": "pending",
-                "atualizado_em": "Sem atualizacao",
-                "alterar_status_url": url_for("alterar_status_pagamento", pagamento_id=aluno["id"]),
-            }
-            for aluno in _students()
-        ]
-    normalized: List[Dict[str, Any]] = []
+
+    latest_by_student: Dict[str, Dict[str, Any]] = {}
     for row in rows:
-        aluno_ref = alunos_por_id.get(_first(row, "aluno_id", default=""), {})
-        aluno_id = _first(row, "aluno_id", default="")
+        aluno_id = str(_first(row, "aluno_id", default=""))
+        if aluno_id and aluno_id not in latest_by_student:
+            latest_by_student[aluno_id] = row
+
+    normalized: List[Dict[str, Any]] = []
+    for aluno in alunos:
+        aluno_id = aluno["id"]
+        row = latest_by_student.get(str(aluno_id), {})
         planos_aluno = planos_por_aluno.get(aluno_id, [])
         status = _payment_status_slug(_first(row, "status_parcela", "status", "status_pagamento", default="pendente"))
         normalized.append(
             {
                 **row,
-                "id": row.get("id", ""),
-                "aluno_nome": _first(row, "aluno_nome", default=aluno_ref.get("nome", "Aluno")),
-                "email": _first(row, "email", default=aluno_ref.get("email", "")),
+                "id": row.get("id") or aluno_id,
+                "aluno_id": aluno_id,
+                "aluno_nome": _first(row, "aluno_nome", default=aluno.get("nome", "Aluno")),
+                "email": _first(row, "email", default=aluno.get("email", "")),
                 "planos": planos_aluno,
                 "plano_resumo": ", ".join(plano["nome"] for plano in planos_aluno) or "Sem plano",
                 "status": status,
                 "status_label": _human_status(status).upper(),
                 "status_color": "paid" if status == "pago" else "pending" if status == "pendente" else "late",
-                "atualizado_em": _fmt_date(_first(row, "data_recebimento", "data_parcela", "created_at")) or "Sem atualizacao",
-                "alterar_status_url": url_for("alterar_status_pagamento", pagamento_id=row.get("id", "")),
+                "atualizado_em": _fmt_date(_first(row, "data_recebimento", "data_parcela", "atualizado_em", "created_at")) or "Sem atualizacao",
+                "alterar_status_url": url_for("alterar_status_pagamento", pagamento_id=row.get("id") or aluno_id),
+                "payment_table": payment_table,
             }
         )
     return normalized
@@ -2345,10 +2373,21 @@ def excluir_aluno(aluno_id: str):
 def treinos():
     alunos_lista = _students()
     aluno_id = request.args.get("aluno_id", "")
+    busca_aluno = request.args.get("busca_aluno", "").strip()
     treino_visualizacao_id = request.args.get("visualizar_treino_id", "")
     treino_edicao_id = request.args.get("editar_treino_id", "")
     treino_exclusao_id = request.args.get("excluir_treino_id", "")
+    alunos_filtrados = alunos_lista
+    if busca_aluno:
+        termo = busca_aluno.lower()
+        alunos_filtrados = [
+            aluno
+            for aluno in alunos_lista
+            if termo in str(aluno.get("nome", "")).lower() or termo in str(aluno.get("email", "")).lower()
+        ]
     aluno_selecionado = next((aluno for aluno in alunos_lista if aluno["id"] == aluno_id), None)
+    if aluno_selecionado and not busca_aluno:
+        alunos_filtrados = [aluno_selecionado]
     treinos_lista = _trainings(aluno_selecionado["id"]) if aluno_selecionado else []
     treino_visualizacao = next((treino for treino in treinos_lista if treino["id"] == treino_visualizacao_id), {})
     treino_edicao = next((treino for treino in treinos_lista if treino["id"] == treino_edicao_id), {})
@@ -2356,6 +2395,8 @@ def treinos():
     return render_template(
         "treinos.html",
         alunos=alunos_lista,
+        alunos_visiveis=alunos_filtrados,
+        busca_aluno=busca_aluno,
         exercicios=_exercises(),
         aluno_selecionado=aluno_selecionado,
         treinos=treinos_lista,
@@ -2378,7 +2419,8 @@ def treinos():
 @login_required
 @role_required("Personal Trainer", "Admin", "Professor")
 def treinos_aluno(aluno_id: str):
-    return redirect(url_for("treinos", aluno_id=aluno_id))
+    busca_aluno = request.args.get("busca_aluno", "").strip()
+    return redirect(url_for("treinos", aluno_id=aluno_id, busca_aluno=busca_aluno))
 
 
 @app.get("/treinos/<treino_id>")
@@ -2766,6 +2808,7 @@ def observacoes():
     alunos_lista = _students()
     aluno_id = request.values.get("aluno_id", "")
     aluno_ativo = next((item for item in alunos_lista if item["id"] == aluno_id), None)
+    observacao_edicao_id = request.args.get("editar_observacao_id", "")
     observacoes_lista = []
     if aluno_ativo:
         result = _select(
@@ -2805,12 +2848,17 @@ def observacoes():
         }
         for item in observacoes_lista
     ]
+    observacao_edicao = next(
+        (item for item in historico_observacoes if str(item.get("id", "")) == str(observacao_edicao_id)),
+        {},
+    )
 
     return render_template(
         "observacoes.html",
         alunos=alunos_lista,
         aluno_ativo=aluno_ativo,
         observacao=historico_observacoes[0] if historico_observacoes else {},
+        observacao_edicao=observacao_edicao,
         historico=historico_observacoes,
         aluno_id_selecionado=aluno_ativo["id"] if aluno_ativo else "",
         form={
@@ -2819,9 +2867,48 @@ def observacoes():
             "proximo_ajuste": "",
         },
         salvar_observacao_url=url_for("observacoes"),
+        editar_observacao_url_base="/observacoes/editar",
+        excluir_observacao_url_base="/observacoes/excluir",
         csrf_form_token=_csrf_token,
         **_personal_context("observacoes"),
     )
+
+
+@app.post("/observacoes/editar/<observacao_id>")
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def editar_observacao(observacao_id: str):
+    csrf_error = _require_csrf()
+    aluno_id = request.form.get("aluno_id", "")
+    if csrf_error:
+        flash(csrf_error, "error")
+        return redirect(url_for("observacoes", aluno_id=aluno_id, editar_observacao_id=observacao_id))
+    texto = request.form.get("observacao_transcrita") or request.form.get("observacao")
+    payload = {
+        "aluno_id": aluno_id,
+        "foco_treino": request.form.get("foco_treino"),
+        "observacao": texto,
+        "observacao_transcrita": texto,
+        "proximo_ajuste": request.form.get("proximo_ajuste"),
+        "updated_at": datetime.utcnow().isoformat(),
+    }
+    result = _update(TABLE_OBSERVACOES, observacao_id, payload)
+    flash("Observacao atualizada com sucesso." if result["ok"] else _observacao_table_error_message(result["error"]), "success" if result["ok"] else "error")
+    return redirect(url_for("observacoes", aluno_id=aluno_id))
+
+
+@app.post("/observacoes/excluir/<observacao_id>")
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def excluir_observacao(observacao_id: str):
+    csrf_error = _require_csrf()
+    aluno_id = request.form.get("aluno_id", "")
+    if csrf_error:
+        flash(csrf_error, "error")
+        return redirect(url_for("observacoes", aluno_id=aluno_id))
+    result = _delete(TABLE_OBSERVACOES, observacao_id)
+    flash("Observacao excluida com sucesso." if result["ok"] else _observacao_table_error_message(result["error"]), "success" if result["ok"] else "error")
+    return redirect(url_for("observacoes", aluno_id=aluno_id))
 
 
 @app.route("/anamnese/salvar", methods=["GET", "POST"])
@@ -3030,8 +3117,27 @@ def upload_mensagem_redirect():
 @role_required("Personal Trainer", "Admin", "Professor")
 def financeiro():
     pagamentos = _payment_rows()
+    status_resumo = {
+        "pago": len([item for item in pagamentos if item.get("status") == "pago"]),
+        "pendente": len([item for item in pagamentos if item.get("status") == "pendente"]),
+        "atrasado": len([item for item in pagamentos if item.get("status") == "atrasado"]),
+    }
     planos = _plans()
     alunos = _students()
+    busca_aluno = request.args.get("busca_aluno", "").strip()
+    filtro_status_raw = request.args.get("status_pagamento", "").strip()
+    filtro_status = _slug_status(filtro_status_raw) if filtro_status_raw else ""
+    if filtro_status not in {"pendente", "pago", "atrasado"}:
+        filtro_status = ""
+    if busca_aluno:
+        termo = busca_aluno.lower()
+        pagamentos = [
+            pagamento
+            for pagamento in pagamentos
+            if termo in str(pagamento.get("aluno_nome", "")).lower() or termo in str(pagamento.get("email", "")).lower()
+        ]
+    if filtro_status:
+        pagamentos = [pagamento for pagamento in pagamentos if pagamento.get("status") == filtro_status]
     plano_edicao_id = request.args.get("editar_plano_id", "")
     plano_edicao = next((plano for plano in planos if str(plano.get("id")) == str(plano_edicao_id)), {})
     receita = sum(_to_float(_first(item, "valor", default=0)) or 0 for item in pagamentos if item.get("status") == "pago")
@@ -3041,6 +3147,8 @@ def financeiro():
         planos=planos,
         alunos=alunos,
         alunos_planos=_student_plan_rows(alunos, planos),
+        filtros_financeiro={"busca_aluno": busca_aluno, "status_pagamento": filtro_status},
+        status_pagamento_resumo=status_resumo,
         plano_edicao=plano_edicao,
         receita_estimada=_currency(receita),
         receita_descricao="Recebimentos registrados",
@@ -3064,26 +3172,42 @@ def alterar_status_pagamento(pagamento_id: str):
     csrf_error = _require_csrf()
     if csrf_error:
         flash(csrf_error, "error")
-        return redirect(url_for("financeiro"))
+        return redirect(url_for("financeiro", busca_aluno=request.form.get("busca_aluno", ""), status_pagamento=request.form.get("filtro_status", "")))
     status = _slug_status(request.form.get("status_pagamento", "pendente"))
-    status_db = _payment_status_db(status)
-    existing = _select_one(TABLE_PAGAMENTOS, pagamento_id)
-    payload = {"status_parcela": status_db}
-    if status == "pago":
-        payload["data_recebimento"] = datetime.utcnow().date().isoformat()
-    if existing["ok"] and existing["data"]:
-        result = _update(TABLE_PAGAMENTOS, pagamento_id, payload)
+    payment_table, existing = _payment_table_for_write(pagamento_id)
+    now_iso = datetime.utcnow().isoformat()
+    payload = {"status": status, "atualizado_em": now_iso}
+    if existing:
+        result = _update(payment_table, pagamento_id, payload)
+        if not result["ok"] and _missing_column_error(result["error"], "atualizado_em"):
+            result = _update(payment_table, pagamento_id, {"status": status})
+        if not result["ok"] and _missing_column_error(result["error"], "status"):
+            result = _update(payment_table, pagamento_id, {"status_parcela": _payment_status_db(status)})
     else:
+        aluno = next((item for item in _students() if str(item.get("id", "")) == str(pagamento_id)), {})
         payload.update(
             {
                 "aluno_id": pagamento_id,
-                "data_parcela": datetime.utcnow().date().isoformat(),
+                "aluno_nome": aluno.get("nome", ""),
+                "email": aluno.get("email", ""),
                 "valor": request.form.get("valor") or 0,
             }
         )
-        result = _insert(TABLE_PAGAMENTOS, payload)
+        result = _insert(payment_table, payload)
+        if not result["ok"] and _missing_table_error(result["error"]) and payment_table != TABLE_PAGAMENTOS_FALLBACK:
+            payment_table = TABLE_PAGAMENTOS_FALLBACK
+            result = _insert(payment_table, payload)
+        if not result["ok"] and _missing_column_error(result["error"], "atualizado_em"):
+            payload.pop("atualizado_em", None)
+            result = _insert(payment_table, payload)
+        if not result["ok"] and _missing_column_error(result["error"], "status"):
+            payload.pop("status", None)
+            payload.pop("atualizado_em", None)
+            payload["status_parcela"] = _payment_status_db(status)
+            payload["data_parcela"] = datetime.utcnow().date().isoformat()
+            result = _insert(payment_table, payload)
     flash("Status alterado com sucesso." if result["ok"] else (result["error"] or "Nao foi possivel alterar o status."), "success" if result["ok"] else "error")
-    return redirect(url_for("financeiro"))
+    return redirect(url_for("financeiro", busca_aluno=request.form.get("busca_aluno", ""), status_pagamento=request.form.get("filtro_status", "")))
 
 
 @app.post("/financeiro/planos")
@@ -3236,8 +3360,9 @@ def cancelar_agendamento_aluno(agenda_id: str):
 @role_required("Aluno")
 def aluno_dashboard():
     aluno = _current_student_row() or {}
-    treinos_lista = _trainings(aluno.get("id"))
-    avaliacoes_lista = _assessments(aluno.get("id"))
+    aluno_id = aluno.get("id")
+    treinos_lista = _trainings(aluno_id) if aluno_id else []
+    avaliacoes_lista = _assessments(aluno_id) if aluno_id else []
     treino_do_dia = treinos_lista[0] if treinos_lista else {}
     if treino_do_dia:
         treino_do_dia["exercicio_destaque"] = treino_do_dia.get("exercicios_lista", [{}])[0].get("nome", "Exercicio principal") if treino_do_dia.get("exercicios_lista") else "Exercicio principal"
@@ -3245,7 +3370,7 @@ def aluno_dashboard():
     return render_template(
         "aluno_dashboard.html",
         treino_do_dia=treino_do_dia,
-        total_checkins=len([item for item in _schedule_rows() if item.get("aluno_id") == aluno.get("id") and item["status"] == "concluido"]),
+        total_checkins=len([item for item in _schedule_rows() if aluno_id and item.get("aluno_id") == aluno_id and item["status"] == "concluido"]),
         total_avaliacoes=len(avaliacoes_lista),
         iniciar_treino_url=url_for("aluno_treino_execucao", treino_id=treino_do_dia.get("id", "")) if treino_do_dia else url_for("aluno_meu_treino"),
         **_student_context("dashboard"),
@@ -3259,7 +3384,8 @@ def aluno_dashboard():
 @role_required("Aluno")
 def aluno_meu_treino():
     aluno = _current_student_row() or {}
-    treinos_lista = _trainings(aluno.get("id"))
+    aluno_id = aluno.get("id")
+    treinos_lista = _trainings(aluno_id) if aluno_id else []
     treino_id = request.args.get("treino_id", "")
     treino_ativo = next((item for item in treinos_lista if item["id"] == treino_id), treinos_lista[0] if treinos_lista else {})
     treino_index = treinos_lista.index(treino_ativo) if treino_ativo in treinos_lista else 0
@@ -3291,7 +3417,8 @@ def aluno_meu_treino():
 @role_required("Aluno")
 def iniciar_treino_aluno_redirect():
     aluno = _current_student_row() or {}
-    treinos_lista = _trainings(aluno.get("id"))
+    aluno_id = aluno.get("id")
+    treinos_lista = _trainings(aluno_id) if aluno_id else []
     treino_id = request.args.get("treino_id", "")
     if treino_id and any(item["id"] == treino_id for item in treinos_lista):
         return redirect(url_for("aluno_treino_execucao", treino_id=treino_id))
@@ -3305,7 +3432,8 @@ def iniciar_treino_aluno_redirect():
 @role_required("Aluno")
 def aluno_treino_execucao(treino_id: str):
     aluno = _current_student_row() or {}
-    treinos_lista = _trainings(aluno.get("id"))
+    aluno_id = aluno.get("id")
+    treinos_lista = _trainings(aluno_id) if aluno_id else []
     treino = next((item for item in treinos_lista if item["id"] == treino_id), None)
     if not treino:
         flash("Treino nao encontrado.", "error")

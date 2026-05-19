@@ -9,6 +9,18 @@
 <body>
     {% set pagina_ativa = pagina_ativa|default('observacoes', true) %}
     {% set historico_lista = historico|default([], true) %}
+    {% set observacao_em_edicao = observacao_edicao|default({}, true) %}
+    {% set aluno_observacao_id = observacao_em_edicao.aluno_id|default(aluno_id_selecionado|default('', true), true) %}
+    {% set aluno_observacao = namespace(nome='') %}
+    {% for aluno in alunos|default([], true) %}
+        {% if aluno.id == aluno_observacao_id %}
+            {% set aluno_observacao.nome = aluno.nome %}
+        {% endif %}
+    {% endfor %}
+    {% set formulario_observacao_url = salvar_observacao_url|default('/observacoes', true) %}
+    {% if observacao_em_edicao and observacao_em_edicao.id %}
+        {% set formulario_observacao_url = editar_observacao_url_base|default('/observacoes/editar', true) ~ '/' ~ observacao_em_edicao.id %}
+    {% endif %}
 
     <div class="dashboard-layout">
         <aside class="dashboard-sidebar">
@@ -55,25 +67,25 @@
             {% endif %}
 
             <section class="dashboard-panel" aria-label="Formulário de observações" style="margin-top: 1rem;">
-                <form class="student-form" action="{{ salvar_observacao_url|default('/observacoes', true) }}" method="post">
+                <form class="student-form" action="{{ formulario_observacao_url }}" method="post">
                     {% if csrf_token is defined %}
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    {% endif %}
+                    {% if observacao_em_edicao and observacao_em_edicao.id %}
+                    <input type="hidden" name="observacao_id" value="{{ observacao_em_edicao.id }}">
                     {% endif %}
 
                     <div class="field-row observacoes-field-row">
                         <div class="field">
-                            <label for="aluno_id">Aluno atendido</label>
-                            <select id="aluno_id" name="aluno_id" required>
-                                <option value="">Selecione um aluno</option>
-                                {% for aluno in alunos|default([], true) %}
-                                <option value="{{ aluno.id }}" {% if aluno.id == aluno_id_selecionado|default('', true) %}selected{% endif %}>{{ aluno.nome }}</option>
-                                {% endfor %}
-                            </select>
+                            <label for="observacoes_aluno_busca">Aluno atendido</label>
+                            <input id="observacoes_aluno_busca" class="observacoes-student-search-input" type="search" placeholder="Pesquisar aluno" value="{{ aluno_observacao.nome }}" autocomplete="off" required>
+                            <input id="aluno_id" name="aluno_id" type="hidden" value="{{ aluno_observacao_id }}" required>
+                            <div class="observacoes-student-suggestions" id="observacoes-sugestoes-alunos" aria-label="Sugestões de alunos" hidden></div>
                         </div>
 
                         <div class="field">
                             <label for="foco_treino">Foco do treino</label>
-                            <input id="foco_treino" name="foco_treino" type="text" value="{{ form.foco_treino if form is defined else '' }}" placeholder="Ex: inferiores, mobilidade" required>
+                            <input id="foco_treino" name="foco_treino" type="text" value="{{ observacao_em_edicao.foco_treino|default(form.foco_treino if form is defined else '', true) }}" placeholder="Ex: inferiores, mobilidade" required>
                         </div>
                     </div>
 
@@ -85,16 +97,21 @@
                             </div>
                         </div>
                         <p id="observacoes-audio-status" class="observacoes-audio-status" aria-live="polite"></p>
-                        <textarea id="observacao_transcrita" name="observacao_transcrita" rows="7" placeholder="Detalhes da sessão, dor, compensação, técnica..." required>{{ form.observacao_transcrita if form is defined else '' }}</textarea>
+                        <textarea id="observacao_transcrita" name="observacao_transcrita" rows="7" placeholder="Detalhes da sessão, dor, compensação, técnica..." required>{{ observacao_em_edicao.observacao_transcrita|default(form.observacao_transcrita if form is defined else '', true) }}</textarea>
                     </div>
 
                     <div class="field">
                         <label for="proximo_ajuste">Ajuste para o próximo treino</label>
-                        <textarea id="proximo_ajuste" name="proximo_ajuste" rows="4" placeholder="Qual ajuste será aplicado na próxima sessão">{{ form.proximo_ajuste if form is defined else '' }}</textarea>
+                        <textarea id="proximo_ajuste" name="proximo_ajuste" rows="4" placeholder="Qual ajuste será aplicado na próxima sessão">{{ observacao_em_edicao.proximo_ajuste|default(form.proximo_ajuste if form is defined else '', true) }}</textarea>
                     </div>
 
                     <div class="observacoes-save-row">
+                        {% if observacao_em_edicao and observacao_em_edicao.id %}
+                        <a class="button ui-btn ui-btn-secondary button-secondary" href="{{ observacoes_url|default('/observacoes', true) }}{% if aluno_id_selecionado|default('', true) %}?aluno_id={{ aluno_id_selecionado }}{% endif %}">Cancelar</a>
+                        <button type="submit">Salvar alterações</button>
+                        {% else %}
                         <button type="submit">Salvar observação</button>
+                        {% endif %}
                     </div>
                 </form>
             </section>
@@ -110,6 +127,18 @@
                     <p>{{ item.observacao_transcrita|default('-', true) }}</p>
                     {% if item.proximo_ajuste %}
                     <p><strong>Próximo ajuste:</strong> {{ item.proximo_ajuste }}</p>
+                    {% endif %}
+                    {% if item.id %}
+                    <div class="observacoes-history-actions">
+                        <a class="button ui-btn ui-btn-secondary button-secondary" href="{{ observacoes_url|default('/observacoes', true) }}?aluno_id={{ item.aluno_id }}&editar_observacao_id={{ item.id }}">Editar</a>
+                        <form action="{{ excluir_observacao_url_base|default('/observacoes/excluir', true) }}/{{ item.id }}" method="post">
+                            {% if csrf_token is defined %}
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            {% endif %}
+                            <input type="hidden" name="aluno_id" value="{{ item.aluno_id }}">
+                            <button class="observacoes-history-action observacoes-history-action-danger" type="submit">Excluir</button>
+                        </form>
+                    </div>
                     {% endif %}
                 </article>
                 {% else %}
@@ -130,6 +159,83 @@
     </div>
     <script>
         (function () {
+            var studentSearch = document.getElementById('observacoes_aluno_busca');
+            var studentId = document.getElementById('aluno_id');
+            var suggestions = document.getElementById('observacoes-sugestoes-alunos');
+            var students = [
+                {% for aluno in alunos|default([], true) %}
+                {
+                    id: {{ aluno.id|tojson }},
+                    name: {{ aluno.nome|tojson }},
+                    email: {{ aluno.email|default('', true)|tojson }}
+                }{% if not loop.last %},{% endif %}
+                {% endfor %}
+            ];
+
+            function normalizeText(value) {
+                return (value || '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+            }
+
+            function selectStudent(student) {
+                if (!studentSearch || !studentId) {
+                    return;
+                }
+                studentSearch.value = student.name;
+                studentId.value = student.id;
+                if (suggestions) {
+                    suggestions.hidden = true;
+                    suggestions.innerHTML = '';
+                }
+                window.location.href = '{{ observacoes_url|default("/observacoes", true) }}?aluno_id=' + encodeURIComponent(student.id);
+            }
+
+            function renderStudentSuggestions() {
+                if (!studentSearch || !suggestions) {
+                    return;
+                }
+                var term = normalizeText(studentSearch.value);
+                var exactStudent = students.find(function (student) {
+                    return normalizeText(student.name) === term;
+                });
+                suggestions.innerHTML = '';
+                studentId.value = exactStudent ? exactStudent.id : '';
+
+                if (!term) {
+                    suggestions.hidden = true;
+                    return;
+                }
+
+                students
+                    .filter(function (student) {
+                        return normalizeText(student.name).indexOf(term) !== -1 || normalizeText(student.email).indexOf(term) !== -1;
+                    })
+                    .slice(0, 6)
+                    .forEach(function (student) {
+                        var button = document.createElement('button');
+                        button.type = 'button';
+                        button.className = 'observacoes-student-suggestion';
+                        button.textContent = student.name;
+                        button.addEventListener('click', function () {
+                            selectStudent(student);
+                        });
+                        suggestions.appendChild(button);
+                    });
+
+                suggestions.hidden = suggestions.children.length === 0;
+            }
+
+            if (studentSearch && studentId && suggestions) {
+                studentSearch.addEventListener('input', renderStudentSuggestions);
+                studentSearch.addEventListener('focus', renderStudentSuggestions);
+                studentSearch.form.addEventListener('submit', function (event) {
+                    if (!studentId.value) {
+                        event.preventDefault();
+                        studentSearch.focus();
+                        renderStudentSuggestions();
+                    }
+                });
+            }
+
             var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             var recordButton = document.getElementById('observacoes-gravar-audio');
             var status = document.getElementById('observacoes-audio-status');

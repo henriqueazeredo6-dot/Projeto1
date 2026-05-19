@@ -111,8 +111,48 @@
                 </article>
             </section>
 
+            {% set resumo_status = status_pagamento_resumo|default({}, true) %}
+            <section class="financeiro-payment-summary" aria-label="Resumo de pagamentos por status">
+                <article class="financeiro-payment-summary-item financeiro-payment-summary-paid">
+                    <span>Pagos</span>
+                    <strong>{{ resumo_status.pago|default(0, true) }}</strong>
+                </article>
+                <article class="financeiro-payment-summary-item financeiro-payment-summary-pending">
+                    <span>Pendentes</span>
+                    <strong>{{ resumo_status.pendente|default(0, true) }}</strong>
+                </article>
+                <article class="financeiro-payment-summary-item financeiro-payment-summary-late">
+                    <span>Atrasados</span>
+                    <strong>{{ resumo_status.atrasado|default(0, true) }}</strong>
+                </article>
+            </section>
+
             <section class="financeiro-section" aria-label="Status de pagamento dos alunos">
                 <h2 class="financeiro-section-title">Status de pagamento dos alunos</h2>
+                {% set filtros = filtros_financeiro|default({}, true) %}
+
+                <form class="financeiro-filters ui-form" action="{{ financeiro_url|default('/financeiro', true) }}" method="get">
+                    <div class="financeiro-filter-field">
+                        <label for="financeiro_busca_aluno">Buscar aluno</label>
+                        <input id="financeiro_busca_aluno" name="busca_aluno" type="search" placeholder="Digite o nome do aluno" value="{{ filtros.busca_aluno|default('', true) }}" autocomplete="off">
+                        <div class="financeiro-student-suggestions" id="financeiro-sugestoes-alunos" aria-label="Sugestões de alunos"></div>
+                    </div>
+
+                    <div class="financeiro-filter-field">
+                        <label for="financeiro_status_pagamento">Status opcional</label>
+                        <select id="financeiro_status_pagamento" name="status_pagamento">
+                            <option value="" {% if not filtros.status_pagamento|default('', true) %}selected{% endif %}>Todos os status</option>
+                            <option value="pendente" {% if filtros.status_pagamento|default('', true) == 'pendente' %}selected{% endif %}>Pendente</option>
+                            <option value="pago" {% if filtros.status_pagamento|default('', true) == 'pago' %}selected{% endif %}>Pago</option>
+                            <option value="atrasado" {% if filtros.status_pagamento|default('', true) == 'atrasado' %}selected{% endif %}>Atrasado</option>
+                        </select>
+                    </div>
+
+                    <div class="financeiro-filter-actions">
+                        <button class="button ui-btn ui-btn-secondary button-secondary" type="submit">Filtrar</button>
+                        <a class="button ui-btn ui-btn-secondary button-secondary" href="{{ financeiro_url|default('/financeiro', true) }}">Limpar</a>
+                    </div>
+                </form>
 
                 <div class="financeiro-table-wrap">
                     <table class="financeiro-table">
@@ -168,6 +208,8 @@
                                         <input type="hidden" name="csrf_token" value="{{ csrf_form_token if csrf_form_token is string else csrf_form_token() }}">
                                         {% endif %}
                                         <input type="hidden" name="pagamento_id" value="{{ pagamento.id|default('', true) }}">
+                                        <input type="hidden" name="busca_aluno" value="{{ filtros.busca_aluno|default('', true) }}">
+                                        <input type="hidden" name="filtro_status" value="{{ filtros.status_pagamento|default('', true) }}">
                                         <select name="status_pagamento" aria-label="Alterar status de pagamento de {{ pagamento.aluno_nome }}" required>
                                             <option value="pendente" {% if status_normalizado == 'pendente' %}selected{% endif %}>Pendente</option>
                                             <option value="pago" {% if status_normalizado == 'pago' %}selected{% endif %}>Pago</option>
@@ -331,6 +373,70 @@
             </section>
         </main>
     </div>
+    <script>
+        (function () {
+            var search = document.getElementById('financeiro_busca_aluno');
+            var suggestions = document.getElementById('financeiro-sugestoes-alunos');
+            var status = document.getElementById('financeiro_status_pagamento');
+            var students = [
+                {% for aluno in alunos|default([], true) %}
+                {
+                    name: {{ aluno.nome|tojson }},
+                    email: {{ aluno.email|default('', true)|tojson }}
+                }{% if not loop.last %},{% endif %}
+                {% endfor %}
+            ];
+
+            if (!search || !suggestions) {
+                return;
+            }
+
+            function normalizeText(value) {
+                return (value || '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+            }
+
+            function renderSuggestions() {
+                var term = normalizeText(search.value);
+                var exactStudent = students.find(function (student) {
+                    return normalizeText(student.name) === term;
+                });
+                suggestions.innerHTML = '';
+                if (!term || exactStudent) {
+                    suggestions.hidden = true;
+                    return;
+                }
+
+                students
+                    .filter(function (student) {
+                        return normalizeText(student.name).indexOf(term) !== -1 || normalizeText(student.email).indexOf(term) !== -1;
+                    })
+                    .slice(0, 5)
+                    .forEach(function (student) {
+                        var link = document.createElement('a');
+                        link.href = '{{ financeiro_url|default("/financeiro", true) }}?busca_aluno=' + encodeURIComponent(student.name);
+                        link.className = 'financeiro-student-suggestion';
+                        link.textContent = student.name;
+                        suggestions.appendChild(link);
+                    });
+
+                suggestions.hidden = suggestions.children.length === 0;
+            }
+
+            search.addEventListener('input', function () {
+                if (status) {
+                    status.value = '';
+                }
+                renderSuggestions();
+            });
+            if (status) {
+                status.addEventListener('change', function () {
+                    suggestions.hidden = true;
+                    suggestions.innerHTML = '';
+                });
+            }
+            suggestions.hidden = true;
+        })();
+    </script>
     <script src="{{ url_for('static', filename='mobile-nav.js') }}"></script>
 </body>
 </html>
