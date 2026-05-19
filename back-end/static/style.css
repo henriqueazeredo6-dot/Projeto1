@@ -6806,7 +6806,7 @@ Observacao:
         transform: none;
     }
 
-body.mobile-nav-open::before {
+    body.mobile-nav-open::before {
         content: "";
         position: fixed;
         z-index: 35;
