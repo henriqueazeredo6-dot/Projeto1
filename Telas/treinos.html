@@ -75,10 +75,25 @@
                     <section>
                         <h2 class="treinos-column-title">Alunos</h2>
 
+                        <form class="treinos-student-search" action="{{ treinos_url|default('/treinos', true) }}" method="get">
+                            <label class="sr-only" for="treinos-busca-aluno">Pesquisar aluno</label>
+                            <div class="treinos-modal-row treinos-search-row">
+                                <input id="treinos-busca-aluno" name="busca_aluno" list="treinos-alunos-lista" type="search" placeholder="Digite para buscar aluno" value="{{ busca_aluno|default('', true) }}" autocomplete="off">
+                                <button class="button ui-btn ui-btn-secondary button-secondary treinos-add-exercise-button" type="submit">Buscar</button>
+                            </div>
+                            <datalist id="treinos-alunos-lista">
+                                {% for aluno in alunos if alunos is defined %}
+                                <option value="{{ aluno.nome }}"></option>
+                                {% endfor %}
+                            </datalist>
+                            <div class="treinos-student-suggestions" id="treinos-sugestoes-alunos" aria-label="Sugestões de alunos"></div>
+                        </form>
+
                         <div class="treinos-list">
-                            {% if alunos %}
-                                {% for aluno in alunos %}
-                                <a class="treinos-list-item {% if aluno_selecionado and aluno.id == aluno_selecionado.id %}is-active{% endif %}" href="{{ url_treinos_aluno_base|default('/treinos/aluno', true) }}/{{ aluno.id }}">
+                            {% set lista_alunos_treino = alunos_visiveis|default(alunos, true) %}
+                            {% if lista_alunos_treino %}
+                                {% for aluno in lista_alunos_treino %}
+                                <a class="treinos-list-item {% if aluno_selecionado and aluno.id == aluno_selecionado.id %}is-active{% endif %}" href="{{ treinos_url|default('/treinos', true) }}?aluno_id={{ aluno.id }}{% if busca_aluno|default('', true) %}&busca_aluno={{ busca_aluno|urlencode }}{% endif %}" data-student-name="{{ aluno.nome|lower }}">
                                     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                         <circle cx="9" cy="8" r="3" stroke="currentColor" stroke-width="1.9"/>
                                         <path d="M3.5 19C4.2 16.6 6.3 15 9 15" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
@@ -88,7 +103,7 @@
                                 {% endfor %}
                             {% else %}
                                 <div class="treinos-list-item">
-                                    <span>Nenhum aluno disponível</span>
+                                    <span>Nenhum aluno encontrado</span>
                                 </div>
                             {% endif %}
                         </div>
@@ -191,13 +206,21 @@
                     </div>
 
                     <div class="field">
-                        <label for="novo_treino_aluno">Aluno</label>
-                        <select id="novo_treino_aluno" name="aluno_id" required>
-                            <option value="">Selecione um aluno</option>
+                        {% set aluno_novo_id = form.aluno_id if form is defined and form.aluno_id else (aluno_selecionado.id if aluno_selecionado else '') %}
+                        {% set aluno_novo_busca = namespace(nome='') %}
+                        {% for aluno in alunos if alunos is defined %}
+                            {% if aluno.id|string == aluno_novo_id|string %}
+                                {% set aluno_novo_busca.nome = aluno.nome %}
+                            {% endif %}
+                        {% endfor %}
+                        <label for="novo_treino_aluno_busca">Aluno</label>
+                        <input id="novo_treino_aluno_busca" list="alunos-cadastrados" type="search" placeholder="Digite para buscar aluno" value="{{ aluno_novo_busca.nome }}" autocomplete="off" required>
+                        <input id="novo_treino_aluno" name="aluno_id" type="hidden" value="{{ aluno_novo_id }}">
+                        <datalist id="alunos-cadastrados">
                             {% for aluno in alunos if alunos is defined %}
-                            <option value="{{ aluno.id }}" {% if (form is defined and form.aluno_id == aluno.id) or (aluno_selecionado and aluno.id == aluno_selecionado.id) %}selected{% endif %}>{{ aluno.nome }}</option>
+                            <option value="{{ aluno.nome }}" data-id="{{ aluno.id }}"></option>
                             {% endfor %}
-                        </select>
+                        </datalist>
                     </div>
                 </div>
 
@@ -357,6 +380,105 @@
             var search = document.getElementById('novo_treino_exercicio_busca');
             var addButton = document.getElementById('adicionar-exercicio-treino');
             var target = document.getElementById('novo_treino_exercicios');
+            var createForm = document.getElementById('form-criar-treino');
+            var studentTrainingInput = document.getElementById('novo_treino_aluno_busca');
+            var studentTrainingId = document.getElementById('novo_treino_aluno');
+            var studentSearch = document.getElementById('treinos-busca-aluno');
+            var studentSuggestions = document.getElementById('treinos-sugestoes-alunos');
+            var studentItems = Array.prototype.slice.call(document.querySelectorAll('.treinos-list-item'));
+            var studentOptions = Array.prototype.slice.call(document.querySelectorAll('#alunos-cadastrados option'));
+
+            if (studentSearch && studentItems.length) {
+                function normalizeText(value) {
+                    return (value || '')
+                        .toString()
+                        .normalize('NFD')
+                        .replace(/[\u0300-\u036f]/g, '')
+                        .trim()
+                        .toLowerCase();
+                }
+
+                function filterStudents() {
+                    var term = normalizeText(studentSearch.value);
+                    var firstMatch = null;
+                    var matches = [];
+
+                    studentItems.forEach(function (item) {
+                        var name = normalizeText(item.getAttribute('data-student-name') || item.textContent);
+                        var visible = !term || name.indexOf(term) !== -1;
+                        item.style.display = visible ? '' : 'none';
+                        if (visible && !firstMatch && item.tagName.toLowerCase() === 'a') {
+                            firstMatch = item;
+                        }
+                        if (term && visible && item.tagName.toLowerCase() === 'a') {
+                            matches.push(item);
+                        }
+                    });
+
+                    if (studentSuggestions) {
+                        studentSuggestions.innerHTML = '';
+                        matches.slice(0, 5).forEach(function (item) {
+                            var suggestion = document.createElement('a');
+                            suggestion.href = item.href;
+                            suggestion.textContent = item.textContent.trim();
+                            suggestion.className = 'treinos-student-suggestion';
+                            studentSuggestions.appendChild(suggestion);
+                        });
+                        studentSuggestions.hidden = matches.length === 0;
+                    }
+
+                    return firstMatch;
+                }
+
+                studentSearch.addEventListener('input', filterStudents);
+                studentSearch.addEventListener('change', function () {
+                    var firstMatch = filterStudents();
+                    var term = normalizeText(studentSearch.value);
+                    if (firstMatch && normalizeText(firstMatch.getAttribute('data-student-name') || firstMatch.textContent) === term) {
+                        window.location.href = firstMatch.href;
+                    }
+                });
+                studentSearch.addEventListener('keydown', function (event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        var firstMatch = filterStudents();
+                        if (firstMatch) {
+                            window.location.href = firstMatch.href;
+                        }
+                    }
+                });
+            }
+
+            function syncTrainingStudent() {
+                if (!studentTrainingInput || !studentTrainingId) {
+                    return;
+                }
+
+                var typedName = studentTrainingInput.value.trim().toLowerCase();
+                var selected = studentOptions.find(function (option) {
+                    return option.value.trim().toLowerCase() === typedName;
+                });
+
+                studentTrainingId.value = selected ? selected.getAttribute('data-id') : '';
+                studentTrainingInput.setCustomValidity(selected || !studentTrainingInput.value ? '' : 'Selecione um aluno da lista.');
+            }
+
+            if (studentTrainingInput && studentTrainingId) {
+                studentTrainingInput.addEventListener('input', syncTrainingStudent);
+                studentTrainingInput.addEventListener('change', syncTrainingStudent);
+                syncTrainingStudent();
+            }
+
+            if (createForm && studentTrainingInput && studentTrainingId) {
+                createForm.addEventListener('submit', function (event) {
+                    syncTrainingStudent();
+                    if (!studentTrainingId.value) {
+                        event.preventDefault();
+                        studentTrainingInput.setCustomValidity('Selecione um aluno da lista.');
+                        studentTrainingInput.reportValidity();
+                    }
+                });
+            }
 
             if (!search || !addButton || !target) {
                 return;

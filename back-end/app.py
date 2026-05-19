@@ -2345,10 +2345,21 @@ def excluir_aluno(aluno_id: str):
 def treinos():
     alunos_lista = _students()
     aluno_id = request.args.get("aluno_id", "")
+    busca_aluno = request.args.get("busca_aluno", "").strip()
     treino_visualizacao_id = request.args.get("visualizar_treino_id", "")
     treino_edicao_id = request.args.get("editar_treino_id", "")
     treino_exclusao_id = request.args.get("excluir_treino_id", "")
+    alunos_filtrados = alunos_lista
+    if busca_aluno:
+        termo = busca_aluno.lower()
+        alunos_filtrados = [
+            aluno
+            for aluno in alunos_lista
+            if termo in str(aluno.get("nome", "")).lower() or termo in str(aluno.get("email", "")).lower()
+        ]
     aluno_selecionado = next((aluno for aluno in alunos_lista if aluno["id"] == aluno_id), None)
+    if aluno_selecionado and not busca_aluno:
+        alunos_filtrados = [aluno_selecionado]
     treinos_lista = _trainings(aluno_selecionado["id"]) if aluno_selecionado else []
     treino_visualizacao = next((treino for treino in treinos_lista if treino["id"] == treino_visualizacao_id), {})
     treino_edicao = next((treino for treino in treinos_lista if treino["id"] == treino_edicao_id), {})
@@ -2356,6 +2367,8 @@ def treinos():
     return render_template(
         "treinos.html",
         alunos=alunos_lista,
+        alunos_visiveis=alunos_filtrados,
+        busca_aluno=busca_aluno,
         exercicios=_exercises(),
         aluno_selecionado=aluno_selecionado,
         treinos=treinos_lista,
@@ -2378,7 +2391,8 @@ def treinos():
 @login_required
 @role_required("Personal Trainer", "Admin", "Professor")
 def treinos_aluno(aluno_id: str):
-    return redirect(url_for("treinos", aluno_id=aluno_id))
+    busca_aluno = request.args.get("busca_aluno", "").strip()
+    return redirect(url_for("treinos", aluno_id=aluno_id, busca_aluno=busca_aluno))
 
 
 @app.get("/treinos/<treino_id>")
