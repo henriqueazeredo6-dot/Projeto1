@@ -1,12 +1,15 @@
 import os
+import json
 import secrets
+from io import BytesIO
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import wraps
 from typing import Any, Dict, List, Optional
+from uuid import UUID
 
 from dotenv import load_dotenv
-from flask import Flask, flash, get_flashed_messages, redirect, render_template, request, session, url_for
+from flask import Flask, flash, get_flashed_messages, redirect, render_template, request, send_file, session, url_for
 from google.auth.transport.requests import Request as GoogleAuthRequest
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
@@ -23,7 +26,9 @@ app = Flask(
     template_folder=str(TEMPLATES_DIR),
     static_folder=str(STATIC_DIR),
 )
-app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY", "confie-dev-secret")
+app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY") or secrets.token_hex(32)
+if not os.getenv("FLASK_SECRET_KEY"):
+    app.logger.warning("FLASK_SECRET_KEY nao configurada. Uma chave temporaria foi gerada para esta execucao.")
 
 
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
@@ -36,10 +41,11 @@ TABLE_TREINOS = os.getenv("SUPABASE_TABLE_TREINOS", "tb_treino")
 TABLE_AGENDA = os.getenv("SUPABASE_TABLE_AGENDA", "tb_agenda")
 TABLE_AVALIACOES = os.getenv("SUPABASE_TABLE_AVALIACOES", "tb_avaliacao")
 TABLE_EXERCICIOS = os.getenv("SUPABASE_TABLE_EXERCICIOS", "tb_exercicios")
+TABLE_GRUPOS_MUSCULARES = os.getenv("SUPABASE_TABLE_GRUPOS_MUSCULARES", "tb_grupo_muscular")
 TABLE_MENSAGENS = os.getenv("SUPABASE_TABLE_MENSAGENS", "tb_mensagens")
 TABLE_OBSERVACOES = os.getenv("SUPABASE_TABLE_OBSERVACOES", "tb_observacao")
 TABLE_ANAMNESES = os.getenv("SUPABASE_TABLE_ANAMNESES", "tb_anamnese")
-TABLE_PAGAMENTOS = os.getenv("SUPABASE_TABLE_PAGAMENTOS", "tb_pagamento")
+TABLE_PAGAMENTOS = os.getenv("SUPABASE_TABLE_PAGAMENTOS", "tb_parcela")
 TABLE_PLANOS = os.getenv("SUPABASE_TABLE_PLANOS", "tb_plano")
 TABLE_EXECUCOES = os.getenv("SUPABASE_TABLE_EXECUCOES", "tb_execucao_treino")
 
@@ -57,7 +63,10 @@ GOOGLE_CALENDAR_SCOPES = [
     for scope in os.getenv("GOOGLE_CALENDAR_SCOPES", "https://www.googleapis.com/auth/calendar.readonly").split(",")
     if scope.strip()
 ]
-
+try:
+    GOOGLE_CALENDAR_MAX_EVENTS = max(1, int(os.getenv("GOOGLE_CALENDAR_MAX_EVENTS", "100")))
+except ValueError:
+    GOOGLE_CALENDAR_MAX_EVENTS = 100
 supabase: Optional[Client] = None
 supabase_admin: Optional[Client] = None
 if SUPABASE_URL and SUPABASE_KEY:
@@ -156,7 +165,7 @@ def _select(
     limit: Optional[int] = None,
 ) -> Dict[str, Any]:
     def _op():
-        query = _client().table(table).select("*")
+        query = _admin_client().table(table).select("*")
         if filters:
             for key, value in filters.items():
                 query = query.eq(key, value)
@@ -171,7 +180,7 @@ def _select(
 
 def _select_one(table: str, row_id: str) -> Dict[str, Any]:
     def _op():
-        return _client().table(table).select("*").eq("id", row_id).limit(1).execute()
+        return _admin_client().table(table).select("*").eq("id", row_id).limit(1).execute()
 
     result = _run_query(_op)
     if result["ok"]:
@@ -198,6 +207,13 @@ def _insert(table: str, payload: Dict[str, Any]) -> Dict[str, Any]:
     return _run_query(_op)
 
 
+def _insert_raw(table: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def _op():
+        return _admin_client().table(table).insert(payload).execute()
+
+    return _run_query(_op)
+
+
 def _update(table: str, row_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
     payload = _clean_payload(payload)
 
@@ -218,7 +234,51 @@ def _missing_table_error(error: Optional[str]) -> bool:
     if not error:
         return False
     lowered = error.lower()
-    return "does not exist" in lowered or "42p01" in lowered or "42703" in lowered
+    return (
+        "does not exist" in lowered
+        or "could not find the table" in lowered
+        or "pgrst205" in lowered
+        or "42p01" in lowered
+    )
+
+
+def _message_table_error_message(error: Optional[str]) -> str:
+    if _missing_table_error(error):
+        return f"Tabela de mensagens nao encontrada no Supabase. Crie ou configure a tabela {TABLE_MENSAGENS} para habilitar o envio."
+    return error or "Nao foi possivel enviar a mensagem."
+
+
+def _anamnese_table_error_message(error: Optional[str]) -> str:
+    if _missing_table_error(error):
+        return f"Tabela de anamnese nao encontrada no Supabase. Execute o schema para criar {TABLE_ANAMNESES} antes de salvar."
+    return error or "Nao foi possivel salvar a anamnese."
+
+
+def _observacao_table_error_message(error: Optional[str]) -> str:
+    if _missing_table_error(error):
+        return f"Tabela de observacoes nao encontrada no Supabase. Execute o schema para criar {TABLE_OBSERVACOES} antes de salvar."
+    return error or "Nao foi possivel salvar a observacao."
+
+
+def _missing_column_error(error: Optional[str], column: str = "") -> bool:
+    if not error:
+        return False
+    lowered = error.lower()
+    column_match = not column or column.lower() in lowered
+    return column_match and (
+        "could not find" in lowered
+        or "schema cache" in lowered
+        or "pgrst204" in lowered
+        or "42703" in lowered
+    )
+
+
+def _plan_table_error_message(error: Optional[str]) -> str:
+    if _missing_table_error(error):
+        return f"Tabela de planos nao encontrada no Supabase. Execute o schema para criar {TABLE_PLANOS}."
+    if _missing_column_error(error):
+        return f"Estrutura da tabela {TABLE_PLANOS} incompleta no Supabase. Execute o schema ou adicione as colunas nome, descricao, preco, duracao_dias e recorrente."
+    return error or "Nao foi possivel criar o plano."
 
 
 def _table_has_local_passwords() -> bool:
@@ -229,7 +289,7 @@ def _table_has_local_passwords() -> bool:
         _LOCAL_PASSWORD_SUPPORT = False
         return False
     try:
-        _client().table(TABLE_USUARIOS).select("senha_hash").limit(1).execute()
+        _admin_client().table(TABLE_USUARIOS).select("senha_hash").limit(1).execute()
         _LOCAL_PASSWORD_SUPPORT = True
     except Exception as exc:
         _LOCAL_PASSWORD_SUPPORT = False
@@ -251,6 +311,15 @@ def _to_int(value: Any) -> Optional[int]:
         return None
     try:
         return int(float(value))
+    except (TypeError, ValueError):
+        return None
+
+
+def _to_uuid_or_none(value: Any) -> Optional[str]:
+    if not value:
+        return None
+    try:
+        return str(UUID(str(value)))
     except (TypeError, ValueError):
         return None
 
@@ -296,6 +365,15 @@ def _fmt_hour_range(start: Any, end: Any) -> str:
     return f"{_hour(start)} - {_hour(end)}"
 
 
+def _fmt_time(value: Any) -> str:
+    if not value:
+        return "--:--"
+    text = str(value)
+    if "T" in text:
+        text = text.split("T", 1)[1]
+    return text[:5] if text else "--:--"
+
+
 def _currency(value: Any) -> str:
     number = _to_float(value)
     if number is None:
@@ -311,6 +389,62 @@ def _slug_status(value: Any) -> str:
         "paid": "pago",
         "open": "disponivel",
     }.get(text, text)
+
+
+PAYMENT_STATUS_TO_DB = {"pendente": 1, "pago": 2, "atrasado": 3}
+PAYMENT_STATUS_FROM_DB = {1: "pendente", 2: "pago", 3: "atrasado"}
+AGENDA_META_PREFIX = "__agenda_meta__:"
+
+
+def _is_uuid(value: Any) -> bool:
+    if not value:
+        return False
+    try:
+        UUID(str(value))
+        return True
+    except (TypeError, ValueError):
+        return False
+
+
+def _slug_text(value: Any) -> str:
+    return str(value or "").strip().lower().replace(" ", "-").replace("_", "-")
+
+
+def _payment_status_slug(value: Any) -> str:
+    if isinstance(value, int):
+        return PAYMENT_STATUS_FROM_DB.get(value, "pendente")
+    text = str(value or "").strip()
+    if text.isdigit():
+        return PAYMENT_STATUS_FROM_DB.get(int(text), "pendente")
+    return _slug_status(text)
+
+
+def _payment_status_db(value: Any) -> int:
+    return PAYMENT_STATUS_TO_DB.get(_slug_status(value), 1)
+
+
+def _split_datetime_local(value: Any) -> Dict[str, str]:
+    text = str(value or "").strip()
+    if not text:
+        return {"data": "", "hora": ""}
+    try:
+        parsed = datetime.fromisoformat(text)
+        return {"data": parsed.date().isoformat(), "hora": parsed.time().replace(microsecond=0).isoformat()}
+    except ValueError:
+        if "T" in text:
+            data, hora = text.split("T", 1)
+            return {"data": data, "hora": hora[:8]}
+        return {"data": text[:10], "hora": text[11:19] if len(text) >= 16 else ""}
+
+
+def _combine_date_time(data: Any, hora: Any) -> str:
+    date_part = str(data or "").strip()
+    time_part = str(hora or "").strip()
+    if not date_part:
+        return ""
+    if not time_part:
+        return date_part
+    return f"{date_part}T{time_part}"
 
 
 def _human_status(value: Any) -> str:
@@ -334,6 +468,45 @@ def _initials(name: str) -> str:
     if len(parts) == 1:
         return parts[0][:2].upper()
     return (parts[0][0] + parts[-1][0]).upper()
+
+
+def _build_agenda_observacao(titulo: Any, observacoes: Any, termino_hora: Any) -> str:
+    meta = {
+        "titulo": str(titulo or "").strip(),
+        "termino": str(termino_hora or "").strip(),
+    }
+    body = str(observacoes or "").strip()
+    payload = AGENDA_META_PREFIX + json.dumps(meta, ensure_ascii=False)
+    return f"{payload}\n{body}".strip()
+
+
+def _parse_agenda_observacao(value: Any) -> Dict[str, str]:
+    text = str(value or "").strip()
+    if not text.startswith(AGENDA_META_PREFIX):
+        return {"titulo": "", "termino": "", "observacoes": text}
+
+    first_line, _, remainder = text.partition("\n")
+    raw_meta = first_line[len(AGENDA_META_PREFIX):].strip()
+    try:
+        meta = json.loads(raw_meta) if raw_meta else {}
+    except json.JSONDecodeError:
+        meta = {}
+    return {
+        "titulo": str(meta.get("titulo", "")).strip(),
+        "termino": str(meta.get("termino", "")).strip(),
+        "observacoes": remainder.strip(),
+    }
+
+
+def _default_end_from_start(start_value: Any) -> str:
+    text = str(start_value or "").strip()
+    if not text:
+        return ""
+    try:
+        end_dt = datetime.fromisoformat(text.replace("Z", "+00:00")).replace(second=0, microsecond=0) + timedelta(hours=1)
+        return end_dt.isoformat()
+    except ValueError:
+        return ""
 
 
 def _session_user() -> Dict[str, Any]:
@@ -490,7 +663,7 @@ def _google_calendar_context() -> Dict[str, Any]:
                 timeMin=now,
                 singleEvents=True,
                 orderBy="startTime",
-                maxResults=50,
+                maxResults=min(GOOGLE_CALENDAR_MAX_EVENTS, 50),
             ).execute()
             calendar_name = calendar_item.get("summaryOverride") or calendar_item.get("summary") or "Google Calendar"
             for event in events_response.get("items", []):
@@ -520,7 +693,7 @@ def _google_calendar_context() -> Dict[str, Any]:
         base_context.update(
             {
                 "connected": True,
-                "events": collected_events[:100],
+                "events": collected_events[:GOOGLE_CALENDAR_MAX_EVENTS],
                 "calendar_count": len(calendar_items),
             }
         )
@@ -535,7 +708,17 @@ def _google_calendar_context() -> Dict[str, Any]:
 
 
 def _is_student_path(path: str) -> bool:
-    return path == "/aluno" or path.startswith("/aluno/") or path in {"/agenda-aluno", "/evolucao-aluno"}
+    legacy_student_paths = {
+        "/agenda-aluno",
+        "/agenda-aluno.html",
+        "/aluno_dashboard.html",
+        "/aluno_meu_treino.html",
+        "/aluno_mensagens.html",
+        "/aluno_treino_execucao.html",
+        "/evolucao-aluno",
+        "/evolucao-aluno.html",
+    }
+    return path == "/aluno" or path.startswith("/aluno/") or path in legacy_student_paths
 
 
 def _dev_user_for_path(path: str) -> Dict[str, Any]:
@@ -619,9 +802,25 @@ def _current_student_row() -> Optional[Dict[str, Any]]:
                 "plano": "Teste",
             }
         return None
-    by_email = _select_first_by(TABLE_ALUNOS, "email", current["email"])
+    current_email = str(current["email"] or "").strip().lower()
+    current_user_id = str(current["id"] or "").strip()
+    current_auth_user_id = str(current["auth_user_id"] or "").strip()
+
+    by_email = _select_first_by(TABLE_ALUNOS, "email", current_email)
     if by_email["ok"] and by_email["data"]:
         return by_email["data"]
+
+    for row in _load_rows(TABLE_ALUNOS):
+        row_email = str(_first(row, "email", default="")).strip().lower()
+        row_id = str(_first(row, "id", default="")).strip()
+        row_auth_user_id = str(_first(row, "auth_user_id", default="")).strip()
+        if current_email and row_email == current_email:
+            return row
+        if current_auth_user_id and row_auth_user_id == current_auth_user_id:
+            return row
+        if current_user_id and row_id == current_user_id:
+            return row
+
     if DEV_BYPASS_AUTH:
         return {
             "id": DEV_ALUNO_ID,
@@ -695,7 +894,7 @@ def _personal_context(pagina_ativa: str) -> Dict[str, Any]:
         "financeiro_url": url_for("financeiro"),
         "exercicios_url": url_for("exercicios"),
         "configuracoes_url": url_for("configuracoes"),
-        "logout_url": "/index.html",
+        "logout_url": url_for("logout"),
     }
 
 
@@ -719,7 +918,7 @@ def _student_context(pagina_ativa: str) -> Dict[str, Any]:
         "aluno_mensagens_url": url_for("aluno_mensagens"),
         "evolucao_url": url_for("evolucao_aluno"),
         "evolucao_aluno_url": url_for("evolucao_aluno"),
-        "logout_url": "/index.html",
+        "logout_url": url_for("logout"),
     }
 
 
@@ -732,9 +931,12 @@ def _load_rows(table: str, *, filters: Optional[Dict[str, Any]] = None, order: O
 
 def _students() -> List[Dict[str, Any]]:
     rows = _load_rows(TABLE_ALUNOS)
+    planos_por_id = {str(row.get("id")): row for row in _optional_rows(TABLE_PLANOS)}
     normalized: List[Dict[str, Any]] = []
     for row in rows:
         name = _first(row, "nome", "name", default="Aluno")
+        plano_id = _first(row, "plano", default="")
+        plano_ref = planos_por_id.get(str(plano_id), {})
         normalized.append(
             {
                 **row,
@@ -745,7 +947,8 @@ def _students() -> List[Dict[str, Any]]:
                 "data_nascimento": _fmt_date(_first(row, "data_nascimento", "nascimento")),
                 "objetivo": _first(row, "objetivo", "goal", default="Nao informado"),
                 "status": _human_status(_first(row, "status", default="ativo")),
-                "plano": _first(row, "plano", default="Nao definido"),
+                "plano_id": plano_id,
+                "plano": _first(row, "plano_descricao", default=_first(plano_ref, "nome", default=plano_id or "Nao definido")),
                 "avatar_iniciais": _initials(name),
             }
         )
@@ -754,7 +957,37 @@ def _students() -> List[Dict[str, Any]]:
 
 def _parse_exercises(raw: Any) -> List[Dict[str, Any]]:
     if isinstance(raw, list):
-        items = [str(item).strip() for item in raw if str(item).strip()]
+        parsed_items: List[Dict[str, Any]] = []
+        for index, item in enumerate(raw, start=1):
+            if isinstance(item, dict):
+                name = _first(item, "nome", "name", "exercicio", default="").strip()
+                if not name:
+                    continue
+                parsed_items.append(
+                    {
+                        "id": _first(item, "id", default=f"ex-{index}"),
+                        "nome": name,
+                        "series": _first(item, "series", default="3"),
+                        "repeticoes": _first(item, "repeticoes", "reps", default="12"),
+                        "descanso": _first(item, "descanso", default="60s"),
+                        "prescricao": _first(item, "prescricao", default=""),
+                        "status": _first(item, "status", default="Pendente"),
+                    }
+                )
+            else:
+                text_item = str(item).strip()
+                if text_item:
+                    parsed_items.append(
+                        {
+                            "id": f"ex-{index}",
+                            "nome": text_item.split("-", 1)[0].strip(),
+                            "series": "3",
+                            "repeticoes": "12",
+                            "descanso": "60s",
+                            "status": "Pendente",
+                        }
+                    )
+        return parsed_items
     else:
         text = str(raw or "").replace("\r", "\n")
         text = text.replace(";", "\n").replace("|", "\n")
@@ -779,44 +1012,34 @@ def _trainings(aluno_id: Optional[str] = None) -> List[Dict[str, Any]]:
     alunos_por_id = {row["id"]: row for row in _students()}
     normalized: List[Dict[str, Any]] = []
     for row in rows:
-        exercises = _parse_exercises(_first(row, "exercicios_raw", "exercicios", default=""))
+        exercises_raw = _first(row, "exercicios_raw", "exercicios", "observacao", default="")
+        exercises = _parse_exercises(exercises_raw)
         aluno_ref = alunos_por_id.get(_first(row, "aluno_id", default=""), {})
         normalized.append(
             {
                 **row,
                 "id": row.get("id", ""),
-                "nome": _first(row, "nome", "name", default="Treino"),
+                "nome": _first(row, "nome", "name", "descricao", default="Treino"),
                 "aluno_id": _first(row, "aluno_id", default=""),
                 "aluno_nome": _first(row, "aluno_nome", default=aluno_ref.get("nome", "Aluno")),
                 "status": _human_status(_first(row, "status", default="ativo")),
                 "grupo_muscular": _first(row, "grupo_muscular", default="Treino personalizado"),
-                "observacoes": _first(row, "observacoes", "notes", default=""),
-                "exercicios_raw": _first(row, "exercicios_raw", "exercicios", default=""),
+                "observacoes": _first(row, "observacoes", "observacao", "notes", default=""),
+                "exercicios_raw": exercises_raw,
+                "exercicios": exercises,
                 "exercicios_lista": exercises,
                 "total_exercicios": _to_int(_first(row, "total_exercicios", default=len(exercises))) or len(exercises),
-                "atualizado_em": _fmt_date(_first(row, "updated_at", "created_at")),
+                "atualizado_em": _fmt_date(_first(row, "updated_at", "created_at", "data_criacao")),
                 "video_url": _first(row, "video_url", default=""),
             }
         )
-    if DEV_BYPASS_AUTH and aluno_id == DEV_ALUNO_ID and not normalized:
-        aluno_ref = alunos_por_id.get(DEV_ALUNO_ID, {"nome": "Aluno"})
-        exercises = _parse_exercises("Agachamento - 3x12\nSupino - 3x12\nRemada - 3x12")
-        normalized.append(
-            {
-                "id": "demo-treino-1",
-                "nome": "Treino exemplo",
-                "aluno_id": DEV_ALUNO_ID,
-                "aluno_nome": aluno_ref.get("nome", "Aluno"),
-                "status": _human_status("ativo"),
-                "grupo_muscular": "Corpo todo",
-                "observacoes": "Treino de demonstracao para visualizacao.",
-                "exercicios_raw": "Agachamento - 3x12\nSupino - 3x12\nRemada - 3x12",
-                "exercicios_lista": exercises,
-                "total_exercicios": len(exercises),
-                "atualizado_em": _fmt_date(datetime.utcnow().isoformat()),
-                "video_url": "",
-            }
-        )
+    if aluno_id:
+        aluno_id_normalized = str(aluno_id)
+        normalized = [
+            treino
+            for treino in normalized
+            if str(treino.get("aluno_id", "")) == aluno_id_normalized
+        ]
     return normalized
 
 
@@ -827,16 +1050,34 @@ def _schedule_rows() -> List[Dict[str, Any]]:
     for row in rows:
         aluno_ref = alunos_por_id.get(_first(row, "aluno_id", default=""), {})
         status = _slug_status(_first(row, "status", default="pendente"))
-        title = _first(row, "titulo", "nome", "title", default="Aula")
+        observacao_bruta = _first(row, "observacao", "observacoes", "notes", default="")
+        agenda_meta = _parse_agenda_observacao(observacao_bruta)
+        observacao = agenda_meta["observacoes"]
+        title = _first(
+            row,
+            "titulo",
+            "nome",
+            "title",
+            default=agenda_meta["titulo"] or (str(observacao).splitlines()[0] if observacao else ("Horario disponivel" if status == "disponivel" else "Aula")),
+        )
         start = _first(row, "inicio", "data_hora_inicio", "data_hora", "start_time", "starts_at", default="")
+        if not start:
+            start = _combine_date_time(_first(row, "data", default=""), _first(row, "hora", default=""))
         end = _first(row, "termino", "data_hora_fim", "end_time", "ends_at", default="")
+        if not end and agenda_meta["termino"]:
+            end = _combine_date_time(_first(row, "data", default=""), agenda_meta["termino"])
+        if start and row.get("hora") and "T" not in str(start):
+            start = f"{start}T{str(row.get('hora'))[:5]}"
+        if not end:
+            end = _default_end_from_start(start)
         google_calendar_url = _first(row, "google_calendar_url", default="")
         if not google_calendar_url and start:
             start_raw = str(start).replace("-", "").replace(":", "").replace("T", "").split(".")[0]
             end_raw = str(end or start).replace("-", "").replace(":", "").replace("T", "").split(".")[0]
             google_calendar_url = f"https://calendar.google.com/calendar/render?action=TEMPLATE&text={title}&dates={start_raw}/{end_raw}"
-        hours = _fmt_hour_range(start, end)
-        start_hour, end_hour = hours.split(" - ")
+        start_hour = _fmt_time(start)
+        end_hour = _fmt_time(end)
+        hours = start_hour if end_hour == "--:--" else f"{start_hour} - {end_hour}"
         normalized.append(
             {
                 **row,
@@ -855,15 +1096,15 @@ def _schedule_rows() -> List[Dict[str, Any]]:
                 "termino_iso": end,
                 "data": _fmt_date(start),
                 "hora": hours,
-                "tipo": _first(row, "tipo", "category", default="Aula"),
-                "observacoes": _first(row, "observacoes", "notes", default=""),
+                "tipo": _first(row, "tipo", "category", default="Horario disponivel" if status == "disponivel" else "Aula"),
+                "observacoes": observacao,
                 "google_calendar_url": google_calendar_url,
             }
         )
     return normalized
 
 
-def _assessment_metrics(row: Dict[str, Any]) -> Dict[str, Any]:
+def _assessment_metrics_legacy(row: Dict[str, Any]) -> Dict[str, Any]:
     peso = _to_float(_first(row, "peso"))
     altura_cm = _to_float(_first(row, "estatura", "altura"))
     gordura = _to_float(_first(row, "gordura", "percentual_gordura"))
@@ -927,8 +1168,72 @@ def _assessment_metrics(row: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
+def _assessment_metrics(row: Dict[str, Any]) -> Dict[str, Any]:
+    peso = _to_float(_first(row, "peso"))
+    altura_cm = _to_float(_first(row, "estatura", "altura"))
+    gordura = _to_float(_first(row, "gordura", "percentual_gordura"))
+    cintura = _to_float(_first(row, "cintura"))
+    quadril = _to_float(_first(row, "quadril"))
+    imc: Optional[float] = None
+    if peso and altura_cm:
+        altura_m = altura_cm / 100
+        if altura_m > 0:
+            imc = peso / (altura_m * altura_m)
+    massa_gorda = peso * (gordura / 100) if peso is not None and gordura is not None else None
+    massa_magra = peso - massa_gorda if peso is not None and massa_gorda is not None else None
+    relacao = cintura / quadril if cintura and quadril else None
+    soma_dobras = sum(
+        item
+        for item in [
+            _to_float(_first(row, "tricipital")),
+            _to_float(_first(row, "subscapular")),
+            _to_float(_first(row, "suprailiaca")),
+            _to_float(_first(row, "abdominal")),
+            _to_float(_first(row, "peitoral")),
+            _to_float(_first(row, "coxa")),
+            _to_float(_first(row, "perna")),
+        ]
+        if item is not None
+    )
+    if gordura is None:
+        classificacao_gordura = "Não informada"
+    elif gordura <= 14:
+        classificacao_gordura = "Excelente"
+    elif gordura <= 20:
+        classificacao_gordura = "Boa"
+    elif gordura <= 25:
+        classificacao_gordura = "Moderada"
+    else:
+        classificacao_gordura = "Alta"
+    if imc is None:
+        classificacao_imc = "Não informada"
+    elif imc < 18.5:
+        classificacao_imc = "Baixo peso"
+    elif imc < 25:
+        classificacao_imc = "Peso normal"
+    elif imc < 30:
+        classificacao_imc = "Sobrepeso"
+    else:
+        classificacao_imc = "Obesidade"
+    peso_ideal = None
+    if massa_magra is not None:
+        peso_ideal = massa_magra / (1 - 0.14)
+    return {
+        "imc": f"{imc:.2f}".replace(".", ",") if imc is not None else "—",
+        "gordura": f"{gordura:.0f}%" if gordura is not None and gordura.is_integer() else (f"{gordura:.2f}%".replace(".", ",") if gordura is not None else "—"),
+        "massa_gorda": f"{massa_gorda:.2f} kg".replace(".", ",") if massa_gorda is not None else "—",
+        "massa_magra": f"{massa_magra:.2f} kg".replace(".", ",") if massa_magra is not None else "—",
+        "classificacao": classificacao_imc,
+        "classificacao_gordura": classificacao_gordura,
+        "gordura_nivel": classificacao_gordura,
+        "peso_ideal": f"{peso_ideal:.2f} kg".replace(".", ",") if peso_ideal is not None else "—",
+        "soma_dobras": f"{soma_dobras:.0f} mm" if soma_dobras else "—",
+        "relacao_cq": f"{relacao:.2f}".replace(".", ",") if relacao is not None else "—",
+    }
+
+
 def _assessments(aluno_id: Optional[str] = None) -> List[Dict[str, Any]]:
-    rows = _load_rows(TABLE_AVALIACOES, filters={"aluno_id": aluno_id} if aluno_id else None)
+    rows = _load_rows(TABLE_AVALIACOES, filters={"aluno_id": aluno_id} if aluno_id else None, order="data", desc=True)
     alunos_por_id = {row["id"]: row for row in _students()}
     normalized: List[Dict[str, Any]] = []
     for row in rows:
@@ -943,12 +1248,13 @@ def _assessments(aluno_id: Optional[str] = None) -> List[Dict[str, Any]]:
                 "aluno_nome": _first(row, "aluno_nome", default=aluno_ref.get("nome", "Aluno")),
                 "peso": f"{_first(row, 'peso', default='0')} kg",
                 "altura": f"{_first(row, 'estatura', 'altura', default='0')} cm",
-                "data": _fmt_date(_first(row, "created_at", "data_avaliacao")),
-                "observacoes": _first(row, "observacoes", default=""),
+                "data": _fmt_date(_first(row, "data", "created_at", "data_avaliacao")),
+                "observacoes": _first(row, "observacoes", "observacao", default=""),
                 "historico_label": f"Avaliacao {_first(row, 'numero', default='1')}",
                 "status_label": metrics["classificacao"],
                 "resumo": metrics["classificacao"],
                 "objetivo": _first(row, "objetivo", default="Nao informado"),
+                "exportar_pdf_url": url_for("exportar_avaliacao_pdf", avaliacao_id=row.get("id", "")) if row.get("id") else "",
             }
         )
     return normalized
@@ -959,26 +1265,464 @@ def _exercises() -> List[Dict[str, Any]]:
     if not result["ok"]:
         return []
     rows = result["data"]
+    grupos_por_id = {str(row.get("id")): row for row in _optional_rows(TABLE_GRUPOS_MUSCULARES)}
     normalized: List[Dict[str, Any]] = []
     for row in rows:
+        grupo_ref = grupos_por_id.get(str(_first(row, "grupo_muscular_id", default="")), {})
         normalized.append(
             {
                 **row,
                 "id": row.get("id", ""),
                 "nome": _first(row, "nome", "name", default="Exercicio"),
-                "grupo_muscular": _first(row, "grupo_muscular", default="Nao informado"),
+                "grupo_muscular": _first(row, "grupo_muscular", default=_first(grupo_ref, "nome", default=_first(row, "grupo_muscular_id", default="Nao informado"))),
                 "descricao": _first(row, "descricao", "description", default=""),
+                "video_url": _first(row, "video_url", "link_execucao", default=""),
                 "imagem_url": _first(row, "imagem_url", default=""),
+                "video_url": _first(row, "video_url", "link_execucao", default=""),
             }
         )
     return normalized
+
+
+def _safe_pdf_filename(text: Any, *, fallback: str = "avaliacao") -> str:
+    raw = str(text or "").strip().lower()
+    if not raw:
+        return fallback
+    sanitized = []
+    for char in raw:
+        if char.isalnum():
+            sanitized.append(char)
+        elif char in {" ", "-", "_"}:
+            sanitized.append("-")
+    compact = "".join(sanitized).strip("-")
+    while "--" in compact:
+        compact = compact.replace("--", "-")
+    return compact or fallback
+
+
+def _avaliacao_pdf_document_legacy(avaliacao: Dict[str, Any]) -> BytesIO:
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+    from reportlab.lib.units import mm
+    from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        leftMargin=16 * mm,
+        rightMargin=16 * mm,
+        topMargin=16 * mm,
+        bottomMargin=14 * mm,
+        title="Laudo de Avaliacao Fisica",
+        author=BRAND_NAME,
+    )
+
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(name="ConfieKicker", fontName="Helvetica-Bold", fontSize=8, leading=10, textColor=colors.HexColor("#ff5a0a"), spaceAfter=6))
+    styles.add(ParagraphStyle(name="ConfieTitle", fontName="Helvetica-Bold", fontSize=24, leading=27, textColor=colors.HexColor("#111111"), spaceAfter=8))
+    styles.add(ParagraphStyle(name="ConfieBody", fontName="Helvetica", fontSize=10.5, leading=14, textColor=colors.HexColor("#2d313a")))
+    styles.add(ParagraphStyle(name="ConfieSmall", fontName="Helvetica", fontSize=9, leading=12, textColor=colors.HexColor("#5f6674")))
+    styles.add(ParagraphStyle(name="ConfieCardLabel", fontName="Helvetica-Bold", fontSize=8, leading=10, textColor=colors.HexColor("#727a89")))
+    styles.add(ParagraphStyle(name="ConfieCardValue", fontName="Helvetica-Bold", fontSize=18, leading=21, textColor=colors.HexColor("#111111")))
+    styles.add(ParagraphStyle(name="ConfieSection", fontName="Helvetica-Bold", fontSize=15, leading=18, textColor=colors.HexColor("#111111"), spaceAfter=8))
+
+    aluno_nome = _first(avaliacao, "aluno_nome", default="Aluno")
+    resumo_cards = [
+        ("PESO", _first(avaliacao, "peso", default="—")),
+        ("IMC", _first(avaliacao, "imc", default="—")),
+        ("% GORDURA", _first(avaliacao, "gordura", default="—")),
+        ("MASSA MAGRA", _first(avaliacao, "massa_magra", default="—")),
+    ]
+    leitura_cards = [
+        ("CLASSIFICACAO", _first(avaliacao, "classificacao", default="—")),
+        ("% GORDURA", _first(avaliacao, "gordura_nivel", default="—")),
+        ("MASSA GORDA", _first(avaliacao, "massa_gorda", default="—")),
+        ("PESO IDEAL", _first(avaliacao, "peso_ideal", default="—")),
+        ("RELACAO C/Q", _first(avaliacao, "relacao_cq", default="—")),
+        ("SOMA DAS DOBRAS", _first(avaliacao, "soma_dobras", default="—")),
+    ]
+    medidas_cards = [
+        ("TRICIPITAL", _first(avaliacao, "tricipital", default="—")),
+        ("SUBSCAPULAR", _first(avaliacao, "subscapular", default="—")),
+        ("SUPRAILIACA", _first(avaliacao, "suprailiaca", default="—")),
+        ("ABDOMINAL", _first(avaliacao, "abdominal", default="—")),
+        ("PEITORAL", _first(avaliacao, "peitoral", default="—")),
+        ("COXA", _first(avaliacao, "coxa", default="—")),
+        ("PERNA", _first(avaliacao, "perna", default="—")),
+        ("BRACO DIREITO", _first(avaliacao, "braco_direito", default="—")),
+        ("PEITORAL CIRC.", _first(avaliacao, "peitoral_circ", default="—")),
+        ("CINTURA", _first(avaliacao, "cintura", default="—")),
+        ("QUADRIL", _first(avaliacao, "quadril", default="—")),
+        ("COXA DIREITA", _first(avaliacao, "coxa_direita", default="—")),
+        ("PERNA DIREITA", _first(avaliacao, "perna_direita", default="—")),
+    ]
+
+    story = [
+        Paragraph(BRAND_NAME, styles["ConfieKicker"]),
+        Paragraph("LAUDO DE AVALIACAO FISICA", styles["ConfieTitle"]),
+        Paragraph(
+            f"<b>Aluno:</b> {aluno_nome}<br/><b>Data da avaliacao:</b> {_first(avaliacao, 'data', default='—')}<br/><b>Classificacao:</b> {_first(avaliacao, 'classificacao', default='—')}",
+            styles["ConfieBody"],
+        ),
+        Spacer(1, 8),
+    ]
+
+    summary_table = Table(
+        [[Paragraph(label, styles["ConfieCardLabel"]), Paragraph(value, styles["ConfieCardValue"])] for label, value in resumo_cards],
+        colWidths=[38 * mm, 43 * mm],
+    )
+    summary_table.setStyle(
+        TableStyle(
+            [
+                ("BOX", (0, 0), (-1, -1), 0.7, colors.HexColor("#dadde5")),
+                ("INNERGRID", (0, 0), (-1, -1), 0.7, colors.HexColor("#dadde5")),
+                ("BACKGROUND", (0, 0), (-1, -1), colors.white),
+                ("LEFTPADDING", (0, 0), (-1, -1), 7),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 7),
+                ("TOPPADDING", (0, 0), (-1, -1), 8),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+            ]
+        )
+    )
+    story.extend([summary_table, Spacer(1, 12)])
+
+    story.append(Paragraph("LEITURA CORPORAL", styles["ConfieSection"]))
+    leitura_rows = []
+    for index in range(0, len(leitura_cards), 2):
+        left = leitura_cards[index]
+        right = leitura_cards[index + 1] if index + 1 < len(leitura_cards) else ("", "")
+        leitura_rows.append(
+            [
+                Paragraph(f"<b>{left[0]}</b><br/>{left[1]}", styles["ConfieBody"]),
+                Paragraph(f"<b>{right[0]}</b><br/>{right[1]}", styles["ConfieBody"]) if right[0] else "",
+            ]
+        )
+    leitura_table = Table(leitura_rows, colWidths=[86 * mm, 86 * mm])
+    leitura_table.setStyle(
+        TableStyle(
+            [
+                ("BOX", (0, 0), (-1, -1), 0.7, colors.HexColor("#dadde5")),
+                ("INNERGRID", (0, 0), (-1, -1), 0.7, colors.HexColor("#dadde5")),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 8),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+                ("TOPPADDING", (0, 0), (-1, -1), 9),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 9),
+            ]
+        )
+    )
+    story.extend([leitura_table, Spacer(1, 12)])
+
+    story.append(Paragraph("DOBRAS E PERIMETROS", styles["ConfieSection"]))
+    medidas_rows = []
+    for index in range(0, len(medidas_cards), 2):
+        left = medidas_cards[index]
+        right = medidas_cards[index + 1] if index + 1 < len(medidas_cards) else ("", "")
+        medidas_rows.append(
+            [
+                Paragraph(f"<b>{left[0]}</b><br/>{left[1]}", styles["ConfieBody"]),
+                Paragraph(f"<b>{right[0]}</b><br/>{right[1]}", styles["ConfieBody"]) if right[0] else "",
+            ]
+        )
+    medidas_table = Table(medidas_rows, colWidths=[86 * mm, 86 * mm])
+    medidas_table.setStyle(
+        TableStyle(
+            [
+                ("BOX", (0, 0), (-1, -1), 0.7, colors.HexColor("#dadde5")),
+                ("INNERGRID", (0, 0), (-1, -1), 0.7, colors.HexColor("#dadde5")),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 8),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+                ("TOPPADDING", (0, 0), (-1, -1), 9),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 9),
+            ]
+        )
+    )
+    story.extend([medidas_table, Spacer(1, 12)])
+
+    observacoes = _first(avaliacao, "observacoes", default="")
+    if observacoes:
+        story.append(Paragraph("OBSERVACOES", styles["ConfieSection"]))
+        story.append(Paragraph(observacoes.replace("\n", "<br/>"), styles["ConfieBody"]))
+        story.append(Spacer(1, 10))
+
+    story.append(Paragraph("Documento gerado pela plataforma CONFIE Personal.", styles["ConfieSmall"]))
+    doc.build(story)
+    buffer.seek(0)
+    return buffer
+
+
+def _avaliacao_pdf_document(avaliacao: Dict[str, Any]) -> BytesIO:
+    from reportlab.lib.colors import HexColor
+    from reportlab.lib.pagesizes import A4
+    from reportlab.pdfbase.pdfmetrics import stringWidth
+    from reportlab.pdfgen import canvas
+
+    buffer = BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=A4)
+    pdf.setTitle("Laudo de Avaliação Física")
+    pdf.setAuthor(BRAND_NAME)
+
+    page_width, page_height = A4
+    orange = HexColor("#ff5a0a")
+    orange_light = HexColor("#ffb79d")
+    brown = HexColor("#a35b38")
+    black = HexColor("#111216")
+    muted = HexColor("#5d606b")
+    border = HexColor("#d4d7de")
+    line = HexColor("#111216")
+
+    aluno_nome = _first(avaliacao, "aluno_nome", default="Aluno")
+    data_avaliacao = _first(avaliacao, "data", default="—")
+    classificacao = _first(avaliacao, "classificacao", default="—")
+
+    def clean(value: Any, default: str = "—") -> str:
+        text = str(value if value is not None else "").strip()
+        if not text or text in {"â€”", "None"}:
+            return default
+        return text
+
+    def with_unit(value: Any, unit: str) -> str:
+        text = clean(value)
+        if text == "—":
+            return text
+        lower = text.lower()
+        if unit.lower() in lower or "%" in lower:
+            return text
+        return f"{text} {unit}"
+
+    def tracked(text: str) -> str:
+        return " ".join(str(text).upper())
+
+    def fit_font(text: str, font_name: str, size: float, max_width: float, min_size: float = 7) -> float:
+        current = size
+        while current > min_size and stringWidth(text, font_name, current) > max_width:
+            current -= 0.5
+        return current
+
+    def draw_wrapped_text(text: str, x: float, y: float, width: float, font_size: float, leading: float, color: Any = muted) -> None:
+        words = clean(text, "").split()
+        if not words:
+            return
+        pdf.setFillColor(color)
+        pdf.setFont("Helvetica", font_size)
+        current = ""
+        cursor_y = y
+        for word in words:
+            candidate = f"{current} {word}".strip()
+            if stringWidth(candidate, "Helvetica", font_size) <= width:
+                current = candidate
+                continue
+            pdf.drawString(x, cursor_y, current)
+            cursor_y -= leading
+            current = word
+        if current:
+            pdf.drawString(x, cursor_y, current)
+
+    def draw_chrome(page_number: int) -> None:
+        emitted_at = datetime.now().strftime("%d/%m/%Y, %H:%M")
+        pdf.setFillColor(black)
+        pdf.setFont("Helvetica", 8)
+        pdf.drawString(24, page_height - 22, emitted_at)
+        pdf.drawCentredString(page_width / 2, page_height - 22, "Laudo de Avaliação Física")
+        pdf.drawString(24, 18, "about:blank")
+        pdf.drawRightString(page_width - 24, 18, f"{page_number}/2")
+
+    def draw_box(x: float, y: float, width: float, height: float, stroke: Any = border, stroke_width: float = 0.7) -> None:
+        pdf.setStrokeColor(stroke)
+        pdf.setLineWidth(stroke_width)
+        pdf.rect(x, y, width, height, stroke=1, fill=0)
+
+    def draw_card(x: float, y: float, width: float, height: float, label: str, value: Any, value_size: float = 16) -> None:
+        draw_box(x, y, width, height)
+        pdf.setFillColor(muted)
+        pdf.setFont("Helvetica", 9)
+        label_lines = str(label).split("\n")
+        for index, label_line in enumerate(label_lines):
+            pdf.drawString(x + 12, y + height - 21 - (index * 11), tracked(label_line))
+
+        value_text = clean(value)
+        size = fit_font(value_text.replace("\n", " "), "Helvetica-Bold", value_size, width - 24, 8)
+        pdf.setFillColor(black)
+        pdf.setFont("Helvetica-Bold", size)
+        value_y = y + 18 if len(label_lines) == 1 else y + 16
+        if "\n" in value_text:
+            parts = value_text.split("\n")
+            for index, part in enumerate(parts):
+                pdf.drawString(x + 12, value_y + (len(parts) - index - 1) * (size + 1), part)
+        else:
+            if len(label_lines) > 1:
+                value_y = y + 11
+            pdf.drawString(x + 12, value_y, value_text)
+
+    def draw_table_box(x: float, y: float, width: float, height: float, title: str, rows: List[tuple[str, str]]) -> None:
+        draw_box(x, y, width, height)
+        pdf.setFillColor(black)
+        pdf.setFont("Helvetica-Bold", 18)
+        pdf.drawString(x + 13, y + height - 29, title)
+        pdf.setFillColor(muted)
+        pdf.setFont("Helvetica-Bold", 8.5)
+        pdf.drawString(x + 13, y + height - 60, tracked("Medida"))
+        pdf.drawString(x + width * 0.62, y + height - 60, tracked("Valor"))
+        cursor_y = y + height - 70
+        pdf.setStrokeColor(line)
+        pdf.setLineWidth(0.7)
+        pdf.line(x + 13, cursor_y, x + width - 13, cursor_y)
+        pdf.setFillColor(black)
+        pdf.setFont("Helvetica", 12.5)
+        for label, value in rows:
+            cursor_y -= 19
+            pdf.drawString(x + 13, cursor_y, label)
+            pdf.drawString(x + width * 0.62, cursor_y, clean(value))
+            pdf.line(x + 13, cursor_y - 8, x + width - 13, cursor_y - 8)
+
+    resumo_cards = [
+        ("PESO", with_unit(_first(avaliacao, "peso", default="—"), "kg")),
+        ("IMC", _first(avaliacao, "imc", default="—")),
+        ("% GORDURA", _first(avaliacao, "gordura", default="—")),
+        ("MASSA MAGRA", with_unit(_first(avaliacao, "massa_magra", default="—"), "kg")),
+    ]
+    leitura_cards = [
+        ("CLASSIFICAÇÃO", classificacao),
+        ("% GORDURA", _first(avaliacao, "gordura_nivel", "classificacao_gordura", default="—")),
+        ("MASSA GORDA", with_unit(_first(avaliacao, "massa_gorda", default="—"), "kg")),
+        ("PESO IDEAL", with_unit(_first(avaliacao, "peso_ideal", default="—"), "kg")),
+        ("RELAÇÃO C/Q", _first(avaliacao, "relacao_cq", default="—")),
+        ("SOMA DE\nDOBRAS", with_unit(_first(avaliacao, "soma_dobras", default="—"), "mm")),
+    ]
+    dobras = [
+        ("Tricipital", with_unit(_first(avaliacao, "tricipital", default="—"), "mm")),
+        ("Subscapular", with_unit(_first(avaliacao, "subscapular", default="—"), "mm")),
+        ("Suprailíaca", with_unit(_first(avaliacao, "suprailiaca", default="—"), "mm")),
+        ("Abdominal", with_unit(_first(avaliacao, "abdominal", default="—"), "mm")),
+        ("Peitoral", with_unit(_first(avaliacao, "peitoral", default="—"), "mm")),
+        ("Coxa", with_unit(_first(avaliacao, "coxa", default="—"), "mm")),
+        ("Perna", with_unit(_first(avaliacao, "perna", default="—"), "mm")),
+    ]
+    circunferencias = [
+        ("Braço direito", with_unit(_first(avaliacao, "braco_direito", default="—"), "cm")),
+        ("Peitoral", with_unit(_first(avaliacao, "peitoral_circ", "peitoral_circunferencia", default="—"), "cm")),
+        ("Cintura", with_unit(_first(avaliacao, "cintura", default="—"), "cm")),
+        ("Quadril", with_unit(_first(avaliacao, "quadril", default="—"), "cm")),
+        ("Coxa direita", with_unit(_first(avaliacao, "coxa_direita", default="—"), "cm")),
+        ("Perna direita", with_unit(_first(avaliacao, "perna_direita", default="—"), "cm")),
+    ]
+
+    draw_chrome(1)
+    draw_box(34, 585, 528, 222)
+    pdf.setFillColor(orange)
+    pdf.setFont("Helvetica-Bold", 11)
+    pdf.drawString(56, 775, "C O N F I E  P E R S O N A L")
+    draw_box(275, 760, 266, 25, orange_light, 0.7)
+    pdf.setFillColor(brown)
+    header_title = "L A U D O  P R O F I S S I O N A L  D E  A V A L I A Ç Ã O  F Í S I C A"
+    pdf.setFont("Helvetica-Bold", fit_font(header_title, "Helvetica-Bold", 9.5, 244, 7))
+    pdf.drawCentredString(408, 769.5, header_title)
+    pdf.setFillColor(black)
+    aluno_size = fit_font(str(aluno_nome).upper(), "Helvetica-Bold", 28, 430, 18)
+    pdf.setFont("Helvetica-Bold", aluno_size)
+    pdf.drawString(56, 723, str(aluno_nome).upper())
+    pdf.setFillColor(muted)
+    pdf.setFont("Helvetica", 12)
+    pdf.drawString(56, 702, f"Data da avaliação: {data_avaliacao} • Classificação: {classificacao}")
+
+    for index, (label, value) in enumerate(resumo_cards):
+        draw_card([56, 180, 304, 428][index], 607, 114, 82, label, value, 18)
+
+    draw_box(34, 314, 306, 261)
+    pdf.setFillColor(black)
+    pdf.setFont("Helvetica-Bold", 18)
+    pdf.drawString(47, 546, "DESTAQUES DA AVALIAÇÃO")
+    for position, (label, value) in zip([(47, 471), (192, 471), (47, 404), (192, 404), (47, 337), (192, 337)], leitura_cards):
+        draw_card(position[0], position[1], 135, 57, label, value, 14)
+
+    draw_box(352, 314, 210, 261)
+    pdf.setFillColor(black)
+    pdf.setFont("Helvetica-Bold", 18)
+    pdf.drawString(365, 546, "FICHA BASE")
+    draw_card(365, 452, 72, 77, "IDADE", with_unit(_first(avaliacao, "idade", default="—"), "anos"), 15)
+    draw_card(446, 452, 103, 77, "SEXO", _first(avaliacao, "sexo", default="Masculino"), 15)
+    draw_card(365, 366, 72, 77, "ALTURA", with_unit(_first(avaliacao, "altura", "estatura", default="—"), "cm"), 15)
+    draw_card(446, 366, 103, 77, "PESO", with_unit(_first(avaliacao, "peso", default="—"), "kg"), 15)
+
+    pdf.showPage()
+    draw_chrome(2)
+    draw_table_box(34, 545, 258, 252, "DOBRAS CUTÂNEAS", dobras)
+    draw_table_box(304, 545, 258, 252, "CIRCUNFERÊNCIAS", circunferencias)
+
+    draw_box(34, 397, 258, 135)
+    pdf.setFillColor(muted)
+    pdf.setFont("Helvetica", 9)
+    pdf.drawString(48, 510, tracked("Responsável técnico"))
+    pdf.setFillColor(black)
+    pdf.setFont("Helvetica-Bold", 18)
+    pdf.drawString(48, 482, "CONFIE Personal")
+    pdf.setStrokeColor(muted)
+    pdf.setLineWidth(0.7)
+    pdf.line(48, 444, 278, 444)
+    pdf.setFillColor(muted)
+    pdf.setFont("Helvetica", 10.5)
+    pdf.drawString(48, 426, "Assinatura / carimbo profissional")
+
+    draw_box(304, 397, 258, 135)
+    pdf.setFillColor(muted)
+    pdf.setFont("Helvetica", 9)
+    pdf.drawString(318, 510, tracked("Entrega do laudo"))
+    draw_wrapped_text(
+        "Documento gerado para acompanhamento da evolução física e apoio ao planejamento de treino.",
+        318,
+        490,
+        212,
+        12,
+        14,
+        muted,
+    )
+    pdf.setStrokeColor(muted)
+    pdf.line(318, 431, 548, 431)
+    pdf.setFillColor(muted)
+    pdf.setFont("Helvetica", 10.5)
+    pdf.drawString(318, 413, f"Data de emissão: {data_avaliacao}")
+
+    pdf.setStrokeColor(line)
+    pdf.setLineWidth(0.8)
+    pdf.line(34, 382, 562, 382)
+    draw_wrapped_text(
+        "Este laudo resume as principais métricas coletadas na avaliação física e deve ser interpretado em conjunto com o histórico do aluno, objetivos e acompanhamento profissional.",
+        34,
+        363,
+        528,
+        10,
+        15,
+        muted,
+    )
+
+    pdf.save()
+    buffer.seek(0)
+    return buffer
+
+
+def _get_or_create_muscle_group_id(nome: Any) -> Optional[str]:
+    group_name = str(nome or "").strip()
+    if not group_name:
+        return None
+    if _is_uuid(group_name):
+        return group_name
+    existing = _select_first_by(TABLE_GRUPOS_MUSCULARES, "nome", group_name)
+    if existing["ok"] and existing["data"]:
+        return existing["data"].get("id")
+    created = _insert(TABLE_GRUPOS_MUSCULARES, {"nome": group_name})
+    if created["ok"] and created["data"]:
+        return created["data"][0].get("id")
+    return None
 
 
 def _optional_rows(table: str, *, order: Optional[str] = None, desc: bool = False) -> List[Dict[str, Any]]:
     if not _ready():
         return []
     try:
-        query = _client().table(table).select("*")
+        query = _admin_client().table(table).select("*")
         if order:
             query = query.order(order, desc=desc)
         response = query.execute()
@@ -1052,13 +1796,21 @@ def _messages_for_student(contact_id: Optional[str]) -> Dict[str, Any]:
 
 
 def _payment_rows() -> List[Dict[str, Any]]:
-    rows = _optional_rows(TABLE_PAGAMENTOS, order="atualizado_em", desc=True)
+    rows = _optional_rows(TABLE_PAGAMENTOS, order="data_parcela", desc=True)
+    alunos = _students()
+    planos = _plans()
+    alunos_por_id = {row["id"]: row for row in alunos}
+    planos_por_aluno = {row["id"]: row["planos"] for row in _student_plan_rows(alunos, planos)}
     if not rows:
         return [
             {
                 "id": aluno["id"],
+                "aluno_id": aluno["id"],
                 "aluno_nome": aluno["nome"],
                 "email": aluno["email"],
+                "planos": planos_por_aluno.get(aluno["id"], []),
+                "plano_resumo": ", ".join(plano["nome"] for plano in planos_por_aluno.get(aluno["id"], [])) or "Sem plano",
+                "valor": 0,
                 "status": "pendente",
                 "status_label": "Pendente",
                 "status_color": "pending",
@@ -1069,17 +1821,22 @@ def _payment_rows() -> List[Dict[str, Any]]:
         ]
     normalized: List[Dict[str, Any]] = []
     for row in rows:
-        status = _slug_status(_first(row, "status", "status_pagamento", default="pendente"))
+        aluno_ref = alunos_por_id.get(_first(row, "aluno_id", default=""), {})
+        aluno_id = _first(row, "aluno_id", default="")
+        planos_aluno = planos_por_aluno.get(aluno_id, [])
+        status = _payment_status_slug(_first(row, "status_parcela", "status", "status_pagamento", default="pendente"))
         normalized.append(
             {
                 **row,
                 "id": row.get("id", ""),
-                "aluno_nome": _first(row, "aluno_nome", default="Aluno"),
-                "email": _first(row, "email", default=""),
+                "aluno_nome": _first(row, "aluno_nome", default=aluno_ref.get("nome", "Aluno")),
+                "email": _first(row, "email", default=aluno_ref.get("email", "")),
+                "planos": planos_aluno,
+                "plano_resumo": ", ".join(plano["nome"] for plano in planos_aluno) or "Sem plano",
                 "status": status,
                 "status_label": _human_status(status).upper(),
                 "status_color": "paid" if status == "pago" else "pending" if status == "pendente" else "late",
-                "atualizado_em": _fmt_date(_first(row, "atualizado_em", "updated_at", "created_at")) or "Sem atualizacao",
+                "atualizado_em": _fmt_date(_first(row, "data_recebimento", "data_parcela", "created_at")) or "Sem atualizacao",
                 "alterar_status_url": url_for("alterar_status_pagamento", pagamento_id=row.get("id", "")),
             }
         )
@@ -1101,11 +1858,73 @@ def _plans() -> List[Dict[str, Any]]:
                 "id": row.get("id", ""),
                 "nome": _first(row, "nome", default="Plano"),
                 "preco": _currency(_first(row, "preco", "valor", default=0)),
+                "preco_valor": _first(row, "preco", "valor", default=0),
                 "descricao": _first(row, "descricao", default=""),
+                "duracao_dias": _first(row, "duracao_dias", default=30),
+                "recorrente": bool(_first(row, "recorrente", default=True)),
                 "gerenciar_url": url_for("gerenciar_plano", plano_id=row.get("id", "")),
             }
         )
     return normalized
+
+
+def _student_plan_rows(alunos: List[Dict[str, Any]], planos: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    planos_por_id = {str(plano.get("id", "")): plano for plano in planos}
+    rows: List[Dict[str, Any]] = []
+    for aluno in alunos:
+        linked_plan_ids: List[str] = []
+        raw_values = [
+            _first(aluno, "plano_id", default=""),
+            aluno.get("plano") if str(aluno.get("plano", "")).strip() in planos_por_id else "",
+            _first(aluno, "planos", "planos_ids", "plano_ids", default=[]),
+        ]
+        for raw_value in raw_values:
+            values = raw_value if isinstance(raw_value, list) else [raw_value]
+            for value in values:
+                plan_id = str(value or "").strip()
+                if plan_id and plan_id not in linked_plan_ids:
+                    linked_plan_ids.append(plan_id)
+
+        for plano in planos:
+            aluno_id = str(_first(plano, "aluno_id", default="")).strip()
+            if aluno_id and aluno_id == str(aluno.get("id", "")) and str(plano.get("id", "")) not in linked_plan_ids:
+                linked_plan_ids.append(str(plano.get("id", "")))
+
+        linked_plans: List[Dict[str, Any]] = []
+        for plan_id in linked_plan_ids:
+            plano_ref = planos_por_id.get(plan_id)
+            if plano_ref:
+                linked_plans.append(plano_ref)
+            elif plan_id and plan_id.lower() not in {"nao definido", "não definido"}:
+                linked_plans.append({"id": plan_id, "nome": plan_id, "preco": "", "periodo": ""})
+
+        rows.append(
+            {
+                "id": aluno.get("id", ""),
+                "nome": aluno.get("nome", "Aluno"),
+                "email": aluno.get("email", ""),
+                "planos": linked_plans,
+                "total_planos": len(linked_plans),
+            }
+        )
+    return rows
+
+
+def _db_plan_options() -> List[Dict[str, Any]]:
+    return [plan for plan in _plans() if _is_uuid(plan.get("id"))]
+
+
+def _resolve_plan_id(value: Any) -> Optional[str]:
+    text = str(value or "").strip()
+    if not text:
+        return None
+    if _is_uuid(text):
+        return text
+    wanted = _slug_text(text)
+    for plan in _db_plan_options():
+        if wanted in {_slug_text(plan.get("id")), _slug_text(plan.get("nome"))}:
+            return str(plan["id"])
+    return None
 
 
 def _landing_resources() -> List[Dict[str, Any]]:
@@ -1333,6 +2152,7 @@ def google_calendar_disconnect():
 
 
 @app.get("/dashboard")
+@app.get("/dashboard.html")
 @login_required
 @role_required("Personal Trainer", "Admin", "Professor")
 def dashboard():
@@ -1354,7 +2174,7 @@ def dashboard():
         variacao_checkins="",
         adicionar_aluno_destino=url_for("alunos") + "#novo-aluno",
         adicionar_aluno_url=url_for("alunos") + "#novo-aluno",
-        criar_treino_url=url_for("criar_treino"),
+        criar_treino_url=url_for("treinos") + "#novo-treino-modal",
         agendar_aula_url=url_for("agenda") + "#nova-aula",
         total_avaliacoes=len(avaliacoes_lista),
         **_personal_context("dashboard"),
@@ -1362,6 +2182,7 @@ def dashboard():
 
 
 @app.route("/alunos", methods=["GET", "POST"])
+@app.route("/alunos.html", methods=["GET", "POST"])
 @login_required
 @role_required("Personal Trainer", "Admin", "Professor")
 def alunos():
@@ -1370,28 +2191,84 @@ def alunos():
         if csrf_error:
             flash(csrf_error, "error")
             return redirect(url_for("alunos"))
+        nome = request.form.get("nome", "").strip()
+        email = request.form.get("email", "").strip().lower()
+        senha_inicial = request.form.get("senha", "").strip()
+        criar_login = request.form.get("criar_login") == "1"
+        status_aluno = _slug_status(request.form.get("status") or "ativo")
+        if status_aluno not in {"ativo", "inativo"}:
+            status_aluno = "ativo"
+        if criar_login and not email:
+            flash("Para criar login para o aluno, informe um email.", "error")
+            return redirect(url_for("alunos") + "#novo-aluno")
+        if criar_login:
+            existing = _find_user_by_email(email)
+            if existing["ok"] and existing["data"]:
+                flash("Ja existe um usuario com esse email. Use outro email para criar o login do aluno.", "error")
+                return redirect(url_for("alunos") + "#novo-aluno")
+        plano_id = _resolve_plan_id(request.form.get("plano"))
         payload = {
-            "nome": request.form.get("nome"),
-            "email": request.form.get("email"),
+            "nome": nome,
+            "email": email,
             "telefone": request.form.get("telefone"),
             "objetivo": request.form.get("objetivo"),
-            "status": request.form.get("status"),
-            "plano": request.form.get("plano"),
+            "data_nascimento": request.form.get("data_nascimento") or request.form.get("nascimento"),
+            "experiencias_anteriores": request.form.get("experiencias_anteriores"),
+            "restricoes_fisicas": request.form.get("restricoes_fisicas"),
+            "status": status_aluno,
+            "plano": plano_id,
         }
         result = _insert(TABLE_ALUNOS, payload)
-        flash("Aluno criado com sucesso." if result["ok"] else (result["error"] or "Nao foi possivel criar o aluno."), "success" if result["ok"] else "error")
+        if not result["ok"]:
+            flash(result["error"] or "Nao foi possivel criar o aluno.", "error")
+            return redirect(url_for("alunos"))
+        if criar_login:
+            login_password = senha_inicial or "1111"
+            user_payload = {
+                "nome": nome,
+                "email": email,
+                "tipo_conta": "Aluno",
+                "nascimento": request.form.get("data_nascimento") or request.form.get("nascimento"),
+                "senha_hash": generate_password_hash(login_password),
+            }
+            user_result = _insert(TABLE_USUARIOS, user_payload)
+            if not user_result["ok"]:
+                flash(
+                    "Aluno criado, mas nao foi possivel criar o login. "
+                    + (user_result["error"] or "Verifique a tabela de usuarios."),
+                    "error",
+                )
+                return redirect(url_for("alunos"))
+            if senha_inicial:
+                flash("Aluno criado com sucesso e login liberado.", "success")
+            else:
+                flash("Aluno criado com sucesso. Como a senha ficou em branco, o login inicial foi definido como 1111.", "success")
+            return redirect(url_for("alunos"))
+        flash("Aluno criado com sucesso.", "success")
         return redirect(url_for("alunos"))
 
     search = request.args.get("busca", "").strip().lower()
+    aluno_edicao_id = request.args.get("editar_aluno_id", "")
     alunos_lista = _students()
     if search:
         alunos_lista = [aluno for aluno in alunos_lista if search in aluno["nome"].lower() or search in aluno["email"].lower()]
+    aluno_edicao = next((aluno for aluno in alunos_lista if aluno["id"] == aluno_edicao_id), {})
+    form = {}
+    if aluno_edicao:
+        form = {
+            **aluno_edicao,
+            "plano": aluno_edicao.get("plano_id", ""),
+            "status": _slug_status(aluno_edicao.get("status", "ativo")) if _slug_status(aluno_edicao.get("status", "ativo")) in {"ativo", "inativo"} else "ativo",
+        }
     return render_template(
         "alunos.html",
         alunos=alunos_lista,
+        aluno_edicao=aluno_edicao,
+        form=form,
         busca=search,
         filtros={"busca": search, "status": request.args.get("status", "")},
         total_alunos=len(alunos_lista),
+        planos=_db_plan_options(),
         criar_aluno_url=url_for("alunos"),
         excluir_aluno_base_url="/alunos",
         editar_aluno_base_url="/alunos",
@@ -1401,14 +2278,56 @@ def alunos():
     )
 
 
+@app.get("/alunos/novo")
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def novo_aluno_redirect():
+    return redirect(url_for("alunos") + "#novo-aluno")
+
+
 @app.get("/alunos/<aluno_id>")
 @login_required
+@role_required("Personal Trainer", "Admin", "Professor")
 def aluno_perfil(aluno_id: str):
     return redirect(url_for("avaliacoes", aluno_id=aluno_id))
 
 
+@app.route("/alunos/<aluno_id>/editar", methods=["GET", "POST"])
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def editar_aluno(aluno_id: str):
+    aluno_result = _select_one(TABLE_ALUNOS, aluno_id)
+    aluno_row = aluno_result["data"] if aluno_result["ok"] else None
+    if not aluno_row:
+        flash("Aluno nao encontrado.", "error")
+        return redirect(url_for("alunos"))
+
+    if request.method == "POST":
+        csrf_error = _require_csrf()
+        if csrf_error:
+            flash(csrf_error, "error")
+            return redirect(url_for("editar_aluno", aluno_id=aluno_id))
+        status_aluno = _slug_status(request.form.get("status") or "ativo")
+        if status_aluno not in {"ativo", "inativo"}:
+            status_aluno = "ativo"
+        payload = {
+            "nome": request.form.get("nome"),
+            "email": request.form.get("email"),
+            "telefone": request.form.get("telefone"),
+            "objetivo": request.form.get("objetivo"),
+            "status": status_aluno,
+            "plano": _resolve_plan_id(request.form.get("plano")),
+        }
+        result = _update(TABLE_ALUNOS, aluno_id, payload)
+        flash("Aluno atualizado com sucesso." if result["ok"] else (result["error"] or "Nao foi possivel atualizar o aluno."), "success" if result["ok"] else "error")
+        return redirect(url_for("alunos"))
+
+    return redirect(url_for("alunos", editar_aluno_id=aluno_id) + "#novo-aluno")
+
+
 @app.post("/alunos/<aluno_id>/excluir")
 @login_required
+@role_required("Personal Trainer", "Admin", "Professor")
 def excluir_aluno(aluno_id: str):
     csrf_error = _require_csrf()
     if csrf_error:
@@ -1420,30 +2339,35 @@ def excluir_aluno(aluno_id: str):
 
 
 @app.get("/treinos")
+@app.get("/treinos.html")
 @login_required
 @role_required("Personal Trainer", "Admin", "Professor")
 def treinos():
     alunos_lista = _students()
     aluno_id = request.args.get("aluno_id", "")
+    treino_visualizacao_id = request.args.get("visualizar_treino_id", "")
     treino_edicao_id = request.args.get("editar_treino_id", "")
     treino_exclusao_id = request.args.get("excluir_treino_id", "")
-    treinos_lista = _trainings(aluno_id or None)
-    aluno_selecionado = next((aluno for aluno in alunos_lista if aluno["id"] == aluno_id), alunos_lista[0] if alunos_lista else None)
-    if aluno_selecionado and not aluno_id:
-        treinos_lista = _trainings(aluno_selecionado["id"])
+    aluno_selecionado = next((aluno for aluno in alunos_lista if aluno["id"] == aluno_id), None)
+    treinos_lista = _trainings(aluno_selecionado["id"]) if aluno_selecionado else []
+    treino_visualizacao = next((treino for treino in treinos_lista if treino["id"] == treino_visualizacao_id), {})
     treino_edicao = next((treino for treino in treinos_lista if treino["id"] == treino_edicao_id), {})
     treino_exclusao = next((treino for treino in treinos_lista if treino["id"] == treino_exclusao_id), {})
     return render_template(
         "treinos.html",
         alunos=alunos_lista,
+        exercicios=_exercises(),
         aluno_selecionado=aluno_selecionado,
         treinos=treinos_lista,
+        treino_visualizacao=treino_visualizacao,
         treino_edicao=treino_edicao,
         treino_exclusao=treino_exclusao,
         url_treinos_aluno_base="/treinos/aluno",
         visualizar_treino_base="/treinos",
+        visualizar_treino_url_base="/treinos",
         criar_treino_url=url_for("criar_treino"),
         editar_treino_base="/treinos/editar",
+        editar_treino_url_base="/treinos/editar",
         excluir_treino_base="/treinos/excluir",
         csrf_form_token=_csrf_token,
         **_personal_context("treinos"),
@@ -1452,64 +2376,146 @@ def treinos():
 
 @app.get("/treinos/aluno/<aluno_id>")
 @login_required
+@role_required("Personal Trainer", "Admin", "Professor")
 def treinos_aluno(aluno_id: str):
     return redirect(url_for("treinos", aluno_id=aluno_id))
 
 
 @app.get("/treinos/<treino_id>")
+@app.get("/treinos/<treino_id>/")
 @login_required
+@role_required("Personal Trainer", "Admin", "Professor")
 def visualizar_treino(treino_id: str):
     treino = next((item for item in _trainings() if item["id"] == treino_id), None)
     if not treino:
         flash("Treino nao encontrado.", "error")
         return redirect(url_for("treinos"))
-    return redirect(url_for("treinos", aluno_id=treino.get("aluno_id", ""), editar_treino_id=treino_id))
+    return redirect(url_for("treinos", aluno_id=treino.get("aluno_id", ""), visualizar_treino_id=treino_id) + "#visualizar-treino-modal")
+
+
+@app.get("/treinos/visualizar")
+@app.get("/treinos/visualizar/")
+@login_required
+def visualizar_treino_sem_id():
+    return redirect(url_for("treinos"))
+
+
+@app.get("/treinos/visualizar/<treino_id>")
+@app.get("/treinos/visualizar/<treino_id>/")
+@login_required
+def visualizar_treino_legacy(treino_id: str):
+    return visualizar_treino(treino_id)
+
+
+@app.get("/treinos/novo")
+@app.get("/treinos/novo/")
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def abrir_criacao_treino():
+    aluno_id = request.args.get("aluno_id", "")
+    target = url_for("treinos", aluno_id=aluno_id) if aluno_id else url_for("treinos")
+    return redirect(target + "#novo-treino-modal")
 
 
 @app.post("/treinos/novo")
 @login_required
+@role_required("Personal Trainer", "Admin", "Professor")
 def criar_treino():
     csrf_error = _require_csrf()
     if csrf_error:
         flash(csrf_error, "error")
         return redirect(url_for("treinos"))
-    result = _insert(
-        TABLE_TREINOS,
-        {
-            "nome": request.form.get("nome"),
-            "aluno_id": request.form.get("aluno_id"),
-            "exercicios_raw": request.form.get("exercicios_raw"),
-            "observacoes": request.form.get("observacoes"),
-            "status": "ativo",
-        },
-    )
+    exercicios_raw = request.form.get("exercicios_raw") or ""
+    exercicios = [item.strip() for item in exercicios_raw.replace("\r", "\n").replace(";", "\n").split("\n") if item.strip()]
+    payload = {
+        "nome": request.form.get("nome"),
+        "aluno_id": request.form.get("aluno_id"),
+        "observacoes": request.form.get("observacoes"),
+        "exercicios_raw": exercicios_raw,
+        "exercicios": exercicios,
+        "created_at": datetime.utcnow().isoformat(),
+    }
+    result = _insert(TABLE_TREINOS, payload)
+    if not result["ok"] and (
+        _missing_column_error(result["error"], "nome")
+        or _missing_column_error(result["error"], "exercicios")
+        or _missing_column_error(result["error"], "exercicios_raw")
+        or _missing_column_error(result["error"], "observacoes")
+    ):
+        result = _insert(
+            TABLE_TREINOS,
+            {
+                "descricao": request.form.get("nome"),
+                "aluno_id": request.form.get("aluno_id"),
+                "observacao": exercicios_raw or request.form.get("observacoes"),
+                "data_criacao": datetime.utcnow().date().isoformat(),
+                "created_at": datetime.utcnow().isoformat(),
+            },
+        )
     flash("Treino criado com sucesso." if result["ok"] else (result["error"] or "Nao foi possivel criar o treino."), "success" if result["ok"] else "error")
     return redirect(request.form.get("origem_url") or url_for("treinos", aluno_id=request.form.get("aluno_id", "")))
 
 
 @app.post("/treinos/editar/<treino_id>")
 @login_required
+@role_required("Personal Trainer", "Admin", "Professor")
 def editar_treino(treino_id: str):
     csrf_error = _require_csrf()
     if csrf_error:
         flash(csrf_error, "error")
         return redirect(url_for("treinos"))
-    result = _update(
-        TABLE_TREINOS,
-        treino_id,
-        {
-            "nome": request.form.get("nome"),
-            "aluno_id": request.form.get("aluno_id"),
-            "exercicios_raw": request.form.get("exercicios_raw"),
-            "observacoes": request.form.get("observacoes"),
-        },
-    )
+    exercicios_raw = request.form.get("exercicios_raw") or ""
+    exercicios = [item.strip() for item in exercicios_raw.replace("\r", "\n").replace(";", "\n").split("\n") if item.strip()]
+    payload = {
+        "nome": request.form.get("nome"),
+        "aluno_id": request.form.get("aluno_id"),
+        "observacoes": request.form.get("observacoes"),
+        "exercicios_raw": exercicios_raw,
+        "exercicios": exercicios,
+    }
+    result = _update(TABLE_TREINOS, treino_id, payload)
+    if not result["ok"] and (
+        _missing_column_error(result["error"], "nome")
+        or _missing_column_error(result["error"], "exercicios")
+        or _missing_column_error(result["error"], "exercicios_raw")
+        or _missing_column_error(result["error"], "observacoes")
+    ):
+        result = _update(
+            TABLE_TREINOS,
+            treino_id,
+            {
+                "descricao": request.form.get("nome"),
+                "aluno_id": request.form.get("aluno_id"),
+                "observacao": exercicios_raw or request.form.get("observacoes"),
+            },
+        )
     flash("Treino atualizado com sucesso." if result["ok"] else (result["error"] or "Nao foi possivel atualizar o treino."), "success" if result["ok"] else "error")
     return redirect(url_for("treinos", aluno_id=request.form.get("aluno_id", "")))
 
 
+@app.get("/treinos/editar")
+@app.get("/treinos/editar/")
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def abrir_edicao_treino_sem_id():
+    return redirect(url_for("treinos"))
+
+
+@app.get("/treinos/editar/<treino_id>")
+@app.get("/treinos/editar/<treino_id>/")
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def abrir_edicao_treino(treino_id: str):
+    treino = next((item for item in _trainings() if item["id"] == treino_id), None)
+    if not treino:
+        flash("Treino nao encontrado.", "error")
+        return redirect(url_for("treinos"))
+    return redirect(url_for("treinos", aluno_id=treino.get("aluno_id", ""), editar_treino_id=treino_id) + "#editar-treino-modal")
+
+
 @app.post("/treinos/excluir/<treino_id>")
 @login_required
+@role_required("Personal Trainer", "Admin", "Professor")
 def excluir_treino(treino_id: str):
     csrf_error = _require_csrf()
     if csrf_error:
@@ -1522,6 +2528,7 @@ def excluir_treino(treino_id: str):
 
 
 @app.route("/agenda", methods=["GET", "POST"])
+@app.route("/agenda.html", methods=["GET", "POST"])
 @login_required
 @role_required("Personal Trainer", "Admin", "Professor")
 def agenda():
@@ -1530,19 +2537,33 @@ def agenda():
         if csrf_error:
             flash(csrf_error, "error")
             return redirect(url_for("agenda"))
-        aluno_id = request.form.get("aluno_id")
-        aluno = next((item for item in _students() if item["id"] == aluno_id), None)
+        tipo_registro = (request.form.get("tipo_registro") or "agendamento").strip().lower()
+        aluno_id = request.form.get("aluno_id") or None
+        inicio = _split_datetime_local(request.form.get("inicio"))
+        termino_hora = (request.form.get("termino_hora") or "").strip()
+        titulo = request.form.get("titulo", "").strip()
+        observacoes = request.form.get("observacoes", "").strip()
+        if not inicio["data"]:
+            flash("Informe a data e horario da aula.", "error")
+            return redirect(url_for("agenda"))
+        if tipo_registro == "agendamento" and not aluno_id:
+            flash("Selecione um aluno para agendar a aula.", "error")
+            return redirect(url_for("agenda"))
+        status = "disponivel" if tipo_registro == "disponibilidade" else "agendado"
+        titulo_padrao = "Horario disponivel" if status == "disponivel" else "Aula"
         payload = {
-            "titulo": request.form.get("titulo"),
-            "aluno_id": aluno_id,
-            "aluno_nome": aluno["nome"] if aluno else "",
-            "inicio": request.form.get("inicio"),
-            "termino": request.form.get("termino"),
-            "observacoes": request.form.get("observacoes"),
-            "status": "agendado",
+            "data": inicio["data"],
+            "hora": inicio["hora"],
+            "aluno_id": None if status == "disponivel" else aluno_id,
+            "status": status,
+            "observacao": _build_agenda_observacao(titulo or titulo_padrao, observacoes, termino_hora),
         }
         result = _insert(TABLE_AGENDA, payload)
-        flash("Aula agendada com sucesso." if result["ok"] else (result["error"] or "Nao foi possivel agendar a aula."), "success" if result["ok"] else "error")
+        if result["ok"]:
+            mensagem = "Horario disponivel criado com sucesso." if status == "disponivel" else "Aula agendada com sucesso."
+            flash(mensagem, "success")
+        else:
+            flash(result["error"] or "Nao foi possivel salvar o horario.", "error")
         return redirect(url_for("agenda"))
 
     compromissos = _schedule_rows()
@@ -1566,8 +2587,16 @@ def agenda():
     )
 
 
+@app.get("/agenda/nova")
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def nova_aula_redirect():
+    return redirect(url_for("agenda") + "#nova-aula")
+
+
 @app.post("/agenda/confirmar/<agenda_id>")
 @login_required
+@role_required("Personal Trainer", "Admin", "Professor")
 def confirmar_agenda(agenda_id: str):
     csrf_error = _require_csrf()
     if csrf_error:
@@ -1580,6 +2609,7 @@ def confirmar_agenda(agenda_id: str):
 
 @app.post("/agenda/concluir/<agenda_id>")
 @login_required
+@role_required("Personal Trainer", "Admin", "Professor")
 def concluir_agenda(agenda_id: str):
     csrf_error = _require_csrf()
     if csrf_error:
@@ -1592,6 +2622,7 @@ def concluir_agenda(agenda_id: str):
 
 @app.post("/agenda/cancelar/<agenda_id>")
 @login_required
+@role_required("Personal Trainer", "Admin", "Professor")
 def cancelar_agenda(agenda_id: str):
     csrf_error = _require_csrf()
     if csrf_error:
@@ -1603,6 +2634,7 @@ def cancelar_agenda(agenda_id: str):
 
 
 @app.route("/avaliacoes", methods=["GET", "POST"])
+@app.route("/avaliacoes.html", methods=["GET", "POST"])
 @login_required
 @role_required("Personal Trainer", "Admin", "Professor")
 def avaliacoes():
@@ -1612,10 +2644,9 @@ def avaliacoes():
             flash(csrf_error, "error")
             return redirect(url_for("avaliacoes"))
         aluno_id = request.form.get("aluno_id")
-        aluno = next((item for item in _students() if item["id"] == aluno_id), None)
         payload = {
             "aluno_id": aluno_id,
-            "aluno_nome": aluno["nome"] if aluno else "",
+            "data": request.form.get("data") or datetime.utcnow().date().isoformat(),
             "sexo": request.form.get("sexo"),
             "peso": request.form.get("peso"),
             "estatura": request.form.get("estatura"),
@@ -1634,7 +2665,7 @@ def avaliacoes():
             "quadril": request.form.get("quadril"),
             "coxa_direita": request.form.get("coxa_direita"),
             "perna_direita": request.form.get("perna_direita"),
-            "observacoes": request.form.get("observacoes"),
+            "observacao": request.form.get("observacoes"),
         }
         result = _insert(TABLE_AVALIACOES, payload)
         flash("Avaliacao salva com sucesso." if result["ok"] else (result["error"] or "Nao foi possivel salvar a avaliacao."), "success" if result["ok"] else "error")
@@ -1678,7 +2709,29 @@ def avaliacoes():
     )
 
 
+@app.get("/avaliacoes/<avaliacao_id>/pdf")
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def exportar_avaliacao_pdf(avaliacao_id: str):
+    result = _select_one(TABLE_AVALIACOES, avaliacao_id)
+    if not result["ok"] or not result["data"]:
+        flash("Avaliacao nao encontrada.", "error")
+        return redirect(url_for("avaliacoes"))
+    avaliacao = next((item for item in _assessments(_first(result["data"], "aluno_id", default=None)) if item.get("id") == avaliacao_id), None)
+    if not avaliacao:
+        flash("Nao foi possivel montar o laudo da avaliacao.", "error")
+        return redirect(url_for("avaliacoes"))
+    try:
+        pdf_buffer = _avaliacao_pdf_document(avaliacao)
+    except ModuleNotFoundError:
+        flash("A biblioteca de PDF ainda nao esta instalada. Rode pip install -r requirements.txt.", "error")
+        return redirect(url_for("avaliacoes", aluno_id=avaliacao.get("aluno_id", "")))
+    filename = f"laudo-avaliacao-{_safe_pdf_filename(avaliacao.get('aluno_nome'))}-{_safe_pdf_filename(avaliacao.get('data'))}.pdf"
+    return send_file(pdf_buffer, mimetype="application/pdf", as_attachment=True, download_name=filename)
+
+
 @app.route("/evolucao", methods=["GET", "POST"])
+@app.route("/evolucao.html", methods=["GET", "POST"])
 @login_required
 @role_required("Personal Trainer", "Admin", "Professor")
 def evolucao():
@@ -1706,17 +2759,25 @@ def evolucao():
 
 
 @app.route("/observacoes", methods=["GET", "POST"])
+@app.route("/observacoes.html", methods=["GET", "POST"])
 @login_required
 @role_required("Personal Trainer", "Admin", "Professor")
 def observacoes():
     alunos_lista = _students()
     aluno_id = request.values.get("aluno_id", "")
-    aluno_ativo = next((item for item in alunos_lista if item["id"] == aluno_id), alunos_lista[0] if alunos_lista else None)
-    observacao = {}
+    aluno_ativo = next((item for item in alunos_lista if item["id"] == aluno_id), None)
+    observacoes_lista = []
     if aluno_ativo:
-        result = _select_first_by(TABLE_OBSERVACOES, "aluno_id", aluno_ativo["id"])
-        if result["ok"] and result["data"]:
-            observacao = result["data"]
+        result = _select(
+            TABLE_OBSERVACOES,
+            filters={"aluno_id": aluno_ativo["id"]},
+            order="created_at",
+            desc=True,
+        )
+        if result["ok"]:
+            observacoes_lista = result["data"]
+        elif not result["ok"] and _missing_table_error(result["error"]):
+            flash(_observacao_table_error_message(result["error"]), "error")
     if request.method == "POST":
         csrf_error = _require_csrf()
         if csrf_error:
@@ -1730,33 +2791,32 @@ def observacoes():
             "proximo_ajuste": request.form.get("proximo_ajuste"),
             "updated_at": datetime.utcnow().isoformat(),
         }
-        existing = _select_first_by(TABLE_OBSERVACOES, "aluno_id", request.form.get("aluno_id"))
-        if existing["ok"] and existing["data"]:
-            result = _update(TABLE_OBSERVACOES, existing["data"]["id"], payload)
-        else:
-            result = _insert(TABLE_OBSERVACOES, payload)
-        flash("Observacao salva com sucesso." if result["ok"] else (result["error"] or "Nao foi possivel salvar a observacao."), "success" if result["ok"] else "error")
+        result = _insert(TABLE_OBSERVACOES, payload)
+        flash("Observacao salva com sucesso." if result["ok"] else _observacao_table_error_message(result["error"]), "success" if result["ok"] else "error")
         return redirect(url_for("observacoes", aluno_id=request.form.get("aluno_id", "")))
+
+    historico_observacoes = [
+        {
+            **item,
+            "data": _fmt_date(_first(item, "created_at", "updated_at")),
+            "hora": _fmt_datetime(_first(item, "created_at", "updated_at"))[-5:] if _first(item, "created_at", "updated_at") else "",
+            "aluno_nome": aluno_ativo["nome"] if aluno_ativo else "Aluno",
+            "observacao_transcrita": _first(item, "observacao_transcrita", "observacao", default=""),
+        }
+        for item in observacoes_lista
+    ]
 
     return render_template(
         "observacoes.html",
         alunos=alunos_lista,
         aluno_ativo=aluno_ativo,
-        observacao=observacao,
-        historico=[
-            {
-                **observacao,
-                "data": _fmt_date(_first(observacao, "updated_at", "created_at")),
-                "hora": _fmt_datetime(_first(observacao, "updated_at", "created_at"))[-5:] if _first(observacao, "updated_at", "created_at") else "",
-                "aluno_nome": aluno_ativo["nome"] if aluno_ativo else "Aluno",
-                "observacao_transcrita": _first(observacao, "observacao_transcrita", "observacao", default=""),
-            }
-        ] if observacao else [],
+        observacao=historico_observacoes[0] if historico_observacoes else {},
+        historico=historico_observacoes,
         aluno_id_selecionado=aluno_ativo["id"] if aluno_ativo else "",
         form={
-            "foco_treino": _first(observacao, "foco_treino", default=""),
-            "observacao_transcrita": _first(observacao, "observacao_transcrita", "observacao", default=""),
-            "proximo_ajuste": _first(observacao, "proximo_ajuste", default=""),
+            "foco_treino": "",
+            "observacao_transcrita": "",
+            "proximo_ajuste": "",
         },
         salvar_observacao_url=url_for("observacoes"),
         csrf_form_token=_csrf_token,
@@ -1764,11 +2824,15 @@ def observacoes():
     )
 
 
+@app.route("/anamnese/salvar", methods=["GET", "POST"])
+@app.route("/anamnese/salvar/", methods=["GET", "POST"])
 @app.route("/anamnese", methods=["GET", "POST"])
-@app.route("/anamnese/salvar", methods=["POST"])
+@app.route("/anamnese.html", methods=["GET", "POST"])
 @login_required
 @role_required("Personal Trainer", "Admin", "Professor")
 def anamnese():
+    if request.method == "GET" and request.path.rstrip("/") == "/anamnese/salvar":
+        return redirect(url_for("anamnese", aluno_id=request.args.get("aluno_id", "")))
     alunos_lista = _students()
     busca = request.values.get("busca", "").strip()
     if busca:
@@ -1804,7 +2868,7 @@ def anamnese():
             result = _update(TABLE_ANAMNESES, request.form.get("anamnese_id"), payload)
         else:
             result = _insert(TABLE_ANAMNESES, payload)
-        flash("Anamnese salva com sucesso." if result["ok"] else (result["error"] or "Nao foi possivel salvar a anamnese."), "success" if result["ok"] else "error")
+        flash("Anamnese salva com sucesso." if result["ok"] else _anamnese_table_error_message(result["error"]), "success" if result["ok"] else "error")
         return redirect(url_for("anamnese", aluno_id=request.form.get("aluno_id", "")))
 
     return render_template(
@@ -1814,21 +2878,33 @@ def anamnese():
         anamnese=anamnese_atual,
         busca=busca,
         buscar_anamnese_url=url_for("anamnese"),
-        salvar_anamnese_url=url_for("anamnese"),
+        salvar_anamnese_url="/anamnese/salvar",
         csrf_form_token=_csrf_token,
         **_personal_context("anamnese"),
     )
 
 
+@app.get("/anamnese/buscar")
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def buscar_anamnese_redirect():
+    return redirect(url_for("anamnese", aluno_id=request.args.get("aluno_id", "")))
+
+
 @app.route("/exercicios", methods=["GET"])
+@app.route("/exercicios.html", methods=["GET"])
 @login_required
 @role_required("Personal Trainer", "Admin", "Professor")
 def exercicios():
+    exercicio_edicao_id = request.args.get("editar_exercicio_id", "")
+    exercicios_lista = _exercises()
+    exercicio_edicao = next((item for item in exercicios_lista if item["id"] == exercicio_edicao_id), {})
     return render_template(
         "exercicios.html",
-        exercicios=_exercises(),
+        exercicios=exercicios_lista,
         busca=request.args.get("busca", ""),
-        exercicio_edicao={},
+        exercicio_edicao=exercicio_edicao,
+        modal_titulo="Editar exercicio" if exercicio_edicao else "Novo exercicio",
         salvar_exercicio_url=url_for("salvar_exercicio"),
         editar_exercicio_url_base="/exercicios/editar",
         excluir_exercicio_url_base="/exercicios/excluir",
@@ -1837,20 +2913,45 @@ def exercicios():
     )
 
 
+@app.get("/exercicios/editar")
+@app.get("/exercicios/editar/")
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def abrir_edicao_exercicio_sem_id():
+    return redirect(url_for("exercicios"))
+
+
+@app.get("/exercicios/editar/<exercicio_id>")
+@app.get("/exercicios/editar/<exercicio_id>/")
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def abrir_edicao_exercicio(exercicio_id: str):
+    return redirect(url_for("exercicios", editar_exercicio_id=exercicio_id) + "#novo-exercicio-modal")
+
+
+@app.route("/exercicios/upload-imagem", methods=["GET", "POST"])
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def upload_imagem_exercicio_redirect():
+    flash("Upload de imagem ainda nao esta ativo. Use URL de video ou imagem por enquanto.", "info")
+    return redirect(url_for("exercicios"))
+
+
 @app.post("/exercicios/salvar")
 @login_required
+@role_required("Personal Trainer", "Admin", "Professor")
 def salvar_exercicio():
     csrf_error = _require_csrf()
     if csrf_error:
         flash(csrf_error, "error")
         return redirect(url_for("exercicios"))
     exercicio_id = request.form.get("exercicio_id", "")
+    grupo_muscular_id = _get_or_create_muscle_group_id(request.form.get("grupo_muscular"))
     payload = {
         "nome": request.form.get("nome"),
-        "grupo_muscular": request.form.get("grupo_muscular"),
+        "grupo_muscular_id": grupo_muscular_id,
         "descricao": request.form.get("descricao"),
-        "imagem_url": request.form.get("imagem_url"),
-        "video_url": request.form.get("video_url"),
+        "link_execucao": request.form.get("video_url"),
     }
     result = _update(TABLE_EXERCICIOS, exercicio_id, payload) if exercicio_id else _insert(TABLE_EXERCICIOS, payload)
     flash("Exercicio salvo com sucesso." if result["ok"] else (result["error"] or "Nao foi possivel salvar o exercicio."), "success" if result["ok"] else "error")
@@ -1859,6 +2960,7 @@ def salvar_exercicio():
 
 @app.post("/exercicios/excluir/<exercicio_id>")
 @login_required
+@role_required("Personal Trainer", "Admin", "Professor")
 def excluir_exercicio(exercicio_id: str):
     csrf_error = _require_csrf()
     if csrf_error:
@@ -1870,6 +2972,7 @@ def excluir_exercicio(exercicio_id: str):
 
 
 @app.route("/mensagens", methods=["GET"])
+@app.route("/mensagens.html", methods=["GET"])
 @login_required
 @role_required("Personal Trainer", "Admin", "Professor")
 def mensagens():
@@ -1886,6 +2989,7 @@ def mensagens():
 
 @app.post("/mensagens/enviar")
 @login_required
+@role_required("Personal Trainer", "Admin", "Professor")
 def enviar_mensagem():
     csrf_error = _require_csrf()
     if csrf_error:
@@ -1901,21 +3005,43 @@ def enviar_mensagem():
         "created_at": datetime.utcnow().isoformat(),
     }
     result = _insert(TABLE_MENSAGENS, payload)
-    flash("Mensagem enviada." if result["ok"] else (result["error"] or "Nao foi possivel enviar a mensagem."), "success" if result["ok"] else "error")
+    flash("Mensagem enviada." if result["ok"] else _message_table_error_message(result["error"]), "success" if result["ok"] else "error")
     return redirect(url_for("mensagens", contato_id=request.form.get("contato_id", "")))
 
 
+@app.route("/mensagens/atualizar", methods=["GET", "POST"])
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def atualizar_mensagens_redirect():
+    return redirect(url_for("mensagens", contato_id=request.values.get("contato_id", "")))
+
+
+@app.route("/mensagens/upload", methods=["GET", "POST"])
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def upload_mensagem_redirect():
+    flash("Upload de arquivo em mensagens ainda nao esta ativo.", "info")
+    return redirect(url_for("mensagens", contato_id=request.values.get("contato_id", "")))
+
+
 @app.route("/financeiro", methods=["GET"])
+@app.route("/financeiro.html", methods=["GET"])
 @login_required
 @role_required("Personal Trainer", "Admin", "Professor")
 def financeiro():
     pagamentos = _payment_rows()
     planos = _plans()
+    alunos = _students()
+    plano_edicao_id = request.args.get("editar_plano_id", "")
+    plano_edicao = next((plano for plano in planos if str(plano.get("id")) == str(plano_edicao_id)), {})
     receita = sum(_to_float(_first(item, "valor", default=0)) or 0 for item in pagamentos if item.get("status") == "pago")
     return render_template(
         "financeiro.html",
         pagamentos=pagamentos,
         planos=planos,
+        alunos=alunos,
+        alunos_planos=_student_plan_rows(alunos, planos),
+        plano_edicao=plano_edicao,
         receita_estimada=_currency(receita),
         receita_descricao="Recebimentos registrados",
         total_sessoes=len(_schedule_rows()),
@@ -1933,19 +3059,36 @@ def financeiro():
 
 @app.post("/financeiro/pagamentos/<pagamento_id>/status")
 @login_required
+@role_required("Personal Trainer", "Admin", "Professor")
 def alterar_status_pagamento(pagamento_id: str):
     csrf_error = _require_csrf()
     if csrf_error:
         flash(csrf_error, "error")
         return redirect(url_for("financeiro"))
     status = _slug_status(request.form.get("status_pagamento", "pendente"))
-    result = _update(TABLE_PAGAMENTOS, pagamento_id, {"status": status, "atualizado_em": datetime.utcnow().isoformat()})
+    status_db = _payment_status_db(status)
+    existing = _select_one(TABLE_PAGAMENTOS, pagamento_id)
+    payload = {"status_parcela": status_db}
+    if status == "pago":
+        payload["data_recebimento"] = datetime.utcnow().date().isoformat()
+    if existing["ok"] and existing["data"]:
+        result = _update(TABLE_PAGAMENTOS, pagamento_id, payload)
+    else:
+        payload.update(
+            {
+                "aluno_id": pagamento_id,
+                "data_parcela": datetime.utcnow().date().isoformat(),
+                "valor": request.form.get("valor") or 0,
+            }
+        )
+        result = _insert(TABLE_PAGAMENTOS, payload)
     flash("Status alterado com sucesso." if result["ok"] else (result["error"] or "Nao foi possivel alterar o status."), "success" if result["ok"] else "error")
     return redirect(url_for("financeiro"))
 
 
 @app.post("/financeiro/planos")
 @login_required
+@role_required("Personal Trainer", "Admin", "Professor")
 def criar_plano():
     csrf_error = _require_csrf()
     if csrf_error:
@@ -1959,17 +3102,62 @@ def criar_plano():
         "recorrente": True if request.form.get("recorrente") else False,
     }
     result = _insert(TABLE_PLANOS, payload)
-    flash("Plano criado com sucesso." if result["ok"] else (result["error"] or "Nao foi possivel criar o plano."), "success" if result["ok"] else "error")
+    if not result["ok"] and _missing_column_error(result["error"], "duracao_dias"):
+        payload.pop("duracao_dias", None)
+        result = _insert(TABLE_PLANOS, payload)
+    aluno_ids = request.form.getlist("aluno_ids")
+    legacy_aluno_id = request.form.get("aluno_id", "")
+    if legacy_aluno_id and legacy_aluno_id not in aluno_ids:
+        aluno_ids.append(legacy_aluno_id)
+    alunos_vinculados = True
+    if result["ok"] and aluno_ids:
+        plano_criado = result["data"][0] if result.get("data") else {}
+        plano_id = plano_criado.get("id")
+        if plano_id:
+            for aluno_id in aluno_ids:
+                vinculo = _update(TABLE_ALUNOS, aluno_id, {"plano": plano_id})
+                if not vinculo["ok"] and _missing_column_error(vinculo["error"], "plano"):
+                    vinculo = _update(TABLE_ALUNOS, aluno_id, {"plano_id": plano_id})
+                alunos_vinculados = alunos_vinculados and vinculo["ok"]
+    if result["ok"] and aluno_ids and not alunos_vinculados:
+        flash("Plano criado, mas nao foi possivel vincular todos os alunos selecionados.", "error")
+    else:
+        flash("Plano criado com sucesso." if result["ok"] else _plan_table_error_message(result["error"]), "success" if result["ok"] else "error")
     return redirect(url_for("financeiro"))
 
 
-@app.get("/financeiro/planos/<plano_id>")
+@app.route("/financeiro/planos/<plano_id>", methods=["GET", "POST"])
 @login_required
+@role_required("Personal Trainer", "Admin", "Professor")
 def gerenciar_plano(plano_id: str):
+    if request.method == "GET":
+        plano = _select_one(TABLE_PLANOS, plano_id)
+        if not plano["ok"] or not plano["data"]:
+            flash("Plano nao encontrado.", "error")
+            return redirect(url_for("financeiro"))
+        return redirect(url_for("financeiro", editar_plano_id=plano_id) + "#editar-plano")
+
+    csrf_error = _require_csrf()
+    if csrf_error:
+        flash(csrf_error, "error")
+        return redirect(url_for("financeiro", editar_plano_id=plano_id) + "#editar-plano")
+    payload = {
+        "nome": request.form.get("nome"),
+        "descricao": request.form.get("descricao"),
+        "preco": request.form.get("preco"),
+        "duracao_dias": request.form.get("duracao_dias"),
+        "recorrente": True if request.form.get("recorrente") else False,
+    }
+    result = _update(TABLE_PLANOS, plano_id, payload)
+    if not result["ok"] and _missing_column_error(result["error"], "duracao_dias"):
+        payload.pop("duracao_dias", None)
+        result = _update(TABLE_PLANOS, plano_id, payload)
+    flash("Plano atualizado com sucesso." if result["ok"] else _plan_table_error_message(result["error"]), "success" if result["ok"] else "error")
     return redirect(url_for("financeiro"))
 
 
 @app.route("/agenda-aluno")
+@app.route("/agenda-aluno.html")
 @app.route("/aluno/agenda")
 @login_required
 @role_required("Aluno")
@@ -1994,10 +3182,21 @@ def agenda_aluno():
     )
 
 
+@app.get("/meu-treino")
+@login_required
+@role_required("Aluno")
+def meu_treino_legacy_redirect():
+    return redirect(url_for("aluno_meu_treino"))
+
+
 @app.post("/agenda/marcar")
 @login_required
 @role_required("Aluno")
 def marcar_aula_aluno():
+    csrf_error = _require_csrf()
+    if csrf_error:
+        flash(csrf_error, "error")
+        return redirect(url_for("agenda_aluno"))
     aluno = _current_student_row()
     if not aluno:
         flash("Aluno nao localizado para este login.", "error")
@@ -2011,7 +3210,6 @@ def marcar_aula_aluno():
         horario_id,
         {
             "aluno_id": aluno.get("id"),
-            "aluno_nome": aluno.get("nome"),
             "status": "agendado",
         },
     )
@@ -2027,12 +3225,13 @@ def cancelar_agendamento_aluno(agenda_id: str):
     if csrf_error:
         flash(csrf_error, "error")
         return redirect(url_for("agenda_aluno"))
-    result = _update(TABLE_AGENDA, agenda_id, {"aluno_id": None, "aluno_nome": None, "status": "disponivel"})
+    result = _update(TABLE_AGENDA, agenda_id, {"aluno_id": None, "status": "disponivel"})
     flash("Agendamento cancelado." if result["ok"] else (result["error"] or "Nao foi possivel cancelar o agendamento."), "success" if result["ok"] else "error")
     return redirect(url_for("agenda_aluno"))
 
 
 @app.get("/aluno/dashboard")
+@app.get("/aluno_dashboard.html")
 @login_required
 @role_required("Aluno")
 def aluno_dashboard():
@@ -2055,6 +3254,7 @@ def aluno_dashboard():
 
 @app.get("/aluno/treinos")
 @app.get("/aluno/meu-treino")
+@app.get("/aluno_meu_treino.html")
 @login_required
 @role_required("Aluno")
 def aluno_meu_treino():
@@ -2080,8 +3280,24 @@ def aluno_meu_treino():
         retorno_treinos_destino=url_for("aluno_meu_treino"),
         aluno_treino_detalhe_base="/aluno/meu-treino",
         iniciar_treino_base="/aluno/treino",
+        aluno_treino_execucao_url_base="/aluno/treino",
         **_student_context("meu_treino"),
     )
+
+
+@app.get("/aluno/treinos/iniciar")
+@app.get("/aluno_treino_execucao.html")
+@login_required
+@role_required("Aluno")
+def iniciar_treino_aluno_redirect():
+    aluno = _current_student_row() or {}
+    treinos_lista = _trainings(aluno.get("id"))
+    treino_id = request.args.get("treino_id", "")
+    if treino_id and any(item["id"] == treino_id for item in treinos_lista):
+        return redirect(url_for("aluno_treino_execucao", treino_id=treino_id))
+    if treinos_lista:
+        return redirect(url_for("aluno_treino_execucao", treino_id=treinos_lista[0]["id"]))
+    return redirect(url_for("aluno_meu_treino"))
 
 
 @app.get("/aluno/treino/<treino_id>/execucao")
@@ -2103,7 +3319,9 @@ def aluno_treino_execucao(treino_id: str):
         treino_id=treino_id,
         exercicios=exercicios,
         registrar_serie_destino=url_for("registrar_serie_treino", treino_id=treino_id),
+        registrar_serie_url=url_for("registrar_serie_treino", treino_id=treino_id),
         concluir_treino_destino=url_for("concluir_treino_execucao", treino_id=treino_id),
+        concluir_treino_url=url_for("concluir_treino_execucao", treino_id=treino_id),
         treino_proximo_destino="",
         retorno_treinos_destino=url_for("aluno_meu_treino"),
         **_student_context("meu_treino"),
@@ -2141,12 +3359,23 @@ def concluir_treino_execucao(treino_id: str):
     if csrf_error:
         flash(csrf_error, "error")
         return redirect(url_for("aluno_treino_execucao", treino_id=treino_id))
-    result = _update(TABLE_TREINOS, treino_id, {"status": "concluido"})
+    aluno = _current_student_row() or {}
+    result = _insert(
+        TABLE_EXECUCOES,
+        {
+            "aluno_id": aluno.get("id"),
+            "treino_id": treino_id,
+            "status": "concluido",
+            "serie_registrada": False,
+            "created_at": datetime.utcnow().isoformat(),
+        },
+    )
     flash("Treino concluido." if result["ok"] else (result["error"] or "Nao foi possivel concluir o treino."), "success" if result["ok"] else "error")
     return redirect(url_for("aluno_meu_treino", treino_id=treino_id))
 
 
 @app.route("/aluno/mensagens", methods=["GET"])
+@app.route("/aluno_mensagens.html", methods=["GET"])
 @login_required
 @role_required("Aluno")
 def aluno_mensagens():
@@ -2179,17 +3408,36 @@ def enviar_mensagem_aluno():
         "created_at": datetime.utcnow().isoformat(),
     }
     result = _insert(TABLE_MENSAGENS, payload)
-    flash("Mensagem enviada." if result["ok"] else (result["error"] or "Nao foi possivel enviar a mensagem."), "success" if result["ok"] else "error")
+    flash("Mensagem enviada." if result["ok"] else _message_table_error_message(result["error"]), "success" if result["ok"] else "error")
     return redirect(url_for("aluno_mensagens", contato_id=request.form.get("contato_id", "")))
 
 
+@app.route("/aluno/mensagens/contatos", methods=["GET", "POST"])
+@app.route("/aluno/mensagens/conversa", methods=["GET", "POST"])
+@app.route("/aluno/mensagens/atualizar", methods=["GET", "POST"])
+@login_required
+@role_required("Aluno")
+def aluno_mensagens_redirects():
+    return redirect(url_for("aluno_mensagens", contato_id=request.values.get("contato_id", "")))
+
+
+@app.route("/aluno/mensagens/upload", methods=["GET", "POST"])
+@login_required
+@role_required("Aluno")
+def aluno_mensagens_upload_redirect():
+    flash("Upload de arquivo em mensagens ainda nao esta ativo.", "info")
+    return redirect(url_for("aluno_mensagens", contato_id=request.values.get("contato_id", "")))
+
+
 @app.get("/evolucao-aluno")
+@app.get("/evolucao-aluno.html")
 @app.get("/aluno/evolucao")
 @login_required
 @role_required("Aluno")
 def evolucao_aluno():
     aluno = _current_student_row() or {}
-    historico = _assessments(aluno.get("id"))
+    aluno_id = str(aluno.get("id") or "").strip()
+    historico = _assessments(aluno_id) if aluno_id else []
     ultima = historico[0] if historico else {}
     anterior = historico[1] if len(historico) > 1 else {}
     variacao = {
@@ -2216,20 +3464,354 @@ def evolucao_aluno():
         total_avaliacoes=len(historico),
         resumo_avaliacao=ultima,
         variacao=variacao,
+        aluno_sincronizado=bool(aluno_id),
+        aviso_sincronizacao="" if aluno_id else "Seu login ainda não está vinculado a um aluno cadastrado. Use o mesmo email do cadastro do aluno para sincronizar a evolução.",
         **_student_context("evolucao"),
     )
 
 
-@app.get("/configuracoes")
+@app.route("/configuracoes", methods=["GET", "POST"])
+@app.route("/configuracoes.html", methods=["GET", "POST"])
 @login_required
 def configuracoes():
     role = str(session.get("user_role", "")).strip().lower()
     if role == "aluno":
         return redirect(url_for("aluno_dashboard"))
+    usuario = _current_user_row() or {}
+    google_calendar = _google_calendar_context()
+    defaults = {
+        "nome_marca": marca_nome if (marca_nome := BRAND_NAME) else "CONFIE Personal",
+        "botao_principal": "Comecar agora",
+        "titulo_topo": "Transforme",
+        "titulo_destaque": "Seu Treino",
+        "botao_secundario": "Entrar",
+        "rodape": "© 2026 CONFIE Personal. Todos os direitos reservados.",
+        "subtitulo": "Plataforma completa para Personal Trainers gerenciarem alunos, treinos e agendas em um so lugar",
+        "apresentacao_nome": "Diogo Bezzi Jaeger",
+        "apresentacao_resumo": "Bacharel e licenciado em Educacao Fisica desde 2014, com atuacao voltada para saude, performance e acompanhamento individualizado.",
+        "especialidades": "Musculacao, Futebol, Futsal, Natacao e Ginastica Laboral",
+        "formacao_atual": "Resistance Training Specialist (RTS)",
+        "mostrar_apresentacao": True,
+        "mostrar_planos": True,
+        "mostrar_recursos": True,
+    }
+    config = dict(defaults)
+    if request.method == "POST":
+        csrf_error = _require_csrf()
+        if csrf_error:
+            flash(csrf_error, "error")
+        else:
+            if request.form.get("acao") == "restaurar":
+                flash("Configuracoes restauradas para os valores padrao.", "success")
+                return redirect(url_for("configuracoes"))
+            config.update(
+                {
+                    "nome_marca": request.form.get("nome_marca", defaults["nome_marca"]).strip() or defaults["nome_marca"],
+                    "botao_principal": request.form.get("botao_principal", defaults["botao_principal"]).strip() or defaults["botao_principal"],
+                    "titulo_topo": request.form.get("titulo_topo", defaults["titulo_topo"]).strip() or defaults["titulo_topo"],
+                    "titulo_destaque": request.form.get("titulo_destaque", defaults["titulo_destaque"]).strip() or defaults["titulo_destaque"],
+                    "botao_secundario": request.form.get("botao_secundario", defaults["botao_secundario"]).strip() or defaults["botao_secundario"],
+                    "rodape": request.form.get("rodape", defaults["rodape"]).strip() or defaults["rodape"],
+                    "subtitulo": request.form.get("subtitulo", defaults["subtitulo"]).strip() or defaults["subtitulo"],
+                    "apresentacao_nome": request.form.get("apresentacao_nome", defaults["apresentacao_nome"]).strip() or defaults["apresentacao_nome"],
+                    "apresentacao_resumo": request.form.get("apresentacao_resumo", defaults["apresentacao_resumo"]).strip() or defaults["apresentacao_resumo"],
+                    "especialidades": request.form.get("especialidades", defaults["especialidades"]).strip() or defaults["especialidades"],
+                    "formacao_atual": request.form.get("formacao_atual", defaults["formacao_atual"]).strip() or defaults["formacao_atual"],
+                    "mostrar_apresentacao": request.form.get("mostrar_apresentacao") == "on",
+                    "mostrar_planos": request.form.get("mostrar_planos") == "on",
+                    "mostrar_recursos": request.form.get("mostrar_recursos") == "on",
+                }
+            )
+            flash("Previa atualizada. Quando quiser, a persistencia pode ser ligada ao banco.", "success")
     return render_template(
         "configuracoes.html",
+        page_title="CONFIE - Configuracoes",
+        usuario_email=_first(usuario, "email", default=_session_user().get("email", "")),
+        usuario_tipo_conta=_first(usuario, "tipo_conta", default="Personal Trainer"),
+        usuario_nascimento=_fmt_date(_first(usuario, "nascimento", default="")) or "Nao informado",
+        google_calendar=google_calendar,
+        google_calendar_preview=google_calendar.get("events", [])[:3],
+        config=config,
         **_personal_context("configuracoes"),
     )
+
+
+def _json_payload() -> Dict[str, Any]:
+    payload = request.get_json(silent=True)
+    return payload if isinstance(payload, dict) else {}
+
+
+def _api_response(result: Dict[str, Any], *, success_status: int = 200):
+    status = success_status if result["ok"] else 400
+    return {"ok": result["ok"], "data": result["data"], "error": result["error"]}, status
+
+
+def _api_create(table: str, payload: Dict[str, Any], required: Optional[List[str]] = None):
+    missing = [field for field in (required or []) if not payload.get(field)]
+    if missing:
+        return {"ok": False, "data": None, "error": f"Campos obrigatorios ausentes: {', '.join(missing)}"}, 400
+    return _api_response(_insert(table, payload), success_status=201)
+
+
+def _api_update(table: str, row_id: str, payload: Dict[str, Any]):
+    if not payload:
+        return {"ok": False, "data": None, "error": "Envie ao menos um campo para atualizar."}, 400
+    return _api_response(_update(table, row_id, payload))
+
+
+def _api_delete(table: str, row_id: str):
+    return _api_response(_delete(table, row_id))
+
+
+def _only(payload: Dict[str, Any], allowed: List[str]) -> Dict[str, Any]:
+    return {key: payload.get(key) for key in allowed if key in payload}
+
+
+@app.get("/api/alunos")
+@login_required
+def api_listar_alunos():
+    return {"ok": True, "data": _students(), "error": None}
+
+
+@app.post("/api/alunos")
+@login_required
+def api_criar_aluno():
+    payload = _json_payload()
+    aluno = {
+        "nome": payload.get("nome"),
+        "email": payload.get("email"),
+        "objetivo": payload.get("objetivo"),
+        "data_nascimento": payload.get("data_nascimento"),
+        "experiencias_anteriores": payload.get("experiencias_anteriores"),
+        "restricoes_fisicas": payload.get("restricoes_fisicas"),
+        "plano_id": payload.get("plano_id"),
+        "auth_user_id": payload.get("auth_user_id"),
+    }
+    missing = [field for field in ("nome", "email") if not aluno.get(field)]
+    if missing:
+        return {"ok": False, "data": None, "error": f"Campos obrigatorios ausentes: {', '.join(missing)}"}, 400
+    return _api_response(_insert_raw(TABLE_ALUNOS, aluno), success_status=201)
+
+
+@app.get("/api/alunos/<aluno_id>")
+@login_required
+def api_obter_aluno(aluno_id: str):
+    result = _select_one(TABLE_ALUNOS, aluno_id)
+    status = 200 if result["ok"] and result["data"] else 404
+    if result["ok"] and not result["data"]:
+        result["error"] = "Aluno nao encontrado."
+    return {"ok": result["ok"] and bool(result["data"]), "data": result["data"], "error": result["error"]}, status
+
+
+@app.put("/api/alunos/<aluno_id>")
+@login_required
+def api_atualizar_aluno(aluno_id: str):
+    return _api_update(
+        TABLE_ALUNOS,
+        aluno_id,
+        _only(
+            _json_payload(),
+            ["nome", "email", "objetivo", "data_nascimento", "experiencias_anteriores", "restricoes_fisicas", "plano_id", "auth_user_id"],
+        ),
+    )
+
+
+@app.delete("/api/alunos/<aluno_id>")
+@login_required
+def api_excluir_aluno(aluno_id: str):
+    return _api_delete(TABLE_ALUNOS, aluno_id)
+
+
+@app.get("/api/treinos")
+@login_required
+def api_listar_treinos():
+    aluno_id = request.args.get("aluno_id") or None
+    return {"ok": True, "data": _trainings(aluno_id), "error": None}
+
+
+@app.post("/api/treinos")
+@login_required
+def api_criar_treino():
+    payload = _json_payload()
+    return _api_create(
+        TABLE_TREINOS,
+        {
+            "descricao": payload.get("descricao") or payload.get("nome"),
+            "aluno_id": payload.get("aluno_id"),
+            "observacao": payload.get("observacao") or payload.get("observacoes") or payload.get("exercicios_raw"),
+        },
+        required=["descricao", "aluno_id"],
+    )
+
+
+@app.get("/api/treinos/<treino_id>")
+@login_required
+def api_obter_treino(treino_id: str):
+    treino = next((item for item in _trainings() if item["id"] == treino_id), None)
+    status = 200 if treino else 404
+    return {"ok": bool(treino), "data": treino, "error": None if treino else "Treino nao encontrado."}, status
+
+
+@app.put("/api/treinos/<treino_id>")
+@login_required
+def api_atualizar_treino(treino_id: str):
+    payload = _json_payload()
+    mapped = {
+        "descricao": payload.get("descricao") or payload.get("nome"),
+        "aluno_id": payload.get("aluno_id"),
+        "observacao": payload.get("observacao") or payload.get("observacoes") or payload.get("exercicios_raw"),
+    }
+    return _api_update(TABLE_TREINOS, treino_id, mapped)
+
+
+@app.delete("/api/treinos/<treino_id>")
+@login_required
+def api_excluir_treino(treino_id: str):
+    return _api_delete(TABLE_TREINOS, treino_id)
+
+
+@app.get("/api/agenda")
+@login_required
+def api_listar_agenda():
+    return {"ok": True, "data": _schedule_rows(), "error": None}
+
+
+@app.get("/api/google-calendar/events")
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def api_google_calendar_events():
+    google_calendar = _google_calendar_context()
+    if not google_calendar["enabled"]:
+        return {
+            "ok": False,
+            "connected": False,
+            "calendar_count": 0,
+            "data": [],
+            "error": google_calendar["error"],
+        }, 503
+    if not google_calendar["connected"]:
+        return {
+            "ok": False,
+            "connected": False,
+            "calendar_count": 0,
+            "data": [],
+            "error": google_calendar["error"] or "Google Calendar ainda nao conectado.",
+        }, 200
+    if google_calendar["error"]:
+        return {
+            "ok": False,
+            "connected": True,
+            "calendar_count": google_calendar["calendar_count"],
+            "data": google_calendar["events"],
+            "error": google_calendar["error"],
+        }, 502
+    return {
+        "ok": True,
+        "connected": True,
+        "calendar_count": google_calendar["calendar_count"],
+        "data": google_calendar["events"],
+        "error": None,
+    }
+
+
+@app.post("/api/agenda")
+@login_required
+def api_criar_agenda():
+    payload = _json_payload()
+    aluno_id = payload.get("aluno_id")
+    status = _slug_status(payload.get("status") or ("disponivel" if not aluno_id else "agendado"))
+    titulo = payload.get("titulo") or ("Horario disponivel" if status == "disponivel" else "Aula")
+    observacoes = payload.get("observacoes") or payload.get("observacao") or ""
+    return _api_create(
+        TABLE_AGENDA,
+        {
+            "data": payload.get("data") or str(payload.get("inicio") or "")[:10],
+            "hora": payload.get("hora") or str(payload.get("inicio") or "")[11:16],
+            "aluno_id": None if status == "disponivel" else aluno_id,
+            "observacao": _build_agenda_observacao(titulo, observacoes, payload.get("termino_hora") or payload.get("termino")),
+            "status": status,
+        },
+        required=["data", "hora"],
+    )
+
+
+@app.get("/api/agenda/<agenda_id>")
+@login_required
+def api_obter_agenda(agenda_id: str):
+    item = next((row for row in _schedule_rows() if row["id"] == agenda_id), None)
+    status = 200 if item else 404
+    return {"ok": bool(item), "data": item, "error": None if item else "Agenda nao encontrada."}, status
+
+
+@app.put("/api/agenda/<agenda_id>")
+@login_required
+def api_atualizar_agenda(agenda_id: str):
+    payload = _json_payload()
+    status = _slug_status(payload.get("status"))
+    titulo = payload.get("titulo")
+    observacoes = payload.get("observacoes") or payload.get("observacao")
+    mapped = {
+        "data": payload.get("data") or str(payload.get("inicio") or "")[:10],
+        "hora": payload.get("hora") or str(payload.get("inicio") or "")[11:16],
+        "aluno_id": None if status == "disponivel" else payload.get("aluno_id"),
+        "status": payload.get("status"),
+    }
+    if titulo is not None or observacoes is not None or payload.get("termino_hora") is not None or payload.get("termino") is not None:
+        mapped["observacao"] = _build_agenda_observacao(titulo or "", observacoes or "", payload.get("termino_hora") or payload.get("termino") or "")
+    return _api_update(TABLE_AGENDA, agenda_id, mapped)
+
+
+@app.delete("/api/agenda/<agenda_id>")
+@login_required
+def api_excluir_agenda(agenda_id: str):
+    return _api_delete(TABLE_AGENDA, agenda_id)
+
+
+@app.get("/api/avaliacoes")
+@login_required
+def api_listar_avaliacoes():
+    aluno_id = request.args.get("aluno_id") or None
+    return {"ok": True, "data": _assessments(aluno_id), "error": None}
+
+
+@app.post("/api/avaliacoes")
+@login_required
+def api_criar_avaliacao():
+    payload = _json_payload()
+    aluno_id = payload.get("aluno_id")
+    aluno = next((item for item in _students() if item["id"] == aluno_id), None)
+    allowed_fields = [
+        "data",
+        "peso",
+        "estatura",
+        "idade",
+        "observacao",
+    ]
+    avaliacao = {field: payload.get(field) for field in allowed_fields}
+    avaliacao.update({"aluno_id": aluno_id, "observacao": payload.get("observacao") or payload.get("observacoes")})
+    return _api_create(TABLE_AVALIACOES, avaliacao, required=["aluno_id"])
+
+
+@app.get("/api/avaliacoes/<avaliacao_id>")
+@login_required
+def api_obter_avaliacao(avaliacao_id: str):
+    result = _select_one(TABLE_AVALIACOES, avaliacao_id)
+    status = 200 if result["ok"] and result["data"] else 404
+    if result["ok"] and not result["data"]:
+        result["error"] = "Avaliacao nao encontrada."
+    return {"ok": result["ok"] and bool(result["data"]), "data": result["data"], "error": result["error"]}, status
+
+
+@app.put("/api/avaliacoes/<avaliacao_id>")
+@login_required
+def api_atualizar_avaliacao(avaliacao_id: str):
+    return _api_update(TABLE_AVALIACOES, avaliacao_id, _only(_json_payload(), ["data", "idade", "peso", "estatura", "observacao", "aluno_id"]))
+
+
+@app.delete("/api/avaliacoes/<avaliacao_id>")
+@login_required
+def api_excluir_avaliacao(avaliacao_id: str):
+    return _api_delete(TABLE_AVALIACOES, avaliacao_id)
 
 
 if __name__ == "__main__":

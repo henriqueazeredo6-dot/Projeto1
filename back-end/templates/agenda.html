@@ -9,22 +9,26 @@
 <body class="personal-page page-agenda">
     <div class="dashboard-layout">
         <aside class="dashboard-sidebar">
+            <input class="mobile-menu-toggle" type="checkbox" id="mobile-menu-toggle" aria-hidden="true">
             <div class="sidebar-brand">
                 <a class="sidebar-logo" href="{{ dashboard_url|default('/dashboard', true) }}">CONFIE PERSONAL</a>
                 <p class="sidebar-user">{{ profissional_nome|default('Personal Trainer', true) }}</p>
+                <label class="mobile-menu-button" for="mobile-menu-toggle" aria-label="Abrir menu"><span></span><span></span><span></span></label>
             </div>
 
             <nav class="sidebar-nav" aria-label="Menu principal">
                 <a class="sidebar-link {% if pagina_ativa == 'dashboard' %}is-active{% endif %}" href="{{ dashboard_url|default('/dashboard', true) }}">Dashboard</a>
                 <a class="sidebar-link {% if pagina_ativa == 'alunos' %}is-active{% endif %}" href="{{ alunos_url|default('/alunos', true) }}">Alunos</a>
-                <a class="sidebar-link {% if pagina_ativa == 'exercicios' %}is-active{% endif %}" href="{{ exercicios_url|default('/exercicios', true) }}">ExercÃ­cios</a>
+                <a class="sidebar-link {% if pagina_ativa == 'exercicios' %}is-active{% endif %}" href="{{ exercicios_url|default('/exercicios', true) }}">Exercícios</a>
                 <a class="sidebar-link {% if pagina_ativa == 'treinos' %}is-active{% endif %}" href="{{ treinos_url|default('/treinos', true) }}">Treinos</a>
                 <a class="sidebar-link {% if pagina_ativa == 'agenda' %}is-active{% endif %}" href="{{ agenda_url|default('/agenda', true) }}">Agenda</a>
                 <a class="sidebar-link {% if pagina_ativa == 'mensagens' %}is-active{% endif %}" href="{{ mensagens_url|default('/mensagens', true) }}">Mensagens</a>
                 <a class="sidebar-link {% if pagina_ativa == 'anamnese' %}is-active{% endif %}" href="{{ anamnese_url|default('/anamnese', true) }}">Anamnese</a>
-                <a class="sidebar-link {% if pagina_ativa == 'avaliacoes' %}is-active{% endif %}" href="{{ avaliacoes_url|default('/avaliacoes', true) }}">AvaliaÃ§Ãµes</a>
-                <a class="sidebar-link {% if pagina_ativa == 'evolucao' %}is-active{% endif %}" href="{{ evolucao_url|default('/evolucao', true) }}">EvoluÃ§Ã£o</a>
+                <a class="sidebar-link {% if pagina_ativa == 'observacoes' %}is-active{% endif %}" href="{{ observacoes_url|default('/observacoes', true) }}">Observações</a>
+                <a class="sidebar-link {% if pagina_ativa == 'avaliacoes' %}is-active{% endif %}" href="{{ avaliacoes_url|default('/avaliacoes', true) }}">Avaliações</a>
+                <a class="sidebar-link {% if pagina_ativa == 'evolucao' %}is-active{% endif %}" href="{{ evolucao_url|default('/evolucao', true) }}">Evolução</a>
                 <a class="sidebar-link {% if pagina_ativa == 'financeiro' %}is-active{% endif %}" href="{{ financeiro_url|default('/financeiro', true) }}">Financeiro</a>
+                <a class="sidebar-link {% if pagina_ativa == 'configuracoes' %}is-active{% endif %}" href="{{ configuracoes_url|default('/configuracoes', true) }}">Configurações</a>
                 <a class="sidebar-link" href="{{ logout_url|default('/logout', true) }}">Sair</a>
             </nav>
         </aside>
@@ -33,11 +37,14 @@
             <header class="dashboard-header">
                 <div>
                     <h1 class="dashboard-title">Agenda</h1>
-                    <p class="dashboard-subtitle">{{ compromissos|length }} compromissos agendados</p>
+                    {% set total_agenda = total_compromissos|default(compromissos|length, true) %}
+                    <p class="dashboard-subtitle">
+                        {{ total_agenda }} {{ 'compromisso agendado' if total_agenda == 1 else 'compromissos agendados' }}
+                    </p>
                     <p class="agenda-date-heading">{{ data_referencia|default('03/04/2026', true) }}</p>
                 </div>
 
-                <a class="button dashboard-add-button" href="#nova-aula">Agendar aula</a>
+                <a class="button dashboard-add-button" href="#nova-aula">Gerenciar horários</a>
             </header>
 
             {% if sucesso %}
@@ -124,14 +131,25 @@
                     <div class="agenda-card-header">
                         <div>
                             <h2>{{ compromisso.titulo }}</h2>
-                            <p class="agenda-time">{{ compromisso.inicio }} - {{ compromisso.termino }}</p>
+                            <p class="agenda-time">
+                                {{ compromisso.data }}
+                                {% if compromisso.hora %}
+                                · {{ compromisso.hora }}
+                                {% endif %}
+                            </p>
                         </div>
                         <span class="agenda-status agenda-status-{{ compromisso.status_classe|default('pendente', true) }}">
                             {{ compromisso.status }}
                         </span>
                     </div>
 
-                    <p class="agenda-student">{{ compromisso.tipo|default('Aula', true) }}</p>
+                    <p class="agenda-student">
+                        {{ compromisso.aluno_nome|default('', true) }}
+                        {% if compromisso.aluno_nome and compromisso.tipo %}
+                        ·
+                        {% endif %}
+                        {{ compromisso.tipo|default('Aula', true) }}
+                    </p>
 
                     <div class="agenda-actions">
                         <form action="{{ confirmar_url_base|default('/agenda/confirmar', true) }}/{{ compromisso.id }}" method="post">
@@ -155,55 +173,92 @@
                 {% else %}
                 <article class="agenda-card agenda-card-empty">
                     <h2>Nenhum compromisso</h2>
-                    <p>VocÃª ainda nÃ£o possui aulas agendadas para esta data.</p>
+                    <p>Você ainda não possui aulas agendadas para esta data.</p>
                 </article>
                 {% endfor %}
             </section>
 
-            <section class="student-modal-wrap" id="nova-aula" aria-label="Agendar nova aula">
-                <a class="student-modal-overlay" href="{{ agenda_url|default('/agenda', true) }}" aria-label="Fechar modal"></a>
-                <div class="student-modal agenda-modal">
-                    <div class="student-modal-header">
-                        <h2>Nova aula</h2>
-                        <a class="student-modal-close" href="{{ agenda_url|default('/agenda', true) }}" aria-label="Fechar modal">x</a>
+            <section class="agenda-form-panel" id="nova-aula" aria-label="Gerenciar horários da agenda">
+                <div class="agenda-form-grid">
+                    <div class="agenda-form-card">
+                        <div class="student-modal-header">
+                            <h2>Liberar horário</h2>
+                        </div>
+
+                        <form class="student-form" action="{{ criar_aula_url|default('/agenda', true) }}" method="post">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="tipo_registro" value="disponibilidade">
+
+                            <div class="field">
+                                <label for="titulo_disponibilidade">Título</label>
+                                <input id="titulo_disponibilidade" name="titulo" type="text" placeholder="Ex: Horário livre para aula">
+                            </div>
+
+                            <div class="agenda-form-row">
+                                <div class="field">
+                                    <label for="inicio_disponibilidade">Início</label>
+                                    <input id="inicio_disponibilidade" name="inicio" type="datetime-local" required>
+                                </div>
+
+                                <div class="field">
+                                    <label for="termino_hora_disponibilidade">Término</label>
+                                    <input id="termino_hora_disponibilidade" name="termino_hora" type="time" required>
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <label for="observacoes_disponibilidade">Observações</label>
+                                <textarea id="observacoes_disponibilidade" name="observacoes" rows="4" placeholder="Informações para o aluno sobre esse horário..."></textarea>
+                            </div>
+
+                            <button class="button-block" type="submit">Publicar horário</button>
+                        </form>
                     </div>
 
-                    <form class="student-form" action="{{ criar_aula_url|default('/agenda', true) }}" method="post">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <div class="field">
-                            <label for="titulo">TÃ­tulo</label>
-                            <input id="titulo" name="titulo" type="text" placeholder="Ex: Treino personalizado" required>
+                    <div class="agenda-form-card">
+                        <div class="student-modal-header">
+                            <h2>Agendar com aluno</h2>
                         </div>
 
-                        <div class="field">
-                            <label for="aluno_id">Aluno</label>
-                            <select id="aluno_id" name="aluno_id" required>
-                                <option value="">Selecione um aluno</option>
-                                {% for aluno in alunos %}
-                                <option value="{{ aluno.id }}">{{ aluno.nome }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+                        <form class="student-form" action="{{ criar_aula_url|default('/agenda', true) }}" method="post">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="tipo_registro" value="agendamento">
 
-                        <div class="agenda-form-row">
                             <div class="field">
-                                <label for="inicio">InÃ­cio</label>
-                                <input id="inicio" name="inicio" type="datetime-local" required>
+                                <label for="titulo_agendamento">Título</label>
+                                <input id="titulo_agendamento" name="titulo" type="text" placeholder="Ex: Treino personalizado" required>
                             </div>
 
                             <div class="field">
-                                <label for="termino">TÃ©rmino</label>
-                                <input id="termino" name="termino" type="datetime-local" required>
+                                <label for="aluno_id">Aluno</label>
+                                <select id="aluno_id" name="aluno_id" required>
+                                    <option value="">Selecione um aluno</option>
+                                    {% for aluno in alunos %}
+                                    <option value="{{ aluno.id }}">{{ aluno.nome }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
-                        </div>
 
-                        <div class="field">
-                            <label for="observacoes">ObservaÃ§Ãµes</label>
-                            <textarea id="observacoes" name="observacoes" rows="4" placeholder="ObservaÃ§Ãµes sobre a aula..."></textarea>
-                        </div>
+                            <div class="agenda-form-row">
+                                <div class="field">
+                                    <label for="inicio_agendamento">Início</label>
+                                    <input id="inicio_agendamento" name="inicio" type="datetime-local" required>
+                                </div>
 
-                        <button class="button-block" type="submit">Agendar aula</button>
-                    </form>
+                                <div class="field">
+                                    <label for="termino_hora_agendamento">Término</label>
+                                    <input id="termino_hora_agendamento" name="termino_hora" type="time" required>
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <label for="observacoes_agendamento">Observações</label>
+                                <textarea id="observacoes_agendamento" name="observacoes" rows="4" placeholder="Observações sobre a aula..."></textarea>
+                            </div>
+
+                            <button class="button-block" type="submit">Agendar aula</button>
+                        </form>
+                    </div>
                 </div>
             </section>
         </main>
@@ -211,4 +266,3 @@
     <script src="{{ url_for('static', filename='mobile-nav.js') }}"></script>
 </body>
 </html>
-

@@ -3,73 +3,226 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ page_title|default('CONFIE - Configurações', true) }}</title>
+    <title>{{ page_title|default('CONFIE - Configuracoes', true) }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body class="personal-page page-configuracoes">
+    {% set pagina_ativa = pagina_ativa|default('configuracoes', true) %}
+    {% set marca_logo_url_valor = marca_logo_url|default('', true) %}
+    {% set dados = config|default({}, true) %}
+
     <div class="dashboard-layout">
         <aside class="dashboard-sidebar">
+            <input class="mobile-menu-toggle" type="checkbox" id="mobile-menu-toggle" aria-hidden="true">
             <div class="sidebar-brand">
-                <a class="sidebar-logo" href="{{ dashboard_url|default('/dashboard', true) }}">{{ marca_nome|default('CONFIE PERSONAL', true) }}</a>
+                <a class="sidebar-logo" href="{{ dashboard_url|default('/dashboard', true) }}">
+                    {% if marca_logo_url_valor %}
+                    <img src="{{ marca_logo_url_valor }}" alt="{{ marca_nome|default('Marca', true) }}" class="sidebar-logo-image">
+                    {% else %}
+                    <span>{{ marca_nome|default('CONFIE PERSONAL', true) }}</span>
+                    {% endif %}
+                </a>
                 <p class="sidebar-user">{{ profissional_nome|default('Personal Trainer', true) }}</p>
+                <label class="mobile-menu-button" for="mobile-menu-toggle" aria-label="Abrir menu"><span></span><span></span><span></span></label>
             </div>
 
             <nav class="sidebar-nav" aria-label="Menu principal">
                 <a class="sidebar-link {% if pagina_ativa == 'dashboard' %}is-active{% endif %}" href="{{ dashboard_url|default('/dashboard', true) }}">Dashboard</a>
                 <a class="sidebar-link {% if pagina_ativa == 'alunos' %}is-active{% endif %}" href="{{ alunos_url|default('/alunos', true) }}">Alunos</a>
-                <a class="sidebar-link {% if pagina_ativa == 'exercicios' %}is-active{% endif %}" href="{{ exercicios_url|default('/exercicios', true) }}">Exercícios</a>
+                <a class="sidebar-link {% if pagina_ativa == 'exercicios' %}is-active{% endif %}" href="{{ exercicios_url|default('/exercicios', true) }}">Exercicios</a>
                 <a class="sidebar-link {% if pagina_ativa == 'treinos' %}is-active{% endif %}" href="{{ treinos_url|default('/treinos', true) }}">Treinos</a>
                 <a class="sidebar-link {% if pagina_ativa == 'agenda' %}is-active{% endif %}" href="{{ agenda_url|default('/agenda', true) }}">Agenda</a>
                 <a class="sidebar-link {% if pagina_ativa == 'mensagens' %}is-active{% endif %}" href="{{ mensagens_url|default('/mensagens', true) }}">Mensagens</a>
                 <a class="sidebar-link {% if pagina_ativa == 'anamnese' %}is-active{% endif %}" href="{{ anamnese_url|default('/anamnese', true) }}">Anamnese</a>
-                <a class="sidebar-link {% if pagina_ativa == 'observacoes' %}is-active{% endif %}" href="{{ observacoes_url|default('/observacoes', true) }}">Observações</a>
-                <a class="sidebar-link {% if pagina_ativa == 'avaliacoes' %}is-active{% endif %}" href="{{ avaliacoes_url|default('/avaliacoes', true) }}">Avaliações</a>
-                <a class="sidebar-link {% if pagina_ativa == 'evolucao' %}is-active{% endif %}" href="{{ evolucao_url|default('/evolucao', true) }}">Evolução</a>
+                <a class="sidebar-link {% if pagina_ativa == 'observacoes' %}is-active{% endif %}" href="{{ observacoes_url|default('/observacoes', true) }}">Observacoes</a>
+                <a class="sidebar-link {% if pagina_ativa == 'avaliacoes' %}is-active{% endif %}" href="{{ avaliacoes_url|default('/avaliacoes', true) }}">Avaliacoes</a>
+                <a class="sidebar-link {% if pagina_ativa == 'evolucao' %}is-active{% endif %}" href="{{ evolucao_url|default('/evolucao', true) }}">Evolucao</a>
                 <a class="sidebar-link {% if pagina_ativa == 'financeiro' %}is-active{% endif %}" href="{{ financeiro_url|default('/financeiro', true) }}">Financeiro</a>
-                <a class="sidebar-link {% if pagina_ativa == 'configuracoes' %}is-active{% endif %}" href="{{ configuracoes_url|default('/configuracoes', true) }}">Configurações</a>
+                <a class="sidebar-link {% if pagina_ativa == 'configuracoes' %}is-active{% endif %}" href="{{ configuracoes_url|default('/configuracoes', true) }}">Configuracoes</a>
                 <a class="sidebar-link" href="{{ logout_url|default('/logout', true) }}">Sair</a>
             </nav>
         </aside>
 
         <main class="dashboard-main">
-            <header class="dashboard-header">
-                <div>
-                    <h1 class="dashboard-title">Configurações</h1>
-                    <p class="dashboard-subtitle">Área preparada para preferências da conta, integrações e dados do profissional.</p>
-                </div>
-            </header>
+            <form class="config-form-shell" action="{{ configuracoes_url|default('/configuracoes', true) }}" method="post">
+                {% if csrf_token is defined %}
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                {% endif %}
 
-            {% if sucesso %}
-            <section class="student-feedback student-feedback-success" aria-label="Mensagem de sucesso">
-                <p>{{ sucesso }}</p>
-            </section>
-            {% endif %}
+                <header class="dashboard-header config-header">
+                    <div>
+                        <p class="config-page-eyebrow">{{ marca_nome|default('CONFIE PERSONAL', true) }}</p>
+                        <h1 class="dashboard-title">Configuracoes</h1>
+                        <p class="dashboard-subtitle">Ajuste os textos da tela inicial e algumas opcoes de exibicao do site.</p>
+                    </div>
 
-            {% if erro %}
-            <section class="student-feedback student-feedback-error" aria-label="Mensagem de erro">
-                <p>{{ erro }}</p>
-            </section>
-            {% endif %}
+                    <div class="config-header-actions">
+                        <button class="button button-secondary ui-btn ui-btn-secondary" type="submit" name="acao" value="restaurar">Restaurar</button>
+                        <button class="button ui-btn ui-btn-primary" type="submit" name="acao" value="salvar">Salvar</button>
+                    </div>
+                </header>
 
-            <section class="dashboard-quick-section" aria-label="Configurações da plataforma">
-                <div class="dashboard-panel">
-                    <h2 class="dashboard-panel-title">Conta</h2>
-                    <div class="dashboard-quick-grid">
-                        <article class="dashboard-quick-card">
-                            <span class="dashboard-quick-text">Profissional</span>
-                            <strong>{{ profissional_nome|default('Personal Trainer', true) }}</strong>
+                {% if sucesso %}
+                <section class="student-feedback student-feedback-success" aria-label="Mensagem de sucesso">
+                    <p>{{ sucesso }}</p>
+                </section>
+                {% endif %}
+
+                {% if erro %}
+                <section class="student-feedback student-feedback-error" aria-label="Mensagem de erro">
+                    <p>{{ erro }}</p>
+                </section>
+                {% endif %}
+
+                <section class="config-layout-grid" aria-label="Configuracoes da landing page">
+                    <div class="config-main-column">
+                        <article class="config-panel ui-card">
+                            <div class="config-panel-head">
+                                <span class="config-panel-eyebrow">Tela inicial</span>
+                                <h2 class="config-panel-title">Texto principal</h2>
+                            </div>
+
+                            <div class="config-field-grid">
+                                <div class="field">
+                                    <label for="nome_marca">Nome da marca</label>
+                                    <input id="nome_marca" name="nome_marca" type="text" value="{{ dados.nome_marca|default('', true) }}">
+                                </div>
+
+                                <div class="field">
+                                    <label for="botao_principal">Botao principal</label>
+                                    <input id="botao_principal" name="botao_principal" type="text" value="{{ dados.botao_principal|default('', true) }}">
+                                </div>
+
+                                <div class="field">
+                                    <label for="titulo_topo">Titulo</label>
+                                    <input id="titulo_topo" name="titulo_topo" type="text" value="{{ dados.titulo_topo|default('', true) }}">
+                                </div>
+
+                                <div class="field">
+                                    <label for="titulo_destaque">Titulo em destaque</label>
+                                    <input id="titulo_destaque" name="titulo_destaque" type="text" value="{{ dados.titulo_destaque|default('', true) }}">
+                                </div>
+
+                                <div class="field">
+                                    <label for="botao_secundario">Botao secundario</label>
+                                    <input id="botao_secundario" name="botao_secundario" type="text" value="{{ dados.botao_secundario|default('', true) }}">
+                                </div>
+
+                                <div class="field">
+                                    <label for="rodape">Rodape</label>
+                                    <input id="rodape" name="rodape" type="text" value="{{ dados.rodape|default('', true) }}">
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <label for="subtitulo">Subtitulo da tela inicial</label>
+                                <textarea id="subtitulo" name="subtitulo" rows="4">{{ dados.subtitulo|default('', true) }}</textarea>
+                            </div>
                         </article>
-                        <article class="dashboard-quick-card">
-                            <span class="dashboard-quick-text">Marca</span>
-                            <strong>{{ marca_nome|default('CONFIE PERSONAL', true) }}</strong>
-                        </article>
-                        <article class="dashboard-quick-card">
-                            <span class="dashboard-quick-text">Integrações</span>
-                            <strong>Google Calendar</strong>
+
+                        <article class="config-panel ui-card">
+                            <div class="config-panel-head">
+                                <span class="config-panel-eyebrow">Apresentacao</span>
+                                <h2 class="config-panel-title">Texto do cliente</h2>
+                            </div>
+
+                            <div class="config-field-grid">
+                                <div class="field">
+                                    <label for="apresentacao_nome">Nome em destaque</label>
+                                    <input id="apresentacao_nome" name="apresentacao_nome" type="text" value="{{ dados.apresentacao_nome|default('', true) }}">
+                                </div>
+
+                                <div class="field">
+                                    <label for="formacao_atual">Formacao atual</label>
+                                    <input id="formacao_atual" name="formacao_atual" type="text" value="{{ dados.formacao_atual|default('', true) }}">
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <label for="apresentacao_resumo">Resumo do profissional</label>
+                                <textarea id="apresentacao_resumo" name="apresentacao_resumo" rows="4">{{ dados.apresentacao_resumo|default('', true) }}</textarea>
+                            </div>
+
+                            <div class="field">
+                                <label for="especialidades">Especialidades</label>
+                                <textarea id="especialidades" name="especialidades" rows="3">{{ dados.especialidades|default('', true) }}</textarea>
+                            </div>
                         </article>
                     </div>
-                </div>
-            </section>
+
+                    <aside class="config-side-column">
+                        <article class="config-panel ui-card">
+                            <div class="config-panel-head">
+                                <span class="config-panel-eyebrow">Opcoes do site</span>
+                                <h2 class="config-panel-title">Exibicao</h2>
+                            </div>
+
+                            <label class="config-toggle-card" for="mostrar_apresentacao">
+                                <div>
+                                    <strong>Mostrar apresentacao</strong>
+                                    <span>Exibe ou oculta o texto do cliente na tela inicial.</span>
+                                </div>
+                                <input id="mostrar_apresentacao" name="mostrar_apresentacao" type="checkbox" {% if dados.mostrar_apresentacao %}checked{% endif %}>
+                            </label>
+
+                            <label class="config-toggle-card" for="mostrar_planos">
+                                <div>
+                                    <strong>Mostrar planos</strong>
+                                    <span>Controla se a secao de precos aparece no site.</span>
+                                </div>
+                                <input id="mostrar_planos" name="mostrar_planos" type="checkbox" {% if dados.mostrar_planos %}checked{% endif %}>
+                            </label>
+
+                            <label class="config-toggle-card" for="mostrar_recursos">
+                                <div>
+                                    <strong>Mostrar recursos</strong>
+                                    <span>Controla se a secao de recursos aparece logo abaixo da introducao.</span>
+                                </div>
+                                <input id="mostrar_recursos" name="mostrar_recursos" type="checkbox" {% if dados.mostrar_recursos %}checked{% endif %}>
+                            </label>
+                        </article>
+
+                        <article class="config-panel ui-card">
+                            <div class="config-panel-head">
+                                <span class="config-panel-eyebrow">Previa rapida</span>
+                                <h2 class="config-panel-title">Landing</h2>
+                            </div>
+
+                            <div class="config-preview-hero">
+                                <h3>
+                                    {{ dados.titulo_topo|default('Transforme', true) }}<br>
+                                    <span>{{ dados.titulo_destaque|default('Seu Treino', true) }}</span>
+                                </h3>
+                                <p>{{ dados.subtitulo|default('', true) }}</p>
+                            </div>
+
+                            {% if dados.mostrar_apresentacao %}
+                            <div class="config-preview-block">
+                                <span class="config-preview-eyebrow">Apresentacao</span>
+                                <strong>{{ dados.apresentacao_nome|default('', true) }}</strong>
+                                <p>{{ dados.apresentacao_resumo|default('', true) }}</p>
+                            </div>
+                            {% endif %}
+
+                            {% if dados.mostrar_planos %}
+                            <div class="config-preview-block">
+                                <span class="config-preview-eyebrow">Planos</span>
+                                <strong>Secao de planos ativa</strong>
+                                <p>Os cards de planos continuam visiveis na pagina inicial.</p>
+                            </div>
+                            {% endif %}
+
+                            {% if dados.mostrar_recursos %}
+                            <div class="config-preview-block">
+                                <span class="config-preview-eyebrow">Recursos</span>
+                                <strong>Secao de recursos ativa</strong>
+                                <p>A area de funcionalidades continua exibida no site.</p>
+                            </div>
+                            {% endif %}
+                        </article>
+                    </aside>
+                </section>
+            </form>
         </main>
     </div>
     <script src="{{ url_for('static', filename='mobile-nav.js') }}"></script>

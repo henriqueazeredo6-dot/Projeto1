@@ -11,7 +11,7 @@
     {% set lista_treinos = treinos|default([], true) %}
     {% set total_treinos_resumo = total_treinos|default(lista_treinos|length, true)|int %}
     {% set aluno_treino_detalhe_base = aluno_treino_detalhe_url_base|default('/aluno/treinos', true) %}
-    {% set iniciar_treino_base = iniciar_treino_url_base|default('/aluno/treinos/iniciar', true) %}
+    {% set iniciar_treino_base = iniciar_treino_url_base|default('/aluno/treino', true) %}
     {% set aluno_treino_execucao_base = aluno_treino_execucao_url_base|default(iniciar_treino_base, true) %}
     {% set retorno_treinos_destino = aluno_treinos_url|default('/aluno/treinos', true) %}
     {% set treino_anterior_destino = treino_anterior_url|default('', true) %}
@@ -25,70 +25,45 @@
         {% set treino_proximo_destino = '' %}
     {% endif %}
     {% if not treino_anterior_destino and treino_anterior_id != '' %}
-        {% set treino_anterior_destino = aluno_treino_execucao_base ~ '?treino_id=' ~ treino_anterior_id %}
+        {% set treino_anterior_destino = aluno_treino_execucao_base ~ '/' ~ treino_anterior_id ~ '/execucao' %}
     {% endif %}
     {% if not treino_proximo_destino and treino_proximo_id != '' %}
-        {% set treino_proximo_destino = aluno_treino_execucao_base ~ '?treino_id=' ~ treino_proximo_id %}
+        {% set treino_proximo_destino = aluno_treino_execucao_base ~ '/' ~ treino_proximo_id ~ '/execucao' %}
     {% endif %}
 
     <div class="dashboard-layout">
         <aside class="dashboard-sidebar">
+            <input class="mobile-menu-toggle" type="checkbox" id="mobile-menu-toggle" aria-hidden="true">
             <div class="sidebar-brand">
                 <a class="sidebar-logo" href="{{ aluno_dashboard_url|default('/aluno/dashboard', true) }}">
                     <span>{{ marca_nome|default('', true) }}</span>
                 </a>
                 <p class="sidebar-user">{{ aluno_nome|default('', true) }}</p>
+                <label class="mobile-menu-button" for="mobile-menu-toggle" aria-label="Abrir menu"><span></span><span></span><span></span></label>
             </div>
 
             <nav class="sidebar-nav" aria-label="Menu principal do aluno">
                 <a class="sidebar-link {% if pagina_ativa == 'dashboard' %}is-active{% endif %}" href="{{ aluno_dashboard_url|default('/aluno/dashboard', true) }}">
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M4 10.5L12 4L20 10.5V19A1 1 0 0 1 19 20H5A1 1 0 0 1 4 19V10.5Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
-                        <path d="M9 20V13H15V20" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
-                    </svg>
                     <span>Dashboard</span>
                 </a>
 
                 <a class="sidebar-link {% if pagina_ativa == 'meu_treino' %}is-active{% endif %}" href="{{ aluno_treinos_url|default('/aluno/treinos', true) }}">
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M7 8L9 6L12 9L10 11L7 8Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
-                        <path d="M14 15L16 13L19 16L17 18L14 15Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
-                        <path d="M10 11L14 15" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
-                    </svg>
                     <span>Meu Treino</span>
                 </a>
 
                 <a class="sidebar-link {% if pagina_ativa == 'agenda' %}is-active{% endif %}" href="{{ aluno_agenda_url|default('/aluno/agenda', true) }}">
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <rect x="4" y="5" width="16" height="15" rx="2" stroke="currentColor" stroke-width="1.9"/>
-                        <path d="M8 3V7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
-                        <path d="M16 3V7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
-                        <path d="M4 10H20" stroke="currentColor" stroke-width="1.9"/>
-                    </svg>
                     <span>Agendar Aula</span>
                 </a>
 
                 <a class="sidebar-link {% if pagina_ativa == 'mensagens' %}is-active{% endif %}" href="{{ aluno_mensagens_url|default('/aluno/mensagens', true) }}">
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M20 11.5C20 16.2 16 20 11 20C9.7 20 8.5 19.8 7.4 19.3L4 20L4.8 16.9C4.3 15.9 4 14.7 4 13.5C4 8.8 8 5 13 5C17 5 20 7.9 20 11.5Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
-                    </svg>
                     <span>Mensagens</span>
                 </a>
 
                 <a class="sidebar-link {% if pagina_ativa == 'evolucao' %}is-active{% endif %}" href="{{ aluno_evolucao_url|default('/aluno/evolucao', true) }}">
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M4 16L9 11L13 15L20 8" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M20 12V8H16" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
                     <span>Evolução</span>
                 </a>
 
                 <a class="sidebar-link" href="{{ home_url|default(url_for('index'), true) }}">
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M15 17L20 12L15 7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M20 12H9" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
-                        <path d="M9 21H5A2 2 0 0 1 3 19V5A2 2 0 0 1 5 3H9" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
-                    </svg>
                     <span>Sair</span>
                 </a>
             </nav>
@@ -98,8 +73,7 @@
             <header class="aluno-header">
                 <h1 class="aluno-main-title">Meus Treinos</h1>
                 <p class="aluno-main-subtitle">
-                    {{ total_treinos_resumo }} treino
-                    {% if total_treinos_resumo != 1 %}s{% endif %}
+                    {{ total_treinos_resumo }} {% if total_treinos_resumo == 1 %}treino{% else %}treinos{% endif %}
                     {% if total_treinos_resumo == 1 %}disponível{% else %}disponíveis{% endif %}
                 </p>
             </header>
@@ -125,14 +99,14 @@
                     {% set treino_detalhes_destino = '' %}
                 {% endif %}
                 {% if not treino_detalhes_destino and tem_treino_id %}
-                    {% set treino_detalhes_destino = aluno_treino_detalhe_base ~ '/' ~ treino_id %}
+                    {% set treino_detalhes_destino = aluno_treino_detalhe_base ~ '?treino_id=' ~ treino_id %}
                 {% endif %}
                 {% set treino_iniciar_destino = treino.iniciar_url|default('', true) %}
                 {% if treino_iniciar_destino == '#' %}
                     {% set treino_iniciar_destino = '' %}
                 {% endif %}
                 {% if not treino_iniciar_destino and tem_treino_id %}
-                    {% set treino_iniciar_destino = iniciar_treino_base ~ '?treino_id=' ~ treino_id %}
+                    {% set treino_iniciar_destino = aluno_treino_execucao_base ~ '/' ~ treino_id ~ '/execucao' %}
                 {% endif %}
                 {% set treino_total_exercicios = treino.total_exercicios|default(treino.exercicios_total|default(0, true), true) %}
                 {% set treino_series_resumo = treino.series_resumo|default(treino.series|default(treino.total_series|default('Não informado', true), true), true) %}

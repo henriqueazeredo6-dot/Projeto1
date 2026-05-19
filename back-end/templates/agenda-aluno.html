@@ -9,9 +9,11 @@
 <body class="aluno-page page-agenda-aluno">
     <div class="dashboard-layout">
         <aside class="dashboard-sidebar">
+            <input class="mobile-menu-toggle" type="checkbox" id="mobile-menu-toggle" aria-hidden="true">
             <div class="sidebar-brand">
                 <a class="sidebar-logo" href="{{ dashboard_url|default('/dashboard', true) }}">CONFIE PERSONAL</a>
                 <p class="sidebar-user">{{ aluno_nome|default('Aluno', true) }}</p>
+                <label class="mobile-menu-button" for="mobile-menu-toggle" aria-label="Abrir menu"><span></span><span></span><span></span></label>
             </div>
 
             <nav class="sidebar-nav" aria-label="Menu do aluno">
@@ -125,4 +127,3 @@
     <script src="{{ url_for('static', filename='mobile-nav.js') }}"></script>
 </body>
 </html>
-

@@ -16,8 +16,8 @@
     {% if treino_proximo_destino == '#' %}
         {% set treino_proximo_destino = '' %}
     {% endif %}
-    {% set registrar_serie_destino = registrar_serie_url|default('/aluno/treinos/registrar-serie', true) %}
-    {% set concluir_treino_destino = concluir_treino_url|default('/aluno/treinos/concluir', true) %}
+    {% set registrar_serie_destino = registrar_serie_destino|default(registrar_serie_url|default('/aluno/treinos/registrar-serie', true), true) %}
+    {% set concluir_treino_destino = concluir_treino_destino|default(concluir_treino_url|default('/aluno/treinos/concluir', true), true) %}
     {% set csrf_form_token = form_csrf_token|default('', true) %}
     {% if csrf_token is defined %}
         {% set csrf_form_token = csrf_token %}

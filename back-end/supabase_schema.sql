@@ -129,7 +129,7 @@ create table if not exists public.tb_anamnese (
   created_at timestamptz not null default now()
 );
 
-create table if not exists public.tb_pagamento (
+create table if not exists public.tb_parcela (
   id uuid primary key default gen_random_uuid(),
   aluno_id uuid references public.tb_aluno(id) on delete cascade,
   aluno_nome text,
@@ -173,7 +173,7 @@ alter table public.tb_exercicios enable row level security;
 alter table public.tb_mensagens enable row level security;
 alter table public.tb_observacao enable row level security;
 alter table public.tb_anamnese enable row level security;
-alter table public.tb_pagamento enable row level security;
+alter table public.tb_parcela enable row level security;
 alter table public.tb_plano enable row level security;
 alter table public.tb_execucao_treino enable row level security;
 
@@ -208,8 +208,8 @@ begin
   if not exists (select 1 from pg_policies where policyname = 'dev_full_tb_anamnese') then
     create policy dev_full_tb_anamnese on public.tb_anamnese for all using (true) with check (true);
   end if;
-  if not exists (select 1 from pg_policies where policyname = 'dev_full_tb_pagamento') then
-    create policy dev_full_tb_pagamento on public.tb_pagamento for all using (true) with check (true);
+  if not exists (select 1 from pg_policies where policyname = 'dev_full_tb_parcela') then
+    create policy dev_full_tb_parcela on public.tb_parcela for all using (true) with check (true);
   end if;
   if not exists (select 1 from pg_policies where policyname = 'dev_full_tb_plano') then
     create policy dev_full_tb_plano on public.tb_plano for all using (true) with check (true);

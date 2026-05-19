@@ -50,30 +50,44 @@ A aplicacao sobe em `http://localhost:5000`.
 
 ## Google Calendar na agenda
 
-Para permitir que o personal visualize os eventos do proprio Google Calendar dentro da tela de agenda:
+Esta integracao permite que o personal conecte a propria conta Google e visualize os eventos futuros do Google Calendar dentro da tela `Agenda`.
 
-1. No Google Cloud Console, habilite a Google Calendar API.
-2. Crie credenciais OAuth 2.0 do tipo Web application.
-3. Adicione a URI de redirecionamento autorizada:
+### Como configurar no Google Cloud
+
+1. Acesse o Google Cloud Console.
+2. Crie ou selecione um projeto.
+3. Em `APIs e servicos > Biblioteca`, habilite `Google Calendar API`.
+4. Em `APIs e servicos > Tela de consentimento OAuth`, configure o app.
+5. Em `APIs e servicos > Credenciais`, crie um `ID do cliente OAuth`.
+6. Escolha o tipo `Aplicativo da Web`.
+7. Adicione esta URI em `URIs de redirecionamento autorizados`:
 
 ```text
 http://127.0.0.1:5000/google-calendar/callback
 ```
 
-4. Preencha no `.env`:
+8. Copie o `Client ID` e o `Client Secret`.
+9. Preencha no `.env`:
 
 ```env
 GOOGLE_CLIENT_ID=...
 GOOGLE_CLIENT_SECRET=...
 GOOGLE_REDIRECT_URI=http://127.0.0.1:5000/google-calendar/callback
 GOOGLE_CALENDAR_SCOPES=https://www.googleapis.com/auth/calendar.readonly
+GOOGLE_CALENDAR_MAX_EVENTS=100
 ```
 
-5. Reinicie o servidor e use o botao `Conectar Google Calendar` na tela `Agenda`.
+10. Reinicie o servidor.
+11. Entre como personal e abra `Agenda`.
+12. Clique em `Conectar Google Calendar`.
+13. Autorize o acesso na conta Google.
+14. Ao voltar para a plataforma, os eventos futuros aparecem no painel `Google Calendar`.
 
 Observacao:
 - os tokens OAuth ficam em `.tokens/` e nao entram no Git
 - a tela mostra os eventos futuros das agendas conectadas ao Google do personal
+- a rota `GET /api/google-calendar/events` retorna os eventos em JSON para testes ou integracoes
+- para producao, troque `GOOGLE_REDIRECT_URI` pela URL publicada do backend, por exemplo `https://seu-backend.onrender.com/google-calendar/callback`, e cadastre exatamente a mesma URL no Google Cloud
 
 ## Portabilidade
 

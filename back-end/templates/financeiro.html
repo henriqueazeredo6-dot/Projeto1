@@ -18,6 +18,7 @@
     {% endif %}
     <div class="dashboard-layout">
         <aside class="dashboard-sidebar">
+            <input class="mobile-menu-toggle" type="checkbox" id="mobile-menu-toggle" aria-hidden="true">
             <div class="sidebar-brand">
                 <a class="sidebar-logo" href="{{ dashboard_url|default('/dashboard', true) }}">
                     {% if marca_logo_url_valor %}
@@ -27,6 +28,7 @@
                     {% endif %}
                 </a>
                 <p class="sidebar-user">{{ profissional_nome|default('', true) }}</p>
+                <label class="mobile-menu-button" for="mobile-menu-toggle" aria-label="Abrir menu"><span></span><span></span><span></span></label>
             </div>
 
             <nav class="sidebar-nav" aria-label="Menu principal">
@@ -117,6 +119,7 @@
                         <thead>
                             <tr>
                                 <th>Aluno</th>
+                                <th>Plano</th>
                                 <th>Email</th>
                                 <th>Status</th>
                                 <th>Alterar status</th>
@@ -132,6 +135,20 @@
                             {% endif %}
                             <tr>
                                 <td>{{ pagamento.aluno_nome }}</td>
+                                <td>
+                                    <div class="financeiro-table-plan-tags">
+                                        {% if pagamento.planos %}
+                                            {% for plano in pagamento.planos %}
+                                            <span class="financeiro-plan-tag">
+                                                {{ plano.nome }}
+                                                {% if plano.preco %}<small>{{ plano.preco }}</small>{% endif %}
+                                            </span>
+                                            {% endfor %}
+                                        {% else %}
+                                            <span class="financeiro-plan-tag financeiro-plan-tag-empty">Sem plano</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
                                 <td>{{ pagamento.email }}</td>
                                 <td>
                                     <span class="financeiro-status financeiro-status-{{ status_normalizado }}">
@@ -165,7 +182,7 @@
                             </tr>
                             {% else %}
                             <tr>
-                                <td colspan="4" class="financeiro-empty-row">Nenhum pagamento encontrado.</td>
+                                <td colspan="5" class="financeiro-empty-row">Nenhum pagamento encontrado.</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -232,6 +249,21 @@
                             </div>
                         </div>
 
+                        <div class="field">
+                            <label>Vincular alunos</label>
+                            <div class="financeiro-student-select-list" aria-label="Selecionar alunos para o plano">
+                                {% for aluno in alunos|default([], true) %}
+                                <label class="financeiro-student-option">
+                                    <input type="checkbox" name="aluno_ids" value="{{ aluno.id }}">
+                                    <span>{{ aluno.nome }}</span>
+                                </label>
+                                {% else %}
+                                <p class="financeiro-helper-text">Nenhum aluno cadastrado para vincular.</p>
+                                {% endfor %}
+                            </div>
+                            <p class="financeiro-helper-text">Selecione um ou mais alunos, ou deixe sem marcar para criar o plano sem vínculo.</p>
+                        </div>
+
                         <div class="student-checkbox">
                             <input id="recorrente" name="recorrente" type="checkbox" value="1" checked>
                             <label for="recorrente">Plano recorrente</label>
@@ -241,6 +273,54 @@
                     </form>
                 </div>
             </section>
+
+            {% if plano_edicao %}
+            <section class="student-modal-wrap ui-modal-wrap" id="editar-plano" aria-label="Editar plano">
+                <a class="student-modal-overlay" href="{{ financeiro_url|default('/financeiro', true) }}" aria-label="Fechar modal"></a>
+                <div class="student-modal ui-modal">
+                    <div class="student-modal-header">
+                        <h2>Editar plano</h2>
+                        <a class="student-modal-close" href="{{ financeiro_url|default('/financeiro', true) }}" aria-label="Fechar modal">x</a>
+                    </div>
+
+                    <form class="student-form ui-form" action="{{ (gerenciar_plano_url_base|default('/financeiro/planos', true)) ~ '/' ~ plano_edicao.id }}" method="post">
+                        {% if csrf_form_token %}
+                        <input type="hidden" name="csrf_token" value="{{ csrf_form_token if csrf_form_token is string else csrf_form_token() }}">
+                        {% endif %}
+                        <div class="field">
+                            <label for="editar_nome_plano">Nome do plano</label>
+                            <input id="editar_nome_plano" name="nome" type="text" value="{{ plano_edicao.nome|default('', true) }}" required>
+                        </div>
+
+                        <div class="field">
+                            <label for="editar_descricao_plano">Descrição</label>
+                            <input id="editar_descricao_plano" name="descricao" type="text" value="{{ plano_edicao.descricao|default('', true) }}">
+                        </div>
+
+                        <div class="field-row">
+                            <div class="field">
+                                <label for="editar_preco_plano">Preço (R$)</label>
+                                <input id="editar_preco_plano" name="preco" type="number" step="0.01" min="0" value="{{ plano_edicao.preco_valor|default(0, true) }}" required>
+                            </div>
+                            <div class="field">
+                                <label for="editar_duracao_plano">Duração (dias)</label>
+                                <input id="editar_duracao_plano" name="duracao_dias" type="number" min="1" value="{{ plano_edicao.duracao_dias|default(30, true) }}" required>
+                            </div>
+                        </div>
+
+                        <div class="student-checkbox">
+                            <input id="editar_recorrente" name="recorrente" type="checkbox" value="1" {% if plano_edicao.recorrente|default(true) %}checked{% endif %}>
+                            <label for="editar_recorrente">Plano recorrente</label>
+                        </div>
+
+                        <div class="avaliacao-modal-actions">
+                            <a class="button button-secondary ui-btn ui-btn-secondary" href="{{ financeiro_url|default('/financeiro', true) }}">Cancelar</a>
+                            <button class="button ui-btn ui-btn-primary" type="submit">Salvar alterações</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+            {% endif %}
 
             <section aria-label="Dados para integração" hidden>
                 <form id="financeiro-filtros" class="ui-form">

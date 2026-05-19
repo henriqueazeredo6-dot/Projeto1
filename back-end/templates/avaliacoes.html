@@ -9,9 +9,11 @@
 <body class="personal-page page-avaliacoes">
     <div class="dashboard-layout">
         <aside class="dashboard-sidebar">
+            <input class="mobile-menu-toggle" type="checkbox" id="mobile-menu-toggle" aria-hidden="true">
             <div class="sidebar-brand">
                 <a class="sidebar-logo" href="{{ dashboard_url|default('/dashboard', true) }}">CONFIE PERSONAL</a>
                 <p class="sidebar-user">{{ profissional_nome|default('Personal Trainer', true) }}</p>
+                <label class="mobile-menu-button" for="mobile-menu-toggle" aria-label="Abrir menu"><span></span><span></span><span></span></label>
             </div>
 
             <nav class="sidebar-nav" aria-label="Menu principal">
@@ -39,7 +41,12 @@
                     <p class="dashboard-subtitle">Avaliações antropométricas completas com leitura clara dos resultados e das medidas coletadas.</p>
                 </div>
 
-                <a class="button dashboard-add-button" href="#nova-avaliacao">Nova avaliação</a>
+                <div class="avaliacao-header-actions">
+                    {% if avaliacao_atual and avaliacao_atual.id %}
+                    <a class="button button-secondary dashboard-add-button avaliacao-export-button" href="{{ avaliacao_atual.exportar_pdf_url|default('/avaliacoes/' ~ avaliacao_atual.id ~ '/pdf', true) }}">Exportar PDF</a>
+                    {% endif %}
+                    <a class="button dashboard-add-button" href="#nova-avaliacao">Nova avaliação</a>
+                </div>
             </header>
 
             {% if sucesso %}
@@ -174,6 +181,9 @@
                                 <p>Gordura: <strong>{{ item.gordura }}</strong></p>
                                 <p>Massa magra: <strong>{{ item.massa_magra }}</strong></p>
                             </div>
+                            {% if item.exportar_pdf_url %}
+                            <a class="avaliacao-history-export" href="{{ item.exportar_pdf_url }}">Exportar PDF</a>
+                            {% endif %}
                         </article>
                         {% else %}
                         <article class="avaliacao-history-card">

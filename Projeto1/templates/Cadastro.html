@@ -68,7 +68,12 @@
 
                     <div class="checkbox-row">
                         <input type="checkbox" id="termos" required>
-                        <label for="termos">Eu aceito os Termos e Condicoes e a Politica de Privacidade</label>
+                        <label for="termos">
+                            Eu aceito os
+                            <a href="{{ url_for('static', filename='docs/termos-uso-privacidade.pdf') }}" target="_blank" rel="noopener">Termos e Condições</a>
+                            e a
+                            <a href="{{ url_for('static', filename='docs/termos-uso-privacidade.pdf') }}" target="_blank" rel="noopener">Política de Privacidade</a>
+                        </label>
                     </div>
 
                     <button class="button-block" type="submit">Criar conta</button>
