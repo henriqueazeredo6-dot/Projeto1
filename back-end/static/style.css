@@ -939,19 +939,24 @@ select:-webkit-autofill:focus {
 }
 
 .exercicios-card-title {
-    font-family: var(--title-font);
-    font-size: 1.35rem;
+    font-family: inherit;
+    font-size: 1.08rem;
+    font-weight: 700;
+    letter-spacing: 0;
     text-transform: uppercase;
-    line-height: 1;
+    line-height: 1.25;
+    color: #ffffff;
 }
 
 .exercicios-card-group {
     margin-top: 0.6rem;
     color: var(--primary);
-    font-size: 0.78rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    font-weight: 700;
+    font-family: inherit;
+    font-size: 0.88rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    text-transform: none;
+    line-height: 1.25;
 }
 
 .exercicios-card-meta {
@@ -2566,10 +2571,12 @@ select:-webkit-autofill:focus {
 }
 
 .mensagens-contact-name {
-    font-family: var(--title-font);
-    font-size: 1rem;
-    text-transform: uppercase;
-    line-height: 1;
+    font-family: inherit;
+    font-size: 0.98rem;
+    font-weight: 400;
+    text-transform: none;
+    line-height: 1.2;
+    color: #ffffff;
 }
 
 .mensagens-contact-email,
@@ -2583,8 +2590,8 @@ select:-webkit-autofill:focus {
 .mensagens-contact-email,
 .mensagens-header-email,
 .mensagens-message-time {
-    margin-top: 0.28rem;
-    font-size: 0.82rem;
+    margin-top: 0.2rem;
+    font-size: 0.9rem;
 }
 
 .mensagens-thread {
@@ -2796,10 +2803,13 @@ select:-webkit-autofill:focus {
 .anamnese-sidebar-title,
 .anamnese-form-title {
     margin-bottom: 0.85rem;
-    font-family: var(--title-font);
-    font-size: 1.35rem;
+    font-family: inherit;
+    font-size: 1.22rem;
+    font-weight: 800;
+    letter-spacing: 0;
     text-transform: uppercase;
-    line-height: 1;
+    line-height: 1.2;
+    color: #ffffff;
 }
 
 .anamnese-contact-list {
@@ -2840,16 +2850,19 @@ select:-webkit-autofill:focus {
 }
 
 .anamnese-contact-name {
-    font-family: var(--title-font);
-    font-size: 1rem;
-    text-transform: uppercase;
-    line-height: 1;
+    font-family: inherit;
+    font-size: 0.98rem;
+    font-weight: 400;
+    text-transform: none;
+    line-height: 1.2;
+    color: #ffffff;
 }
 
 .anamnese-contact-email {
-    margin-top: 0.28rem;
+    display: block;
+    margin-top: 0.2rem;
     color: #8b909c;
-    font-size: 0.82rem;
+    font-size: 0.9rem;
 }
 
 .anamnese-form-panel {
@@ -5782,14 +5795,24 @@ Observacao:
         padding: 1.45rem 1.35rem 1rem;
     }
 
-    .page-exercicios .exercicios-card-title,
-    .page-exercicios .exercicios-card-group {
-        font-size: 0.9rem;
+    .page-exercicios .exercicios-card-title {
+        font-family: inherit;
+        font-size: 1.02rem;
+        font-weight: 700;
+        letter-spacing: 0;
+        text-transform: uppercase;
+        line-height: 1.25;
+        color: #ffffff;
     }
 
     .page-exercicios .exercicios-card-group {
         margin-top: 0.55rem;
         color: var(--primary);
+        font-size: 0.86rem;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        text-transform: none;
+        line-height: 1.25;
     }
 
     .page-exercicios .exercicios-card-meta span:first-child {
@@ -5852,17 +5875,19 @@ Observacao:
 
     .page-mensagens .mensagens-contact-name,
     .page-aluno-mensagens .mensagens-contact-name {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        font-size: 0.95rem;
-        font-weight: 700;
+        font-family: inherit;
+        font-size: 0.98rem;
+        font-weight: 400;
         text-transform: none;
+        line-height: 1.2;
+        color: #ffffff;
     }
 
     .page-mensagens .mensagens-contact-email,
     .page-aluno-mensagens .mensagens-contact-email {
         display: block;
         margin-top: 0.2rem;
-        font-size: 0.72rem;
+        font-size: 0.9rem;
     }
 
     .page-mensagens .mensagens-thread,
@@ -5986,7 +6011,13 @@ Observacao:
 
     .page-anamnese .anamnese-sidebar-title,
     .page-anamnese .anamnese-form-title {
-        font-size: 1.05rem;
+        font-family: inherit;
+        font-size: 1.12rem;
+        font-weight: 800;
+        letter-spacing: 0;
+        text-transform: uppercase;
+        line-height: 1.2;
+        color: #ffffff;
     }
 
     .page-anamnese .anamnese-mobile-search {
@@ -6028,16 +6059,18 @@ Observacao:
     }
 
     .page-anamnese .anamnese-contact-name {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        font-size: 0.95rem;
-        font-weight: 700;
+        font-family: inherit;
+        font-size: 0.98rem;
+        font-weight: 400;
         text-transform: none;
+        line-height: 1.2;
+        color: #ffffff;
     }
 
     .page-anamnese .anamnese-contact-email {
         display: block;
-        margin-top: 0.22rem;
-        font-size: 0.7rem;
+        margin-top: 0.2rem;
+        font-size: 0.9rem;
     }
 
     .page-anamnese .anamnese-form-panel {
@@ -6049,7 +6082,7 @@ Observacao:
 
     .page-anamnese .anamnese-form-title {
         margin-bottom: 1.4rem;
-        font-size: 1rem;
+        font-size: 1.12rem;
     }
 
     .page-anamnese .anamnese-field + .anamnese-field {
