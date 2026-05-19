@@ -3122,6 +3122,49 @@ textarea:focus {
     font-size: 0.9rem;
 }
 
+.financeiro-payment-summary {
+    margin-top: 0.8rem;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.8rem;
+}
+
+.financeiro-payment-summary-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 4.1rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    background: rgba(17, 17, 22, 0.96);
+}
+
+.financeiro-payment-summary-item span {
+    color: #8f96a6;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.financeiro-payment-summary-item strong {
+    font-family: var(--title-font);
+    font-size: 2rem;
+    line-height: 0.95;
+}
+
+.financeiro-payment-summary-paid strong {
+    color: #7fe79e;
+}
+
+.financeiro-payment-summary-pending strong {
+    color: #ffc2a0;
+}
+
+.financeiro-payment-summary-late strong {
+    color: #ffaeae;
+}
+
 .financeiro-section {
     margin-top: 1.7rem;
 }
@@ -3131,6 +3174,75 @@ textarea:focus {
     font-size: clamp(1.7rem, 3vw, 2.3rem);
     line-height: 1;
     text-transform: uppercase;
+}
+
+.financeiro-filters {
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: minmax(240px, 1fr) minmax(180px, 260px) auto;
+    gap: 0.75rem;
+    align-items: end;
+}
+
+.financeiro-filter-field label {
+    display: block;
+    margin-bottom: 0.4rem;
+    color: #8f96a6;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.financeiro-filter-field input,
+.financeiro-filter-field select {
+    width: 100%;
+    min-height: 2.75rem;
+    padding: 0 0.85rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: #0c0c11;
+    color: #ffffff;
+    font: inherit;
+    outline: none;
+}
+
+.financeiro-filter-field input:focus,
+.financeiro-filter-field select:focus {
+    border-color: var(--primary);
+}
+
+.financeiro-filter-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.financeiro-filter-actions .button {
+    min-height: 2.75rem;
+    padding: 0 0.9rem;
+}
+
+.financeiro-student-suggestions {
+    display: grid;
+    gap: 0.35rem;
+    margin-top: 0.45rem;
+}
+
+.financeiro-student-suggestions:empty,
+.financeiro-student-suggestions[hidden] {
+    display: none;
+}
+
+.financeiro-student-suggestion {
+    display: block;
+    padding: 0.62rem 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    color: #ffffff;
+    font-size: 0.92rem;
+}
+
+.financeiro-student-suggestion:hover {
+    border-color: var(--primary);
+    background: rgba(255, 90, 10, 0.14);
 }
 
 .financeiro-table-wrap {

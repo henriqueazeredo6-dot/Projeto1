@@ -3117,8 +3117,27 @@ def upload_mensagem_redirect():
 @role_required("Personal Trainer", "Admin", "Professor")
 def financeiro():
     pagamentos = _payment_rows()
+    status_resumo = {
+        "pago": len([item for item in pagamentos if item.get("status") == "pago"]),
+        "pendente": len([item for item in pagamentos if item.get("status") == "pendente"]),
+        "atrasado": len([item for item in pagamentos if item.get("status") == "atrasado"]),
+    }
     planos = _plans()
     alunos = _students()
+    busca_aluno = request.args.get("busca_aluno", "").strip()
+    filtro_status_raw = request.args.get("status_pagamento", "").strip()
+    filtro_status = _slug_status(filtro_status_raw) if filtro_status_raw else ""
+    if filtro_status not in {"pendente", "pago", "atrasado"}:
+        filtro_status = ""
+    if busca_aluno:
+        termo = busca_aluno.lower()
+        pagamentos = [
+            pagamento
+            for pagamento in pagamentos
+            if termo in str(pagamento.get("aluno_nome", "")).lower() or termo in str(pagamento.get("email", "")).lower()
+        ]
+    if filtro_status:
+        pagamentos = [pagamento for pagamento in pagamentos if pagamento.get("status") == filtro_status]
     plano_edicao_id = request.args.get("editar_plano_id", "")
     plano_edicao = next((plano for plano in planos if str(plano.get("id")) == str(plano_edicao_id)), {})
     receita = sum(_to_float(_first(item, "valor", default=0)) or 0 for item in pagamentos if item.get("status") == "pago")
@@ -3128,6 +3147,8 @@ def financeiro():
         planos=planos,
         alunos=alunos,
         alunos_planos=_student_plan_rows(alunos, planos),
+        filtros_financeiro={"busca_aluno": busca_aluno, "status_pagamento": filtro_status},
+        status_pagamento_resumo=status_resumo,
         plano_edicao=plano_edicao,
         receita_estimada=_currency(receita),
         receita_descricao="Recebimentos registrados",
