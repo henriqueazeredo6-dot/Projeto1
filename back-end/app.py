@@ -46,6 +46,7 @@ TABLE_MENSAGENS = os.getenv("SUPABASE_TABLE_MENSAGENS", "tb_mensagens")
 TABLE_OBSERVACOES = os.getenv("SUPABASE_TABLE_OBSERVACOES", "tb_observacao")
 TABLE_ANAMNESES = os.getenv("SUPABASE_TABLE_ANAMNESES", "tb_anamnese")
 TABLE_PAGAMENTOS = os.getenv("SUPABASE_TABLE_PAGAMENTOS", "tb_parcela")
+TABLE_PAGAMENTOS_FALLBACK = "tb_parcela"
 TABLE_PLANOS = os.getenv("SUPABASE_TABLE_PLANOS", "tb_plano")
 TABLE_EXECUCOES = os.getenv("SUPABASE_TABLE_EXECUCOES", "tb_execucao_treino")
 
@@ -421,6 +422,15 @@ def _payment_status_slug(value: Any) -> str:
 
 def _payment_status_db(value: Any) -> int:
     return PAYMENT_STATUS_TO_DB.get(_slug_status(value), 1)
+
+
+def _payment_table_candidates() -> List[str]:
+    candidates = [TABLE_PAGAMENTOS, TABLE_PAGAMENTOS_FALLBACK]
+    unique: List[str] = []
+    for table in candidates:
+        if table and table not in unique:
+            unique.append(table)
+    return unique
 
 
 def _split_datetime_local(value: Any) -> Dict[str, str]:
@@ -1795,49 +1805,67 @@ def _messages_for_student(contact_id: Optional[str]) -> Dict[str, Any]:
     }
 
 
+def _payment_rows_from_table() -> tuple[str, List[Dict[str, Any]]]:
+    usable_table = TABLE_PAGAMENTOS_FALLBACK
+    for table in _payment_table_candidates():
+        for order_field in ("data_parcela", "atualizado_em", "created_at", None):
+            result = _select(table, order=order_field, desc=True)
+            if result["ok"]:
+                return table, result["data"]
+            if _missing_table_error(result["error"]):
+                break
+            if not _missing_column_error(result["error"], order_field or ""):
+                usable_table = table
+                break
+    return usable_table, []
+
+
+def _payment_table_for_write(row_id: str) -> tuple[str, Optional[Dict[str, Any]]]:
+    first_available = TABLE_PAGAMENTOS_FALLBACK
+    for table in _payment_table_candidates():
+        existing = _select_one(table, row_id)
+        if existing["ok"]:
+            first_available = table
+            if existing["data"]:
+                return table, existing["data"]
+        elif not _missing_table_error(existing["error"]):
+            first_available = table
+    return first_available, None
+
+
 def _payment_rows() -> List[Dict[str, Any]]:
-    rows = _optional_rows(TABLE_PAGAMENTOS, order="data_parcela", desc=True)
+    payment_table, rows = _payment_rows_from_table()
     alunos = _students()
     planos = _plans()
-    alunos_por_id = {row["id"]: row for row in alunos}
     planos_por_aluno = {row["id"]: row["planos"] for row in _student_plan_rows(alunos, planos)}
-    if not rows:
-        return [
-            {
-                "id": aluno["id"],
-                "aluno_id": aluno["id"],
-                "aluno_nome": aluno["nome"],
-                "email": aluno["email"],
-                "planos": planos_por_aluno.get(aluno["id"], []),
-                "plano_resumo": ", ".join(plano["nome"] for plano in planos_por_aluno.get(aluno["id"], [])) or "Sem plano",
-                "valor": 0,
-                "status": "pendente",
-                "status_label": "Pendente",
-                "status_color": "pending",
-                "atualizado_em": "Sem atualizacao",
-                "alterar_status_url": url_for("alterar_status_pagamento", pagamento_id=aluno["id"]),
-            }
-            for aluno in _students()
-        ]
-    normalized: List[Dict[str, Any]] = []
+
+    latest_by_student: Dict[str, Dict[str, Any]] = {}
     for row in rows:
-        aluno_ref = alunos_por_id.get(_first(row, "aluno_id", default=""), {})
-        aluno_id = _first(row, "aluno_id", default="")
+        aluno_id = str(_first(row, "aluno_id", default=""))
+        if aluno_id and aluno_id not in latest_by_student:
+            latest_by_student[aluno_id] = row
+
+    normalized: List[Dict[str, Any]] = []
+    for aluno in alunos:
+        aluno_id = aluno["id"]
+        row = latest_by_student.get(str(aluno_id), {})
         planos_aluno = planos_por_aluno.get(aluno_id, [])
         status = _payment_status_slug(_first(row, "status_parcela", "status", "status_pagamento", default="pendente"))
         normalized.append(
             {
                 **row,
-                "id": row.get("id", ""),
-                "aluno_nome": _first(row, "aluno_nome", default=aluno_ref.get("nome", "Aluno")),
-                "email": _first(row, "email", default=aluno_ref.get("email", "")),
+                "id": row.get("id") or aluno_id,
+                "aluno_id": aluno_id,
+                "aluno_nome": _first(row, "aluno_nome", default=aluno.get("nome", "Aluno")),
+                "email": _first(row, "email", default=aluno.get("email", "")),
                 "planos": planos_aluno,
                 "plano_resumo": ", ".join(plano["nome"] for plano in planos_aluno) or "Sem plano",
                 "status": status,
                 "status_label": _human_status(status).upper(),
                 "status_color": "paid" if status == "pago" else "pending" if status == "pendente" else "late",
-                "atualizado_em": _fmt_date(_first(row, "data_recebimento", "data_parcela", "created_at")) or "Sem atualizacao",
-                "alterar_status_url": url_for("alterar_status_pagamento", pagamento_id=row.get("id", "")),
+                "atualizado_em": _fmt_date(_first(row, "data_recebimento", "data_parcela", "atualizado_em", "created_at")) or "Sem atualizacao",
+                "alterar_status_url": url_for("alterar_status_pagamento", pagamento_id=row.get("id") or aluno_id),
+                "payment_table": payment_table,
             }
         )
     return normalized
@@ -3123,26 +3151,42 @@ def alterar_status_pagamento(pagamento_id: str):
     csrf_error = _require_csrf()
     if csrf_error:
         flash(csrf_error, "error")
-        return redirect(url_for("financeiro"))
+        return redirect(url_for("financeiro", busca_aluno=request.form.get("busca_aluno", ""), status_pagamento=request.form.get("filtro_status", "")))
     status = _slug_status(request.form.get("status_pagamento", "pendente"))
-    status_db = _payment_status_db(status)
-    existing = _select_one(TABLE_PAGAMENTOS, pagamento_id)
-    payload = {"status_parcela": status_db}
-    if status == "pago":
-        payload["data_recebimento"] = datetime.utcnow().date().isoformat()
-    if existing["ok"] and existing["data"]:
-        result = _update(TABLE_PAGAMENTOS, pagamento_id, payload)
+    payment_table, existing = _payment_table_for_write(pagamento_id)
+    now_iso = datetime.utcnow().isoformat()
+    payload = {"status": status, "atualizado_em": now_iso}
+    if existing:
+        result = _update(payment_table, pagamento_id, payload)
+        if not result["ok"] and _missing_column_error(result["error"], "atualizado_em"):
+            result = _update(payment_table, pagamento_id, {"status": status})
+        if not result["ok"] and _missing_column_error(result["error"], "status"):
+            result = _update(payment_table, pagamento_id, {"status_parcela": _payment_status_db(status)})
     else:
+        aluno = next((item for item in _students() if str(item.get("id", "")) == str(pagamento_id)), {})
         payload.update(
             {
                 "aluno_id": pagamento_id,
-                "data_parcela": datetime.utcnow().date().isoformat(),
+                "aluno_nome": aluno.get("nome", ""),
+                "email": aluno.get("email", ""),
                 "valor": request.form.get("valor") or 0,
             }
         )
-        result = _insert(TABLE_PAGAMENTOS, payload)
+        result = _insert(payment_table, payload)
+        if not result["ok"] and _missing_table_error(result["error"]) and payment_table != TABLE_PAGAMENTOS_FALLBACK:
+            payment_table = TABLE_PAGAMENTOS_FALLBACK
+            result = _insert(payment_table, payload)
+        if not result["ok"] and _missing_column_error(result["error"], "atualizado_em"):
+            payload.pop("atualizado_em", None)
+            result = _insert(payment_table, payload)
+        if not result["ok"] and _missing_column_error(result["error"], "status"):
+            payload.pop("status", None)
+            payload.pop("atualizado_em", None)
+            payload["status_parcela"] = _payment_status_db(status)
+            payload["data_parcela"] = datetime.utcnow().date().isoformat()
+            result = _insert(payment_table, payload)
     flash("Status alterado com sucesso." if result["ok"] else (result["error"] or "Nao foi possivel alterar o status."), "success" if result["ok"] else "error")
-    return redirect(url_for("financeiro"))
+    return redirect(url_for("financeiro", busca_aluno=request.form.get("busca_aluno", ""), status_pagamento=request.form.get("filtro_status", "")))
 
 
 @app.post("/financeiro/planos")
