@@ -2423,6 +2423,48 @@ select:focus {
     font-size: 0.85rem;
 }
 
+.observacoes-history-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    margin-top: 0.85rem;
+}
+
+.observacoes-history-actions form {
+    margin: 0;
+}
+
+.observacoes-history-actions .button {
+    min-height: 2.25rem;
+    padding: 0 0.8rem;
+}
+
+.observacoes-history-action {
+    min-height: 2.25rem;
+    padding: 0 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: transparent;
+    color: #d0d5de;
+    font: inherit;
+    font-size: 0.84rem;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.observacoes-history-action:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.observacoes-history-action-danger {
+    border-color: rgba(226, 90, 90, 0.38);
+    color: #f2a6a6;
+}
+
+.observacoes-history-action-danger:hover {
+    background: rgba(226, 90, 90, 0.14);
+}
+
 .anamnese-layout {
     margin-top: 1.3rem;
     display: grid;

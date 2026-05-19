@@ -2780,6 +2780,7 @@ def observacoes():
     alunos_lista = _students()
     aluno_id = request.values.get("aluno_id", "")
     aluno_ativo = next((item for item in alunos_lista if item["id"] == aluno_id), None)
+    observacao_edicao_id = request.args.get("editar_observacao_id", "")
     observacoes_lista = []
     if aluno_ativo:
         result = _select(
@@ -2819,12 +2820,17 @@ def observacoes():
         }
         for item in observacoes_lista
     ]
+    observacao_edicao = next(
+        (item for item in historico_observacoes if str(item.get("id", "")) == str(observacao_edicao_id)),
+        {},
+    )
 
     return render_template(
         "observacoes.html",
         alunos=alunos_lista,
         aluno_ativo=aluno_ativo,
         observacao=historico_observacoes[0] if historico_observacoes else {},
+        observacao_edicao=observacao_edicao,
         historico=historico_observacoes,
         aluno_id_selecionado=aluno_ativo["id"] if aluno_ativo else "",
         form={
@@ -2833,9 +2839,48 @@ def observacoes():
             "proximo_ajuste": "",
         },
         salvar_observacao_url=url_for("observacoes"),
+        editar_observacao_url_base="/observacoes/editar",
+        excluir_observacao_url_base="/observacoes/excluir",
         csrf_form_token=_csrf_token,
         **_personal_context("observacoes"),
     )
+
+
+@app.post("/observacoes/editar/<observacao_id>")
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def editar_observacao(observacao_id: str):
+    csrf_error = _require_csrf()
+    aluno_id = request.form.get("aluno_id", "")
+    if csrf_error:
+        flash(csrf_error, "error")
+        return redirect(url_for("observacoes", aluno_id=aluno_id, editar_observacao_id=observacao_id))
+    texto = request.form.get("observacao_transcrita") or request.form.get("observacao")
+    payload = {
+        "aluno_id": aluno_id,
+        "foco_treino": request.form.get("foco_treino"),
+        "observacao": texto,
+        "observacao_transcrita": texto,
+        "proximo_ajuste": request.form.get("proximo_ajuste"),
+        "updated_at": datetime.utcnow().isoformat(),
+    }
+    result = _update(TABLE_OBSERVACOES, observacao_id, payload)
+    flash("Observacao atualizada com sucesso." if result["ok"] else _observacao_table_error_message(result["error"]), "success" if result["ok"] else "error")
+    return redirect(url_for("observacoes", aluno_id=aluno_id))
+
+
+@app.post("/observacoes/excluir/<observacao_id>")
+@login_required
+@role_required("Personal Trainer", "Admin", "Professor")
+def excluir_observacao(observacao_id: str):
+    csrf_error = _require_csrf()
+    aluno_id = request.form.get("aluno_id", "")
+    if csrf_error:
+        flash(csrf_error, "error")
+        return redirect(url_for("observacoes", aluno_id=aluno_id))
+    result = _delete(TABLE_OBSERVACOES, observacao_id)
+    flash("Observacao excluida com sucesso." if result["ok"] else _observacao_table_error_message(result["error"]), "success" if result["ok"] else "error")
+    return redirect(url_for("observacoes", aluno_id=aluno_id))
 
 
 @app.route("/anamnese/salvar", methods=["GET", "POST"])
