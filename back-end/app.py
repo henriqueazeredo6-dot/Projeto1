@@ -3236,8 +3236,9 @@ def cancelar_agendamento_aluno(agenda_id: str):
 @role_required("Aluno")
 def aluno_dashboard():
     aluno = _current_student_row() or {}
-    treinos_lista = _trainings(aluno.get("id"))
-    avaliacoes_lista = _assessments(aluno.get("id"))
+    aluno_id = aluno.get("id")
+    treinos_lista = _trainings(aluno_id) if aluno_id else []
+    avaliacoes_lista = _assessments(aluno_id) if aluno_id else []
     treino_do_dia = treinos_lista[0] if treinos_lista else {}
     if treino_do_dia:
         treino_do_dia["exercicio_destaque"] = treino_do_dia.get("exercicios_lista", [{}])[0].get("nome", "Exercicio principal") if treino_do_dia.get("exercicios_lista") else "Exercicio principal"
@@ -3245,7 +3246,7 @@ def aluno_dashboard():
     return render_template(
         "aluno_dashboard.html",
         treino_do_dia=treino_do_dia,
-        total_checkins=len([item for item in _schedule_rows() if item.get("aluno_id") == aluno.get("id") and item["status"] == "concluido"]),
+        total_checkins=len([item for item in _schedule_rows() if aluno_id and item.get("aluno_id") == aluno_id and item["status"] == "concluido"]),
         total_avaliacoes=len(avaliacoes_lista),
         iniciar_treino_url=url_for("aluno_treino_execucao", treino_id=treino_do_dia.get("id", "")) if treino_do_dia else url_for("aluno_meu_treino"),
         **_student_context("dashboard"),
@@ -3259,7 +3260,8 @@ def aluno_dashboard():
 @role_required("Aluno")
 def aluno_meu_treino():
     aluno = _current_student_row() or {}
-    treinos_lista = _trainings(aluno.get("id"))
+    aluno_id = aluno.get("id")
+    treinos_lista = _trainings(aluno_id) if aluno_id else []
     treino_id = request.args.get("treino_id", "")
     treino_ativo = next((item for item in treinos_lista if item["id"] == treino_id), treinos_lista[0] if treinos_lista else {})
     treino_index = treinos_lista.index(treino_ativo) if treino_ativo in treinos_lista else 0
@@ -3291,7 +3293,8 @@ def aluno_meu_treino():
 @role_required("Aluno")
 def iniciar_treino_aluno_redirect():
     aluno = _current_student_row() or {}
-    treinos_lista = _trainings(aluno.get("id"))
+    aluno_id = aluno.get("id")
+    treinos_lista = _trainings(aluno_id) if aluno_id else []
     treino_id = request.args.get("treino_id", "")
     if treino_id and any(item["id"] == treino_id for item in treinos_lista):
         return redirect(url_for("aluno_treino_execucao", treino_id=treino_id))
@@ -3305,7 +3308,8 @@ def iniciar_treino_aluno_redirect():
 @role_required("Aluno")
 def aluno_treino_execucao(treino_id: str):
     aluno = _current_student_row() or {}
-    treinos_lista = _trainings(aluno.get("id"))
+    aluno_id = aluno.get("id")
+    treinos_lista = _trainings(aluno_id) if aluno_id else []
     treino = next((item for item in treinos_lista if item["id"] == treino_id), None)
     if not treino:
         flash("Treino nao encontrado.", "error")
