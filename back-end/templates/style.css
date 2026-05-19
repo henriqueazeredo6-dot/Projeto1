@@ -862,6 +862,8 @@ select:focus {
     background: #0c0c11;
     color: #ffffff;
     font: inherit;
+    text-align: left;
+    text-transform: none;
     outline: none;
 }
 
@@ -871,8 +873,10 @@ select:focus {
 
 .treinos-student-suggestions {
     display: grid;
+    justify-items: stretch;
     gap: 0.35rem;
     margin-top: 0.45rem;
+    text-align: left;
 }
 
 .treinos-student-suggestions:empty,
@@ -882,11 +886,18 @@ select:focus {
 
 .treinos-student-suggestion {
     display: block;
+    width: 100%;
     padding: 0.62rem 0.8rem;
     border: 1px solid rgba(255, 255, 255, 0.1);
     background: rgba(255, 255, 255, 0.03);
     color: #ffffff;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     font-size: 0.92rem;
+    font-weight: 500;
+    line-height: 1.35;
+    text-align: left;
+    text-transform: none;
+    text-decoration: none;
 }
 
 .treinos-student-suggestion:hover {
@@ -2401,6 +2412,45 @@ select:focus {
     font-size: 0.85rem;
 }
 
+.observacoes-student-search-input {
+    width: 100%;
+    text-align: left;
+    text-transform: none;
+}
+
+.observacoes-student-suggestions {
+    display: grid;
+    justify-items: stretch;
+    gap: 0.35rem;
+    margin-top: 0.45rem;
+    text-align: left;
+}
+
+.observacoes-student-suggestions:empty,
+.observacoes-student-suggestions[hidden] {
+    display: none;
+}
+
+.observacoes-student-suggestion {
+    width: 100%;
+    padding: 0.62rem 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    color: #ffffff;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 0.92rem;
+    font-weight: 500;
+    line-height: 1.35;
+    text-align: left;
+    text-transform: none;
+    cursor: pointer;
+}
+
+.observacoes-student-suggestion:hover {
+    border-color: var(--primary);
+    background: rgba(255, 90, 10, 0.14);
+}
+
 .observacoes-inline-actions button.is-recording {
     background: #e5484d;
     border-color: #e5484d;
@@ -2728,6 +2778,8 @@ textarea:focus {
     background: #0c0c11;
     color: #ffffff;
     font: inherit;
+    text-align: left;
+    text-transform: none;
     outline: none;
 }
 
@@ -2748,8 +2800,10 @@ textarea:focus {
 
 .financeiro-student-suggestions {
     display: grid;
+    justify-items: stretch;
     gap: 0.35rem;
     margin-top: 0.45rem;
+    text-align: left;
 }
 
 .financeiro-student-suggestions:empty,
@@ -2759,16 +2813,46 @@ textarea:focus {
 
 .financeiro-student-suggestion {
     display: block;
+    width: 100%;
     padding: 0.62rem 0.8rem;
     border: 1px solid rgba(255, 255, 255, 0.1);
     background: rgba(255, 255, 255, 0.03);
     color: #ffffff;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     font-size: 0.92rem;
+    font-weight: 500;
+    line-height: 1.35;
+    text-align: left;
+    text-transform: none;
+    text-decoration: none;
 }
 
 .financeiro-student-suggestion:hover {
     border-color: var(--primary);
     background: rgba(255, 90, 10, 0.14);
+}
+
+.treinos-student-search input,
+.treinos-search-row input,
+.observacoes-student-search-input,
+.financeiro-filter-field input,
+.financeiro-filter-field select {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    text-align: left;
+    text-transform: none;
+}
+
+.treinos-student-suggestion,
+.observacoes-student-suggestion,
+.financeiro-student-suggestion {
+    display: block;
+    width: 100%;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: 500;
+    line-height: 1.35;
+    text-align: left;
+    text-transform: none;
+    justify-self: stretch;
 }
 
 .financeiro-table-wrap {

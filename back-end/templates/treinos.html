@@ -80,14 +80,8 @@
                         <form class="treinos-student-search" action="{{ treinos_url|default('/treinos', true) }}" method="get">
                             <label class="sr-only" for="treinos-busca-aluno">Pesquisar aluno</label>
                             <div class="treinos-modal-row treinos-search-row">
-                                <input id="treinos-busca-aluno" name="busca_aluno" list="treinos-alunos-lista" type="search" placeholder="Digite para buscar aluno" value="{{ busca_aluno|default('', true) }}" autocomplete="off">
-                                <button class="button ui-btn ui-btn-secondary button-secondary treinos-add-exercise-button" type="submit">Buscar</button>
+                                <input id="treinos-busca-aluno" name="busca_aluno" type="search" placeholder="Digite para buscar aluno" value="{{ busca_aluno|default('', true) }}" autocomplete="off">
                             </div>
-                            <datalist id="treinos-alunos-lista">
-                                {% for aluno in alunos if alunos is defined %}
-                                <option value="{{ aluno.nome }}"></option>
-                                {% endfor %}
-                            </datalist>
                             <div class="treinos-student-suggestions" id="treinos-sugestoes-alunos" aria-label="Sugestões de alunos"></div>
                         </form>
 

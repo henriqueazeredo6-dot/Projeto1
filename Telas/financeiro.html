@@ -132,19 +132,14 @@
                 <form class="financeiro-filters ui-form" action="{{ financeiro_url|default('/financeiro', true) }}" method="get">
                     <div class="financeiro-filter-field">
                         <label for="financeiro_busca_aluno">Buscar aluno</label>
-                        <input id="financeiro_busca_aluno" name="busca_aluno" list="financeiro-alunos-lista" type="search" placeholder="Digite nome ou email" value="{{ filtros.busca_aluno|default('', true) }}" autocomplete="off">
-                        <datalist id="financeiro-alunos-lista">
-                            {% for aluno in alunos|default([], true) %}
-                            <option value="{{ aluno.nome }}" data-email="{{ aluno.email|default('', true) }}"></option>
-                            {% endfor %}
-                        </datalist>
+                        <input id="financeiro_busca_aluno" name="busca_aluno" type="search" placeholder="Digite o nome do aluno" value="{{ filtros.busca_aluno|default('', true) }}" autocomplete="off">
                         <div class="financeiro-student-suggestions" id="financeiro-sugestoes-alunos" aria-label="Sugestões de alunos"></div>
                     </div>
 
                     <div class="financeiro-filter-field">
-                        <label for="financeiro_status_pagamento">Status</label>
+                        <label for="financeiro_status_pagamento">Status opcional</label>
                         <select id="financeiro_status_pagamento" name="status_pagamento">
-                            <option value="" {% if not filtros.status_pagamento|default('', true) %}selected{% endif %}>Todos</option>
+                            <option value="" {% if not filtros.status_pagamento|default('', true) %}selected{% endif %}>Todos os status</option>
                             <option value="pendente" {% if filtros.status_pagamento|default('', true) == 'pendente' %}selected{% endif %}>Pendente</option>
                             <option value="pago" {% if filtros.status_pagamento|default('', true) == 'pago' %}selected{% endif %}>Pago</option>
                             <option value="atrasado" {% if filtros.status_pagamento|default('', true) == 'atrasado' %}selected{% endif %}>Atrasado</option>
@@ -400,8 +395,11 @@
 
             function renderSuggestions() {
                 var term = normalizeText(search.value);
+                var exactStudent = students.find(function (student) {
+                    return normalizeText(student.name) === term;
+                });
                 suggestions.innerHTML = '';
-                if (!term) {
+                if (!term || exactStudent) {
                     suggestions.hidden = true;
                     return;
                 }
@@ -412,22 +410,29 @@
                     })
                     .slice(0, 5)
                     .forEach(function (student) {
-                        var selectedStatus = status && status.value ? '&status_pagamento=' + encodeURIComponent(status.value) : '';
                         var link = document.createElement('a');
-                        link.href = '{{ financeiro_url|default("/financeiro", true) }}?busca_aluno=' + encodeURIComponent(student.name) + selectedStatus;
+                        link.href = '{{ financeiro_url|default("/financeiro", true) }}?busca_aluno=' + encodeURIComponent(student.name);
                         link.className = 'financeiro-student-suggestion';
-                        link.textContent = student.email ? student.name + ' - ' + student.email : student.name;
+                        link.textContent = student.name;
                         suggestions.appendChild(link);
                     });
 
                 suggestions.hidden = suggestions.children.length === 0;
             }
 
-            search.addEventListener('input', renderSuggestions);
+            search.addEventListener('input', function () {
+                if (status) {
+                    status.value = '';
+                }
+                renderSuggestions();
+            });
             if (status) {
-                status.addEventListener('change', renderSuggestions);
+                status.addEventListener('change', function () {
+                    suggestions.hidden = true;
+                    suggestions.innerHTML = '';
+                });
             }
-            renderSuggestions();
+            suggestions.hidden = true;
         })();
     </script>
 </body>
