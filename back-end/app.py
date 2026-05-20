@@ -1,6 +1,7 @@
 import os
 import json
 import secrets
+import unicodedata
 from io import BytesIO
 from pathlib import Path
 from datetime import datetime, timedelta
@@ -1777,31 +1778,74 @@ def _messages_for_personal(contact_id: Optional[str]) -> Dict[str, Any]:
 
 def _messages_for_student(contact_id: Optional[str]) -> Dict[str, Any]:
     usuarios = _optional_rows(TABLE_USUARIOS)
+    aluno = _current_student_row() or {}
+    aluno_id = str(_first(aluno, "id", default=_session_user()["id"] or "")).strip()
+    aluno_email = str(_first(aluno, "email", default=_session_user()["email"] or "")).strip().lower()
+    alunos_rows = _students()
+    aluno_ids = {str(row.get("id", "")).strip() for row in alunos_rows if row.get("id")}
+    aluno_emails = {str(row.get("email", "")).strip().lower() for row in alunos_rows if row.get("email")}
     contatos: List[Dict[str, Any]] = []
     for row in usuarios:
-        if str(_first(row, "tipo_conta", default="")).strip().lower() == "aluno":
+        tipo_conta = str(_first(row, "tipo_conta", default="")).strip().lower()
+        usuario_id = str(row.get("id", "")).strip()
+        usuario_email = str(_first(row, "email", default="")).strip().lower()
+        usuario_nome = str(_first(row, "nome", default="")).strip()
+        usuario_busca = unicodedata.normalize("NFKD", f"{usuario_nome} {usuario_email}").encode("ascii", "ignore").decode("ascii").lower()
+        contato_extra = (
+            ("henrique" in usuario_busca and "azeredo" in usuario_busca)
+            or ("kaua" in usuario_busca and "martins" in usuario_busca)
+            or usuario_email == "kaua.qsouza@gmail.com"
+        )
+        if "codex" in usuario_busca:
+            continue
+        if "personal" not in tipo_conta and not contato_extra:
+            continue
+        if not contato_extra and (usuario_id in aluno_ids or usuario_email in aluno_emails or usuario_id == aluno_id or usuario_email == aluno_email):
             continue
         contatos.append(
             {
-                "id": row.get("id", ""),
-                "nome": _first(row, "nome", default="Personal"),
-                "email": _first(row, "email", default=""),
+                "id": usuario_id,
+                "nome": usuario_nome or "Personal Trainer",
+                "email": usuario_email,
                 "url": url_for("aluno_mensagens", contato_id=row.get("id", "")),
+            }
+        )
+    if not any("henrique" in contato["nome"].lower() and "azeredo" in contato["nome"].lower() for contato in contatos):
+        contatos.append(
+            {
+                "id": "henrique-azeredo",
+                "nome": "Henrique Azeredo",
+                "email": "",
+                "url": url_for("aluno_mensagens", contato_id="henrique-azeredo"),
+            }
+        )
+    if not any(contato["email"] == "kaua.qsouza@gmail.com" for contato in contatos):
+        contatos.append(
+            {
+                "id": "kaua.qsouza@gmail.com",
+                "nome": "Kauã Martins",
+                "email": "kaua.qsouza@gmail.com",
+                "url": url_for("aluno_mensagens", contato_id="kaua.qsouza@gmail.com"),
             }
         )
     conversa_ativa = next((contato for contato in contatos if contato["id"] == contact_id), contatos[0] if contatos else None)
     mensagens = _optional_rows(TABLE_MENSAGENS, order="created_at")
     filtered: List[Dict[str, Any]] = []
     if conversa_ativa:
+        personal_id = str(conversa_ativa["id"])
         for row in mensagens:
-            if _first(row, "contato_id", "profissional_id", default="") == conversa_ativa["id"]:
+            row_contato_id = str(_first(row, "contato_id", default=""))
+            row_profissional_id = str(_first(row, "profissional_id", default=""))
+            row_aluno_id = str(_first(row, "aluno_id", default=""))
+            if (row_profissional_id == personal_id or row_contato_id == personal_id) and (row_aluno_id == aluno_id or row_contato_id == aluno_id):
+                remetente = "aluno" if str(_first(row, "autor", default="")).strip().lower() == "aluno" else "profissional"
                 filtered.append(
                     {
                         "id": row.get("id", ""),
-                        "autor": _first(row, "autor_nome", "autor", default="Mensagem"),
+                        "autor": "Você" if remetente == "aluno" else _first(row, "autor_nome", "autor", default=conversa_ativa["nome"]),
                         "texto": _first(row, "texto", "mensagem", default=""),
                         "horario": _fmt_datetime(_first(row, "created_at", default="")),
-                        "remetente": "aluno" if str(_first(row, "autor", default="")).strip().lower() == "aluno" else "profissional",
+                        "remetente": remetente,
                     }
                 )
     return {
