@@ -468,6 +468,12 @@ select {
     outline: none;
 }
 
+select option,
+select optgroup {
+    background: #1b1c22;
+    color: #f3f4f7;
+}
+
 input::placeholder {
     color: #5e6470;
 }
@@ -475,6 +481,28 @@ input::placeholder {
 input:focus,
 select:focus {
     border-color: var(--line-strong);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text);
+}
+
+textarea:focus {
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text);
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+    -webkit-text-fill-color: #f3f4f7;
+    box-shadow: 0 0 0 1000px #2f384d inset;
+    transition: background-color 9999s ease-in-out 0s;
+    caret-color: #f3f4f7;
 }
 
 .checkbox-row {
@@ -911,19 +939,24 @@ select:focus {
 }
 
 .exercicios-card-title {
-    font-family: var(--title-font);
-    font-size: 1.35rem;
+    font-family: inherit;
+    font-size: 1.08rem;
+    font-weight: 700;
+    letter-spacing: 0;
     text-transform: uppercase;
-    line-height: 1;
+    line-height: 1.25;
+    color: #ffffff;
 }
 
 .exercicios-card-group {
     margin-top: 0.6rem;
     color: var(--primary);
-    font-size: 0.78rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    font-weight: 700;
+    font-family: inherit;
+    font-size: 0.88rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    text-transform: none;
+    line-height: 1.25;
 }
 
 .exercicios-card-meta {
@@ -1045,6 +1078,73 @@ select:focus {
 
 .treinos-panel-heading {
     font-size: 1.55rem;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.treinos-student-search {
+    margin-bottom: 0.7rem;
+}
+
+.treinos-student-search input {
+    width: 100%;
+    min-height: 2.65rem;
+    padding: 0 0.85rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: #0c0c11;
+    color: #ffffff;
+    font: inherit;
+    text-align: left;
+    text-transform: none;
+    outline: none;
+}
+
+.treinos-student-search input:focus {
+    border-color: var(--primary);
+}
+
+.treinos-student-suggestions {
+    display: grid;
+    justify-items: stretch;
+    gap: 0.35rem;
+    margin-top: 0.45rem;
+    text-align: left;
+}
+
+.treinos-student-suggestions:empty,
+.treinos-student-suggestions[hidden] {
+    display: none;
+}
+
+.treinos-student-suggestion {
+    display: block;
+    width: 100%;
+    padding: 0.62rem 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    color: #ffffff;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 0.92rem;
+    font-weight: 500;
+    line-height: 1.35;
+    text-align: left;
+    text-transform: none;
+    text-decoration: none;
+}
+
+.treinos-student-suggestion:hover {
+    border-color: var(--primary);
+    background: rgba(255, 90, 10, 0.14);
 }
 
 .treinos-list {
@@ -1226,7 +1326,7 @@ select:focus {
 .treinos-modal {
     position: relative;
     z-index: 1;
-    width: min(100%, 670px);
+    width: min(100%, 760px);
     border: 1px solid rgba(255, 255, 255, 0.08);
     background: #17181f;
     padding: 1.1rem;
@@ -1259,6 +1359,25 @@ select:focus {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 0.8rem;
+}
+
+.treinos-search-row {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+}
+
+.treinos-search-row input {
+    min-width: 0;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    text-align: left;
+    text-transform: none;
+}
+
+.treinos-add-exercise-button {
+    min-height: 2.95rem;
+    height: 2.95rem;
+    padding: 0 1.1rem;
+    font-size: 0.95rem;
 }
 
 .treinos-modal .field {
@@ -1902,6 +2021,39 @@ select:focus {
     display: grid;
 }
 
+.mensagens-contact-search,
+.anamnese-student-search {
+    display: grid;
+    gap: 0.45rem;
+    padding: 0.9rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mensagens-contact-search label,
+.anamnese-student-search label {
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.mensagens-contact-search input,
+.anamnese-student-search input {
+    width: 100%;
+    min-height: 2.75rem;
+    padding: 0.75rem 0.85rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(8, 8, 11, 0.9);
+    color: var(--text);
+    font: inherit;
+    outline: none;
+}
+
+.mensagens-contact-search input:focus,
+.anamnese-student-search input:focus {
+    border-color: var(--line-strong);
+}
+
 .mensagens-contact-card {
     display: flex;
     align-items: center;
@@ -2165,6 +2317,16 @@ select:focus {
     text-transform: uppercase;
 }
 
+.avaliacao-header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.avaliacao-export-button {
+    min-width: 10.75rem;
+}
+
 .avaliacao-top-stats {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -2260,6 +2422,21 @@ select:focus {
     padding: 1rem;
 }
 
+.avaliacao-history-export {
+    display: inline-flex;
+    margin-top: 0.8rem;
+    color: #ffb387;
+    font-size: 0.86rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    text-transform: uppercase;
+}
+
+.avaliacao-history-export:hover {
+    color: #ffffff;
+}
+
 .avaliacao-history-top {
     display: flex;
     align-items: flex-start;
@@ -2320,6 +2497,25 @@ select:focus {
 
 .evolucao-student-form {
     width: min(100%, 320px);
+}
+
+.evolucao-assessment-form {
+    margin-top: 1rem;
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(17, 17, 22, 0.96);
+}
+
+.evolucao-assessment-form label {
+    display: block;
+    margin-bottom: 0.65rem;
+    color: #8f96a6;
+}
+
+.evolucao-assessment-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.75rem;
 }
 
 .evolucao-top-stats {
@@ -2398,6 +2594,13 @@ select:focus {
     grid-template-columns: 0.95rem 1fr;
     gap: 0.8rem;
     align-items: start;
+    padding: 0.65rem;
+    border: 1px solid transparent;
+}
+
+.evolucao-history-item.is-active {
+    border-color: rgba(255, 90, 10, 0.4);
+    background: rgba(255, 90, 10, 0.08);
 }
 
 .evolucao-history-dot {
@@ -2421,6 +2624,19 @@ select:focus {
     margin-top: 0.45rem;
     color: #aeb4bf;
     font-size: 0.94rem;
+}
+
+.evolucao-history-link {
+    display: inline-flex;
+    margin-top: 0.55rem;
+    color: #ffb387;
+    font-size: 0.86rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.evolucao-history-link:hover {
+    color: #ffffff;
 }
 
 .evolucao-history-item-empty {
@@ -2497,10 +2713,12 @@ select:focus {
 }
 
 .mensagens-contact-name {
-    font-family: var(--title-font);
-    font-size: 1rem;
-    text-transform: uppercase;
-    line-height: 1;
+    font-family: inherit;
+    font-size: 0.98rem;
+    font-weight: 400;
+    text-transform: none;
+    line-height: 1.2;
+    color: #ffffff;
 }
 
 .mensagens-contact-email,
@@ -2514,13 +2732,21 @@ select:focus {
 .mensagens-contact-email,
 .mensagens-header-email,
 .mensagens-message-time {
-    margin-top: 0.28rem;
-    font-size: 0.82rem;
+    margin-top: 0.2rem;
+    font-size: 0.9rem;
 }
 
 .mensagens-thread {
     display: grid;
     grid-template-rows: auto 1fr auto;
+}
+
+.page-mensagens .mensagens-thread {
+    min-height: clamp(30rem, calc(100vh - 11rem), 44rem);
+    max-height: calc(100vh - 8.5rem);
+    position: sticky;
+    top: 1rem;
+    overflow: hidden;
 }
 
 .mensagens-thread-header {
@@ -2539,6 +2765,13 @@ select:focus {
     align-content: start;
     gap: 0.8rem;
     min-width: 0;
+}
+
+.page-mensagens .mensagens-thread-body {
+    min-height: 0;
+    padding-bottom: 1rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
 }
 
 .mensagens-thread-empty {
@@ -2601,6 +2834,13 @@ select:focus {
     margin: 0;
     padding: 0.9rem 1rem 1rem;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.page-mensagens .mensagens-thread-form {
+    background: rgba(17, 17, 22, 0.98);
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
 }
 
 .mensagens-form-row {
@@ -2672,6 +2912,45 @@ select:focus {
     font-size: 0.85rem;
 }
 
+.observacoes-student-search-input {
+    width: 100%;
+    text-align: left;
+    text-transform: none;
+}
+
+.observacoes-student-suggestions {
+    display: grid;
+    justify-items: stretch;
+    gap: 0.35rem;
+    margin-top: 0.45rem;
+    text-align: left;
+}
+
+.observacoes-student-suggestions:empty,
+.observacoes-student-suggestions[hidden] {
+    display: none;
+}
+
+.observacoes-student-suggestion {
+    width: 100%;
+    padding: 0.62rem 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    color: #ffffff;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 0.92rem;
+    font-weight: 500;
+    line-height: 1.35;
+    text-align: left;
+    text-transform: none;
+    cursor: pointer;
+}
+
+.observacoes-student-suggestion:hover {
+    border-color: var(--primary);
+    background: rgba(255, 90, 10, 0.14);
+}
+
 .observacoes-inline-actions button.is-recording {
     background: #e5484d;
     border-color: #e5484d;
@@ -2694,6 +2973,48 @@ select:focus {
     font-size: 0.85rem;
 }
 
+.observacoes-history-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    margin-top: 0.85rem;
+}
+
+.observacoes-history-actions form {
+    margin: 0;
+}
+
+.observacoes-history-actions .button {
+    min-height: 2.25rem;
+    padding: 0 0.8rem;
+}
+
+.observacoes-history-action {
+    min-height: 2.25rem;
+    padding: 0 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: transparent;
+    color: #d0d5de;
+    font: inherit;
+    font-size: 0.84rem;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.observacoes-history-action:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.observacoes-history-action-danger {
+    border-color: rgba(226, 90, 90, 0.38);
+    color: #f2a6a6;
+}
+
+.observacoes-history-action-danger:hover {
+    background: rgba(226, 90, 90, 0.14);
+}
+
 .anamnese-layout {
     margin-top: 1.3rem;
     display: grid;
@@ -2705,10 +3026,13 @@ select:focus {
 .anamnese-sidebar-title,
 .anamnese-form-title {
     margin-bottom: 0.85rem;
-    font-family: var(--title-font);
-    font-size: 1.35rem;
+    font-family: inherit;
+    font-size: 1.22rem;
+    font-weight: 800;
+    letter-spacing: 0;
     text-transform: uppercase;
-    line-height: 1;
+    line-height: 1.2;
+    color: #ffffff;
 }
 
 .anamnese-contact-list {
@@ -2716,7 +3040,7 @@ select:focus {
 }
 
 .anamnese-mobile-search {
-    display: none;
+    display: grid;
 }
 
 .anamnese-contact-card {
@@ -2749,20 +3073,54 @@ select:focus {
 }
 
 .anamnese-contact-name {
-    font-family: var(--title-font);
-    font-size: 1rem;
-    text-transform: uppercase;
-    line-height: 1;
+    font-family: inherit;
+    font-size: 0.98rem;
+    font-weight: 400;
+    text-transform: none;
+    line-height: 1.2;
+    color: #ffffff;
 }
 
 .anamnese-contact-email {
-    margin-top: 0.28rem;
+    display: block;
+    margin-top: 0.2rem;
     color: #8b909c;
-    font-size: 0.82rem;
+    font-size: 0.9rem;
 }
 
 .anamnese-form-panel {
     min-height: 100%;
+}
+
+.anamnese-panel-header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: -0.1rem -0.1rem 1rem;
+    padding: 0.1rem 0.1rem 0.85rem;
+    background: #111116;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.anamnese-panel-header .anamnese-form-title {
+    margin-bottom: 0;
+}
+
+.anamnese-save-hint {
+    margin-top: 0.4rem;
+    color: #8f95a1;
+    font-size: 0.86rem;
+    line-height: 1.35;
+}
+
+.anamnese-save-top {
+    min-height: 2.6rem;
+    padding: 0 1.15rem;
+    flex-shrink: 0;
 }
 
 .anamnese-form {
@@ -2786,6 +3144,14 @@ select:focus {
 .anamnese-submit {
     width: 100%;
     margin-top: 1rem;
+}
+
+.anamnese-save-row {
+    position: sticky;
+    bottom: 0;
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    background: #111116;
 }
 
 .anamnese-empty-panel {
@@ -2881,6 +3247,49 @@ textarea:focus {
     font-size: 0.9rem;
 }
 
+.financeiro-payment-summary {
+    margin-top: 0.8rem;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.8rem;
+}
+
+.financeiro-payment-summary-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 4.1rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    background: rgba(17, 17, 22, 0.96);
+}
+
+.financeiro-payment-summary-item span {
+    color: #8f96a6;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.financeiro-payment-summary-item strong {
+    font-family: var(--title-font);
+    font-size: 2rem;
+    line-height: 0.95;
+}
+
+.financeiro-payment-summary-paid strong {
+    color: #7fe79e;
+}
+
+.financeiro-payment-summary-pending strong {
+    color: #ffc2a0;
+}
+
+.financeiro-payment-summary-late strong {
+    color: #ffaeae;
+}
+
 .financeiro-section {
     margin-top: 1.7rem;
 }
@@ -2890,6 +3299,109 @@ textarea:focus {
     font-size: clamp(1.7rem, 3vw, 2.3rem);
     line-height: 1;
     text-transform: uppercase;
+}
+
+.financeiro-filters {
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: minmax(240px, 1fr) minmax(180px, 260px) auto;
+    gap: 0.75rem;
+    align-items: end;
+}
+
+.financeiro-filter-field label {
+    display: block;
+    margin-bottom: 0.4rem;
+    color: #8f96a6;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.financeiro-filter-field input,
+.financeiro-filter-field select {
+    width: 100%;
+    min-height: 2.75rem;
+    padding: 0 0.85rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: #0c0c11;
+    color: #ffffff;
+    font: inherit;
+    text-align: left;
+    text-transform: none;
+    outline: none;
+}
+
+.financeiro-filter-field input:focus,
+.financeiro-filter-field select:focus {
+    border-color: var(--primary);
+}
+
+.financeiro-filter-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.financeiro-filter-actions .button {
+    min-height: 2.75rem;
+    padding: 0 0.9rem;
+}
+
+.financeiro-student-suggestions {
+    display: grid;
+    justify-items: stretch;
+    gap: 0.35rem;
+    margin-top: 0.45rem;
+    text-align: left;
+}
+
+.financeiro-student-suggestions:empty,
+.financeiro-student-suggestions[hidden] {
+    display: none;
+}
+
+.financeiro-student-suggestion {
+    display: block;
+    width: 100%;
+    padding: 0.62rem 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    color: #ffffff;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 0.92rem;
+    font-weight: 500;
+    line-height: 1.35;
+    text-align: left;
+    text-transform: none;
+    text-decoration: none;
+}
+
+.financeiro-student-suggestion:hover {
+    border-color: var(--primary);
+    background: rgba(255, 90, 10, 0.14);
+}
+
+.treinos-student-search input,
+.treinos-search-row input,
+.observacoes-student-search-input,
+.financeiro-filter-field input,
+.financeiro-filter-field select {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    text-align: left;
+    text-transform: none;
+}
+
+.treinos-student-suggestion,
+.observacoes-student-suggestion,
+.financeiro-student-suggestion {
+    display: block;
+    width: 100%;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: 500;
+    line-height: 1.35;
+    text-align: left;
+    text-transform: none;
+    justify-self: stretch;
 }
 
 .financeiro-table-wrap {
@@ -2959,6 +3471,76 @@ textarea:focus {
     background: rgba(255, 89, 89, 0.14);
     border-color: rgba(255, 89, 89, 0.26);
     color: #ffaeae;
+}
+
+.financeiro-table-plan-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.financeiro-plan-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 1.9rem;
+    padding: 0 0.7rem;
+    border: 1px solid rgba(255, 90, 10, 0.32);
+    background: rgba(255, 90, 10, 0.12);
+    color: #f6f7fb;
+    font-size: 0.82rem;
+}
+
+.financeiro-plan-tag small {
+    color: #ffb68c;
+    font-size: 0.78rem;
+}
+
+.financeiro-plan-tag-empty {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.04);
+    color: #8f95a1;
+}
+
+.financeiro-student-select-list {
+    max-height: 170px;
+    overflow: auto;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    background: rgba(5, 6, 10, 0.22);
+}
+
+.financeiro-student-option {
+    min-height: 2.65rem;
+    margin: 0;
+    padding: 0 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    color: #d6dae2;
+    font-size: 0.92rem;
+    letter-spacing: 0;
+    text-transform: none;
+    cursor: pointer;
+}
+
+.financeiro-student-option:last-child {
+    border-bottom: 0;
+}
+
+.financeiro-student-option input {
+    width: 1rem;
+    height: 1rem;
+    padding: 0;
+    accent-color: var(--primary);
+    flex-shrink: 0;
+}
+
+.financeiro-helper-text {
+    margin-top: 0.45rem;
+    color: #8f95a1;
+    font-size: 0.84rem;
+    line-height: 1.35;
 }
 
 .financeiro-plan-grid {
@@ -3608,6 +4190,7 @@ textarea:focus {
     .avaliacao-card-grid,
     .avaliacao-history-metrics,
     .avaliacao-top-stats,
+    .evolucao-assessment-controls,
     .evolucao-top-stats,
     .financeiro-stats {
         grid-template-columns: 1fr;
@@ -3798,140 +4381,6 @@ textarea:focus {
     }
 }
 
-/* Mobile navigation: top hamburger + visible options rail */
-@media (max-width: 760px) {
-    .dashboard-sidebar .mobile-menu-button {
-        position: absolute;
-        top: 1.65rem;
-        right: 0.95rem;
-        z-index: 55;
-        width: 2.65rem;
-        min-width: 2.65rem;
-        height: 2.65rem;
-        min-height: 2.65rem;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        flex-direction: column;
-        gap: 0.28rem;
-        padding: 0;
-        border: 1px solid rgba(255, 255, 255, 0.14);
-        background: rgba(255, 255, 255, 0.06);
-        color: #ffffff;
-        cursor: pointer;
-    }
-
-    .dashboard-sidebar .mobile-menu-button span {
-        width: 1.35rem;
-        height: 0.12rem;
-        display: block;
-        background: currentColor;
-        transition: transform 0.2s ease, opacity 0.2s ease;
-    }
-
-    body.mobile-nav-open .dashboard-sidebar .mobile-menu-button {
-        border-color: rgba(255, 90, 10, 0.78);
-        background: var(--primary);
-    }
-
-    body.mobile-nav-open .dashboard-sidebar .mobile-menu-button span:nth-child(1) {
-        transform: translateY(0.4rem) rotate(45deg);
-    }
-
-    body.mobile-nav-open .dashboard-sidebar .mobile-menu-button span:nth-child(2) {
-        opacity: 0;
-    }
-
-    body.mobile-nav-open .dashboard-sidebar .mobile-menu-button span:nth-child(3) {
-        transform: translateY(-0.4rem) rotate(-45deg);
-    }
-
-    .personal-page .dashboard-sidebar .sidebar-nav,
-    .aluno-page .dashboard-sidebar .sidebar-nav,
-    .treinos-page .dashboard-sidebar .sidebar-nav {
-        top: 5.25rem;
-        bottom: auto;
-        max-height: calc(100svh - 10.5rem);
-        display: grid;
-        grid-template-columns: 1fr;
-        transform: translateY(-0.8rem);
-        opacity: 0;
-        pointer-events: none;
-        box-shadow: 0 1.25rem 3rem rgba(0, 0, 0, 0.48);
-    }
-
-    body.mobile-nav-open .dashboard-sidebar .sidebar-nav {
-        transform: translateY(0);
-        opacity: 1;
-        pointer-events: auto;
-    }
-
-    .mobile-options-bar {
-        position: fixed;
-        z-index: 50;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        min-height: 4.8rem;
-        display: block;
-        padding: 0.6rem 0 max(0.7rem, env(safe-area-inset-bottom));
-        border-top: 1px solid rgba(255, 255, 255, 0.12);
-        background: rgba(8, 8, 11, 0.98);
-        box-shadow: 0 -0.75rem 2rem rgba(0, 0, 0, 0.42);
-        backdrop-filter: blur(14px);
-    }
-
-    .mobile-options-scroll {
-        display: flex;
-        gap: 0.45rem;
-        overflow-x: auto;
-        overflow-y: hidden;
-        padding: 0 0.75rem 0.1rem;
-        scrollbar-width: none;
-        -webkit-overflow-scrolling: touch;
-        scroll-snap-type: x proximity;
-    }
-
-    .mobile-options-scroll::-webkit-scrollbar {
-        display: none;
-    }
-
-    .mobile-option-link {
-        min-width: max-content;
-        min-height: 2.9rem;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.35rem;
-        flex: 0 0 auto;
-        padding: 0 0.85rem;
-        border: 1px solid rgba(255, 255, 255, 0.11);
-        background: rgba(255, 255, 255, 0.04);
-        color: #d9dbe1;
-        font-family: var(--title-font);
-        font-size: 0.82rem;
-        line-height: 1;
-        text-align: center;
-        text-transform: uppercase;
-        scroll-snap-align: center;
-    }
-
-    .mobile-option-link svg {
-        display: none;
-    }
-
-    .mobile-option-link.is-active {
-        border-color: rgba(255, 90, 10, 0.84);
-        background: var(--primary);
-        color: #ffffff;
-    }
-
-    .mobile-nav-toggle,
-    .mobile-options-label {
-        display: none;
-    }
-}
-
 @media (max-width: 480px) {
     .dashboard-main {
         padding: 0.95rem 0.75rem 1.25rem;
@@ -4014,6 +4463,157 @@ textarea:focus {
 
 .ui-card {
     border-radius: 0;
+}
+
+.page-configuracoes .config-form-shell {
+    display: block;
+}
+
+.page-configuracoes .config-header {
+    align-items: flex-start;
+}
+
+.page-configuracoes .config-page-eyebrow,
+.page-configuracoes .config-panel-eyebrow,
+.page-configuracoes .config-preview-eyebrow {
+    display: block;
+    color: var(--primary);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+}
+
+.page-configuracoes .config-page-eyebrow {
+    margin-bottom: 1rem;
+}
+
+.page-configuracoes .config-header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.page-configuracoes .config-layout-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(21rem, 0.95fr);
+    gap: 1.2rem;
+    margin-top: 1.1rem;
+}
+
+.page-configuracoes .config-main-column,
+.page-configuracoes .config-side-column {
+    display: grid;
+    gap: 1rem;
+    align-content: start;
+}
+
+.page-configuracoes .config-panel {
+    padding: 1.35rem;
+}
+
+.page-configuracoes .config-panel-head {
+    display: grid;
+    gap: 0.55rem;
+    margin-bottom: 1.15rem;
+}
+
+.page-configuracoes .config-panel-title {
+    color: #ffffff;
+    font-family: var(--title-font);
+    font-size: clamp(2rem, 2.9vw, 3rem);
+    line-height: 0.95;
+    text-transform: uppercase;
+}
+
+.page-configuracoes .config-field-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.page-configuracoes .config-toggle-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.05rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+    cursor: pointer;
+}
+
+.page-configuracoes .config-toggle-card + .config-toggle-card {
+    margin-top: 0.8rem;
+}
+
+.page-configuracoes .config-toggle-card strong {
+    display: block;
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.page-configuracoes .config-toggle-card span {
+    display: block;
+    margin-top: 0.3rem;
+    color: var(--muted);
+    line-height: 1.45;
+}
+
+.page-configuracoes .config-toggle-card input[type="checkbox"] {
+    width: 1.3rem;
+    height: 1.3rem;
+    accent-color: var(--primary);
+    flex-shrink: 0;
+}
+
+.page-configuracoes .config-preview-hero {
+    padding: 0.2rem 0 1.1rem;
+}
+
+.page-configuracoes .config-preview-hero h3 {
+    color: #ffffff;
+    font-family: var(--title-font);
+    font-size: clamp(2.15rem, 4.3vw, 3.35rem);
+    line-height: 0.9;
+    text-transform: uppercase;
+}
+
+.page-configuracoes .config-preview-hero h3 span {
+    color: var(--primary);
+}
+
+.page-configuracoes .config-preview-hero p {
+    margin-top: 1rem;
+    color: var(--muted);
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.page-configuracoes .config-preview-block {
+    padding: 1rem 1.05rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.page-configuracoes .config-preview-block + .config-preview-block {
+    margin-top: 0.85rem;
+}
+
+.page-configuracoes .config-preview-block strong {
+    display: block;
+    margin-top: 0.45rem;
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.page-configuracoes .config-preview-block p {
+    margin-top: 0.35rem;
+    color: var(--muted);
+    line-height: 1.45;
 }
 
 .ui-form {
@@ -4748,19 +5348,22 @@ Observacao:
 @media (max-width: 760px) {
     .page-dashboard,
     .page-treinos,
-    .page-financeiro {
+    .page-financeiro,
+    .page-configuracoes {
         background: linear-gradient(180deg, #09090d 0%, #06070a 100%);
     }
 
     .page-dashboard .dashboard-layout,
     .page-treinos .dashboard-layout,
-    .page-financeiro .dashboard-layout {
+    .page-financeiro .dashboard-layout,
+    .page-configuracoes .dashboard-layout {
         display: block;
     }
 
     .page-dashboard .dashboard-sidebar,
     .page-treinos .dashboard-sidebar,
-    .page-financeiro .dashboard-sidebar {
+    .page-financeiro .dashboard-sidebar,
+    .page-configuracoes .dashboard-sidebar {
         position: fixed;
         inset: 0 0 auto 0;
         z-index: 30;
@@ -4771,7 +5374,8 @@ Observacao:
 
     .page-dashboard .mobile-menu-toggle,
     .page-treinos .mobile-menu-toggle,
-    .page-financeiro .mobile-menu-toggle {
+    .page-financeiro .mobile-menu-toggle,
+    .page-configuracoes .mobile-menu-toggle {
         display: block;
         position: absolute;
         width: 1px;
@@ -4782,7 +5386,8 @@ Observacao:
 
     .page-dashboard .sidebar-brand,
     .page-treinos .sidebar-brand,
-    .page-financeiro .sidebar-brand {
+    .page-financeiro .sidebar-brand,
+    .page-configuracoes .sidebar-brand {
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -4794,13 +5399,15 @@ Observacao:
 
     .page-dashboard .sidebar-user,
     .page-treinos .sidebar-user,
-    .page-financeiro .sidebar-user {
+    .page-financeiro .sidebar-user,
+    .page-configuracoes .sidebar-user {
         display: none;
     }
 
     .page-dashboard .sidebar-logo,
     .page-treinos .sidebar-logo,
-    .page-financeiro .sidebar-logo {
+    .page-financeiro .sidebar-logo,
+    .page-configuracoes .sidebar-logo {
         display: inline-flex;
         align-items: center;
         max-width: calc(100% - 3.2rem);
@@ -4809,14 +5416,16 @@ Observacao:
     }
 
     .page-dashboard .sidebar-logo-image,
-    .page-financeiro .sidebar-logo-image {
+    .page-financeiro .sidebar-logo-image,
+    .page-configuracoes .sidebar-logo-image {
         max-height: 2rem;
         max-width: 12rem;
     }
 
     .page-dashboard .mobile-menu-button,
     .page-treinos .mobile-menu-button,
-    .page-financeiro .mobile-menu-button {
+    .page-financeiro .mobile-menu-button,
+    .page-configuracoes .mobile-menu-button {
         display: inline-flex;
         width: 2.45rem;
         height: 2.45rem;
@@ -4830,7 +5439,8 @@ Observacao:
 
     .page-dashboard .mobile-menu-button span,
     .page-treinos .mobile-menu-button span,
-    .page-financeiro .mobile-menu-button span {
+    .page-financeiro .mobile-menu-button span,
+    .page-configuracoes .mobile-menu-button span {
         width: 1.7rem;
         height: 0.18rem;
         display: block;
@@ -4839,7 +5449,8 @@ Observacao:
 
     .page-dashboard .sidebar-nav,
     .page-treinos .sidebar-nav,
-    .page-financeiro .sidebar-nav {
+    .page-financeiro .sidebar-nav,
+    .page-configuracoes .sidebar-nav {
         display: flex;
         flex-wrap: nowrap;
         justify-content: flex-start;
@@ -4858,13 +5469,15 @@ Observacao:
 
     .page-dashboard .sidebar-nav::-webkit-scrollbar,
     .page-treinos .sidebar-nav::-webkit-scrollbar,
-    .page-financeiro .sidebar-nav::-webkit-scrollbar {
+    .page-financeiro .sidebar-nav::-webkit-scrollbar,
+    .page-configuracoes .sidebar-nav::-webkit-scrollbar {
         display: none;
     }
 
     .page-dashboard .mobile-menu-toggle:checked ~ .sidebar-nav,
     .page-treinos .mobile-menu-toggle:checked ~ .sidebar-nav,
-    .page-financeiro .mobile-menu-toggle:checked ~ .sidebar-nav {
+    .page-financeiro .mobile-menu-toggle:checked ~ .sidebar-nav,
+    .page-configuracoes .mobile-menu-toggle:checked ~ .sidebar-nav {
         inset: 5.5rem 0 auto 0;
         max-height: calc(100svh - 5.5rem);
         flex-direction: column;
@@ -4878,25 +5491,29 @@ Observacao:
 
     .page-dashboard .mobile-menu-toggle:checked ~ .sidebar-brand .mobile-menu-button span:nth-child(1),
     .page-treinos .mobile-menu-toggle:checked ~ .sidebar-brand .mobile-menu-button span:nth-child(1),
-    .page-financeiro .mobile-menu-toggle:checked ~ .sidebar-brand .mobile-menu-button span:nth-child(1) {
+    .page-financeiro .mobile-menu-toggle:checked ~ .sidebar-brand .mobile-menu-button span:nth-child(1),
+    .page-configuracoes .mobile-menu-toggle:checked ~ .sidebar-brand .mobile-menu-button span:nth-child(1) {
         transform: translateY(0.5rem) rotate(45deg);
     }
 
     .page-dashboard .mobile-menu-toggle:checked ~ .sidebar-brand .mobile-menu-button span:nth-child(2),
     .page-treinos .mobile-menu-toggle:checked ~ .sidebar-brand .mobile-menu-button span:nth-child(2),
-    .page-financeiro .mobile-menu-toggle:checked ~ .sidebar-brand .mobile-menu-button span:nth-child(2) {
+    .page-financeiro .mobile-menu-toggle:checked ~ .sidebar-brand .mobile-menu-button span:nth-child(2),
+    .page-configuracoes .mobile-menu-toggle:checked ~ .sidebar-brand .mobile-menu-button span:nth-child(2) {
         opacity: 0;
     }
 
     .page-dashboard .mobile-menu-toggle:checked ~ .sidebar-brand .mobile-menu-button span:nth-child(3),
     .page-treinos .mobile-menu-toggle:checked ~ .sidebar-brand .mobile-menu-button span:nth-child(3),
-    .page-financeiro .mobile-menu-toggle:checked ~ .sidebar-brand .mobile-menu-button span:nth-child(3) {
+    .page-financeiro .mobile-menu-toggle:checked ~ .sidebar-brand .mobile-menu-button span:nth-child(3),
+    .page-configuracoes .mobile-menu-toggle:checked ~ .sidebar-brand .mobile-menu-button span:nth-child(3) {
         transform: translateY(-0.5rem) rotate(-45deg);
     }
 
     .page-dashboard .sidebar-link,
     .page-treinos .sidebar-link,
-    .page-financeiro .sidebar-link {
+    .page-financeiro .sidebar-link,
+    .page-configuracoes .sidebar-link {
         flex: 0 0 5.6rem;
         min-height: 3.9rem;
         padding: 0.35rem 0.45rem;
@@ -4913,14 +5530,16 @@ Observacao:
 
     .page-dashboard .sidebar-link.is-active,
     .page-treinos .sidebar-link.is-active,
-    .page-financeiro .sidebar-link.is-active {
+    .page-financeiro .sidebar-link.is-active,
+    .page-configuracoes .sidebar-link.is-active {
         color: var(--primary);
         background: transparent;
     }
 
     .page-dashboard .mobile-menu-toggle:checked ~ .sidebar-nav .sidebar-link,
     .page-treinos .mobile-menu-toggle:checked ~ .sidebar-nav .sidebar-link,
-    .page-financeiro .mobile-menu-toggle:checked ~ .sidebar-nav .sidebar-link {
+    .page-financeiro .mobile-menu-toggle:checked ~ .sidebar-nav .sidebar-link,
+    .page-configuracoes .mobile-menu-toggle:checked ~ .sidebar-nav .sidebar-link {
         flex: 0 0 auto;
         min-height: 3.1rem;
         flex-direction: row;
@@ -4934,7 +5553,8 @@ Observacao:
 
     .page-dashboard .mobile-menu-toggle:checked ~ .sidebar-nav .sidebar-link.is-active,
     .page-treinos .mobile-menu-toggle:checked ~ .sidebar-nav .sidebar-link.is-active,
-    .page-financeiro .mobile-menu-toggle:checked ~ .sidebar-nav .sidebar-link.is-active {
+    .page-financeiro .mobile-menu-toggle:checked ~ .sidebar-nav .sidebar-link.is-active,
+    .page-configuracoes .mobile-menu-toggle:checked ~ .sidebar-nav .sidebar-link.is-active {
         background: var(--primary);
         border-color: var(--primary);
         color: #ffffff;
@@ -4942,26 +5562,30 @@ Observacao:
 
     .page-dashboard .dashboard-main,
     .page-treinos .dashboard-main,
-    .page-financeiro .dashboard-main {
+    .page-financeiro .dashboard-main,
+    .page-configuracoes .dashboard-main {
         padding: 7.6rem 1rem calc(7.75rem + env(safe-area-inset-bottom));
     }
 
     .page-dashboard .dashboard-header,
     .page-treinos .dashboard-header,
-    .page-financeiro .dashboard-header {
+    .page-financeiro .dashboard-header,
+    .page-configuracoes .dashboard-header {
         gap: 0.85rem;
     }
 
     .page-dashboard .dashboard-title,
     .page-treinos .dashboard-title,
-    .page-financeiro .dashboard-title {
+    .page-financeiro .dashboard-title,
+    .page-configuracoes .dashboard-title {
         font-size: clamp(3rem, 15vw, 4.35rem);
         line-height: 0.9;
     }
 
     .page-dashboard .dashboard-subtitle,
     .page-treinos .dashboard-subtitle,
-    .page-financeiro .dashboard-subtitle {
+    .page-financeiro .dashboard-subtitle,
+    .page-configuracoes .dashboard-subtitle {
         margin-top: 0.55rem;
         font-size: 1rem;
         line-height: 1.38;
@@ -5220,14 +5844,18 @@ Observacao:
     }
 
     .page-financeiro .financeiro-table td:nth-child(2)::before {
-        content: "Email";
+        content: "Plano";
     }
 
     .page-financeiro .financeiro-table td:nth-child(3)::before {
-        content: "Status";
+        content: "Email";
     }
 
     .page-financeiro .financeiro-table td:nth-child(4)::before {
+        content: "Status";
+    }
+
+    .page-financeiro .financeiro-table td:nth-child(5)::before {
         content: "Alterar status";
     }
 
@@ -5537,14 +6165,24 @@ Observacao:
         padding: 1.45rem 1.35rem 1rem;
     }
 
-    .page-exercicios .exercicios-card-title,
-    .page-exercicios .exercicios-card-group {
-        font-size: 0.9rem;
+    .page-exercicios .exercicios-card-title {
+        font-family: inherit;
+        font-size: 1.02rem;
+        font-weight: 700;
+        letter-spacing: 0;
+        text-transform: uppercase;
+        line-height: 1.25;
+        color: #ffffff;
     }
 
     .page-exercicios .exercicios-card-group {
         margin-top: 0.55rem;
         color: var(--primary);
+        font-size: 0.86rem;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        text-transform: none;
+        line-height: 1.25;
     }
 
     .page-exercicios .exercicios-card-meta span:first-child {
@@ -5607,17 +6245,19 @@ Observacao:
 
     .page-mensagens .mensagens-contact-name,
     .page-aluno-mensagens .mensagens-contact-name {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        font-size: 0.95rem;
-        font-weight: 700;
+        font-family: inherit;
+        font-size: 0.98rem;
+        font-weight: 400;
         text-transform: none;
+        line-height: 1.2;
+        color: #ffffff;
     }
 
     .page-mensagens .mensagens-contact-email,
     .page-aluno-mensagens .mensagens-contact-email {
         display: block;
         margin-top: 0.2rem;
-        font-size: 0.72rem;
+        font-size: 0.9rem;
     }
 
     .page-mensagens .mensagens-thread,
@@ -5741,7 +6381,13 @@ Observacao:
 
     .page-anamnese .anamnese-sidebar-title,
     .page-anamnese .anamnese-form-title {
-        font-size: 1.05rem;
+        font-family: inherit;
+        font-size: 1.12rem;
+        font-weight: 800;
+        letter-spacing: 0;
+        text-transform: uppercase;
+        line-height: 1.2;
+        color: #ffffff;
     }
 
     .page-anamnese .anamnese-mobile-search {
@@ -5783,16 +6429,18 @@ Observacao:
     }
 
     .page-anamnese .anamnese-contact-name {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        font-size: 0.95rem;
-        font-weight: 700;
+        font-family: inherit;
+        font-size: 0.98rem;
+        font-weight: 400;
         text-transform: none;
+        line-height: 1.2;
+        color: #ffffff;
     }
 
     .page-anamnese .anamnese-contact-email {
         display: block;
-        margin-top: 0.22rem;
-        font-size: 0.7rem;
+        margin-top: 0.2rem;
+        font-size: 0.9rem;
     }
 
     .page-anamnese .anamnese-form-panel {
@@ -5804,7 +6452,7 @@ Observacao:
 
     .page-anamnese .anamnese-form-title {
         margin-bottom: 1.4rem;
-        font-size: 1rem;
+        font-size: 1.12rem;
     }
 
     .page-anamnese .anamnese-field + .anamnese-field {
@@ -6534,6 +7182,45 @@ Observacao:
         z-index: 35;
         inset: 0;
         background: rgba(0, 0, 0, 0.38);
+    }
+}
+
+@media (max-width: 760px) {
+    .page-configuracoes .config-layout-grid,
+    .page-configuracoes .config-field-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .page-configuracoes .config-panel {
+        padding: 1rem;
+    }
+
+    .page-configuracoes .config-header-actions {
+        width: 100%;
+    }
+
+    .page-configuracoes .config-header-actions .button,
+    .page-configuracoes .config-header-actions .ui-btn {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    .page-configuracoes .config-preview-hero h3 {
+        font-size: clamp(2.25rem, 12vw, 3.1rem);
+    }
+
+    .page-configuracoes .config-toggle-card {
+        align-items: flex-start;
+    }
+
+    .page-configuracoes .config-toggle-card input[type="checkbox"] {
+        margin-top: 0.2rem;
+    }
+
+    .page-configuracoes .config-header-actions,
+    .page-configuracoes .config-header-actions .button,
+    .page-configuracoes .config-header-actions .ui-btn {
+        width: 100%;
     }
 }
 

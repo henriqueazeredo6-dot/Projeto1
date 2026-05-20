@@ -11,7 +11,7 @@
     {% set lista_treinos = treinos|default([], true) %}
     {% set total_treinos_resumo = total_treinos|default(lista_treinos|length, true)|int %}
     {% set aluno_treino_detalhe_base = aluno_treino_detalhe_url_base|default('/aluno/treinos', true) %}
-    {% set iniciar_treino_base = iniciar_treino_url_base|default('/aluno/treinos/iniciar', true) %}
+    {% set iniciar_treino_base = iniciar_treino_url_base|default('/aluno/treino', true) %}
     {% set aluno_treino_execucao_base = aluno_treino_execucao_url_base|default(iniciar_treino_base, true) %}
     {% set retorno_treinos_destino = aluno_treinos_url|default('/aluno/treinos', true) %}
     {% set treino_anterior_destino = treino_anterior_url|default('', true) %}
@@ -25,10 +25,10 @@
         {% set treino_proximo_destino = '' %}
     {% endif %}
     {% if not treino_anterior_destino and treino_anterior_id != '' %}
-        {% set treino_anterior_destino = aluno_treino_execucao_base ~ '?treino_id=' ~ treino_anterior_id %}
+        {% set treino_anterior_destino = aluno_treino_execucao_base ~ '/' ~ treino_anterior_id ~ '/execucao' %}
     {% endif %}
     {% if not treino_proximo_destino and treino_proximo_id != '' %}
-        {% set treino_proximo_destino = aluno_treino_execucao_base ~ '?treino_id=' ~ treino_proximo_id %}
+        {% set treino_proximo_destino = aluno_treino_execucao_base ~ '/' ~ treino_proximo_id ~ '/execucao' %}
     {% endif %}
 
     <div class="dashboard-layout">
@@ -99,14 +99,14 @@
                     {% set treino_detalhes_destino = '' %}
                 {% endif %}
                 {% if not treino_detalhes_destino and tem_treino_id %}
-                    {% set treino_detalhes_destino = aluno_treino_detalhe_base ~ '/' ~ treino_id %}
+                    {% set treino_detalhes_destino = aluno_treino_detalhe_base ~ '?treino_id=' ~ treino_id %}
                 {% endif %}
                 {% set treino_iniciar_destino = treino.iniciar_url|default('', true) %}
                 {% if treino_iniciar_destino == '#' %}
                     {% set treino_iniciar_destino = '' %}
                 {% endif %}
                 {% if not treino_iniciar_destino and tem_treino_id %}
-                    {% set treino_iniciar_destino = iniciar_treino_base ~ '?treino_id=' ~ treino_id %}
+                    {% set treino_iniciar_destino = aluno_treino_execucao_base ~ '/' ~ treino_id ~ '/execucao' %}
                 {% endif %}
                 {% set treino_total_exercicios = treino.total_exercicios|default(treino.exercicios_total|default(0, true), true) %}
                 {% set treino_series_resumo = treino.series_resumo|default(treino.series|default(treino.total_series|default('Não informado', true), true), true) %}

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -11,6 +11,7 @@
     {% set visualizar_treino_base = visualizar_treino_url_base|default('/treinos/visualizar', true) %}
     {% set editar_treino_base = editar_treino_url_base|default('/treinos/editar', true) %}
     {% set excluir_treino_base = excluir_treino_url_base|default('/treinos/excluir', true) %}
+    {% set exercicios_lista = exercicios|default([], true) %}
     {% set csrf_form_token = form_csrf_token|default('', true) %}
     {% if csrf_token is defined %}
         {% set csrf_form_token = csrf_token %}
@@ -74,10 +75,19 @@
                     <section>
                         <h2 class="treinos-column-title">Alunos</h2>
 
+                        <form class="treinos-student-search" action="{{ treinos_url|default('/treinos', true) }}" method="get">
+                            <label class="sr-only" for="treinos-busca-aluno">Pesquisar aluno</label>
+                            <div class="treinos-modal-row treinos-search-row">
+                                <input id="treinos-busca-aluno" name="busca_aluno" type="search" placeholder="Digite para buscar aluno" value="{{ busca_aluno|default('', true) }}" autocomplete="off">
+                            </div>
+                            <div class="treinos-student-suggestions" id="treinos-sugestoes-alunos" aria-label="Sugestões de alunos"></div>
+                        </form>
+
                         <div class="treinos-list">
-                            {% if alunos %}
-                                {% for aluno in alunos %}
-                                <a class="treinos-list-item {% if aluno_selecionado and aluno.id == aluno_selecionado.id %}is-active{% endif %}" href="{{ url_treinos_aluno_base|default('/treinos/aluno', true) }}/{{ aluno.id }}">
+                            {% set lista_alunos_treino = alunos_visiveis|default(alunos, true) %}
+                            {% if lista_alunos_treino %}
+                                {% for aluno in lista_alunos_treino %}
+                                <a class="treinos-list-item {% if aluno_selecionado and aluno.id == aluno_selecionado.id %}is-active{% endif %}" href="{{ treinos_url|default('/treinos', true) }}?aluno_id={{ aluno.id }}{% if busca_aluno|default('', true) %}&busca_aluno={{ busca_aluno|urlencode }}{% endif %}" data-student-name="{{ aluno.nome|lower }}">
                                     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                         <circle cx="9" cy="8" r="3" stroke="currentColor" stroke-width="1.9"/>
                                         <path d="M3.5 19C4.2 16.6 6.3 15 9 15" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
@@ -87,7 +97,7 @@
                                 {% endfor %}
                             {% else %}
                                 <div class="treinos-list-item">
-                                    <span>Nenhum aluno disponível</span>
+                                    <span>Nenhum aluno encontrado</span>
                                 </div>
                             {% endif %}
                         </div>
@@ -190,20 +200,42 @@
                     </div>
 
                     <div class="field">
-                        <label for="novo_treino_aluno">Aluno</label>
-                        <select id="novo_treino_aluno" name="aluno_id" required>
-                            <option value="">Selecione um aluno</option>
+                        {% set aluno_novo_id = form.aluno_id if form is defined and form.aluno_id else (aluno_selecionado.id if aluno_selecionado else '') %}
+                        {% set aluno_novo_busca = namespace(nome='') %}
+                        {% for aluno in alunos if alunos is defined %}
+                            {% if aluno.id|string == aluno_novo_id|string %}
+                                {% set aluno_novo_busca.nome = aluno.nome %}
+                            {% endif %}
+                        {% endfor %}
+                        <label for="novo_treino_aluno_busca">Aluno</label>
+                        <input id="novo_treino_aluno_busca" list="alunos-cadastrados" type="search" placeholder="Digite para buscar aluno" value="{{ aluno_novo_busca.nome }}" autocomplete="off" required>
+                        <input id="novo_treino_aluno" name="aluno_id" type="hidden" value="{{ aluno_novo_id }}">
+                        <datalist id="alunos-cadastrados">
                             {% for aluno in alunos if alunos is defined %}
-                            <option value="{{ aluno.id }}" {% if (form is defined and form.aluno_id == aluno.id) or (aluno_selecionado and aluno.id == aluno_selecionado.id) %}selected{% endif %}>{{ aluno.nome }}</option>
+                            <option value="{{ aluno.nome }}" data-id="{{ aluno.id }}"></option>
                             {% endfor %}
-                        </select>
+                        </datalist>
                     </div>
                 </div>
 
                 <div class="field">
-                    <label for="novo_treino_exercicios">Adicionar exercícios</label>
-                    <input id="novo_treino_exercicios" name="exercicios_raw" type="text" placeholder="Ex: supino reto | 3x12 - 60s descanso" value="{{ form.exercicios_raw if form is defined else '' }}" required>
-                    <p class="treinos-helper-text">Dica: use "nome do exercício | série/repetição/descanso".</p>
+                    <label for="novo_treino_exercicio_busca">Pesquisar exercício</label>
+                    <div class="treinos-modal-row treinos-search-row">
+                        <input id="novo_treino_exercicio_busca" list="exercicios-cadastrados" type="search" placeholder="Digite para buscar no banco de exercícios">
+                        <button class="button ui-btn ui-btn-secondary button-secondary treinos-add-exercise-button" id="adicionar-exercicio-treino" type="button">Incluir</button>
+                    </div>
+                    <datalist id="exercicios-cadastrados">
+                        {% for exercicio in exercicios_lista %}
+                        <option value="{{ exercicio.nome }}" data-id="{{ exercicio.id }}" data-grupo="{{ exercicio.grupo_muscular|default('', true) }}"></option>
+                        {% endfor %}
+                    </datalist>
+                    <p class="treinos-helper-text">Selecione um exercício cadastrado ou escreva manualmente abaixo.</p>
+                </div>
+
+                <div class="field">
+                    <label for="novo_treino_exercicios">Exercícios do treino</label>
+                    <textarea id="novo_treino_exercicios" name="exercicios_raw" rows="5" placeholder="Ex: supino reto - 3x12 - 60s descanso" required>{{ form.exercicios_raw if form is defined else '' }}</textarea>
+                    <p class="treinos-helper-text">Cada linha será salva como um exercício do treino.</p>
                 </div>
 
                 <div class="field">
@@ -215,6 +247,49 @@
             </form>
         </article>
     </section>
+
+    {% if treino_visualizacao is defined and treino_visualizacao %}
+    <section class="treinos-modal-wrap ui-modal-wrap" id="visualizar-treino-modal" aria-label="Modal ver treino">
+        <a class="treinos-modal-overlay" href="{{ treinos_url|default('/treinos', true) }}{% if aluno_selecionado %}?aluno_id={{ aluno_selecionado.id }}{% endif %}" aria-label="Fechar modal"></a>
+
+        <article class="treinos-modal ui-modal">
+            <header class="treinos-modal-header">
+                <h2>{{ treino_visualizacao.nome|default('Treino', true) }}</h2>
+                <a class="treinos-modal-close" href="{{ treinos_url|default('/treinos', true) }}{% if aluno_selecionado %}?aluno_id={{ aluno_selecionado.id }}{% endif %}" aria-label="Fechar modal">&times;</a>
+            </header>
+
+            <div class="treinos-modal-form ui-form">
+                <div class="field">
+                    <label>Aluno</label>
+                    <p>{{ treino_visualizacao.aluno_nome|default(aluno_selecionado.nome if aluno_selecionado else 'Aluno', true) }}</p>
+                </div>
+
+                <div class="field">
+                    <label>Exercícios</label>
+                    {% if treino_visualizacao.exercicios_lista %}
+                        {% for exercicio in treino_visualizacao.exercicios_lista %}
+                        <div class="treinos-workout-line">
+                            <strong>{{ exercicio.nome|default('Exercício', true) }}</strong>
+                            <span>{{ exercicio.prescricao|default((exercicio.series|default('3', true)) ~ 'x' ~ (exercicio.repeticoes|default('12', true)) ~ ' - ' ~ (exercicio.descanso|default('60s', true)), true) }}</span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                    <p class="treinos-helper-text">Nenhum exercício cadastrado neste treino.</p>
+                    {% endif %}
+                </div>
+
+                {% if treino_visualizacao.observacoes %}
+                <div class="field">
+                    <label>Observações</label>
+                    <p>{{ treino_visualizacao.observacoes }}</p>
+                </div>
+                {% endif %}
+
+                <a class="button ui-btn ui-btn-primary button-block" href="{{ treinos_url|default('/treinos', true) }}?aluno_id={{ aluno_selecionado.id if aluno_selecionado else treino_visualizacao.aluno_id }}&editar_treino_id={{ treino_visualizacao.id }}#editar-treino-modal">Editar treino</a>
+            </div>
+        </article>
+    </section>
+    {% endif %}
 
     {% if treino_edicao is defined and treino_edicao %}
     <section class="treinos-modal-wrap ui-modal-wrap" id="editar-treino-modal" aria-label="Modal editar treino">
@@ -294,6 +369,138 @@
         </article>
     </section>
     {% endif %}
+    <script>
+        (function () {
+            var search = document.getElementById('novo_treino_exercicio_busca');
+            var addButton = document.getElementById('adicionar-exercicio-treino');
+            var target = document.getElementById('novo_treino_exercicios');
+            var createForm = document.getElementById('form-criar-treino');
+            var studentTrainingInput = document.getElementById('novo_treino_aluno_busca');
+            var studentTrainingId = document.getElementById('novo_treino_aluno');
+            var studentSearch = document.getElementById('treinos-busca-aluno');
+            var studentSuggestions = document.getElementById('treinos-sugestoes-alunos');
+            var studentItems = Array.prototype.slice.call(document.querySelectorAll('.treinos-list-item'));
+            var studentOptions = Array.prototype.slice.call(document.querySelectorAll('#alunos-cadastrados option'));
+
+            if (studentSearch && studentItems.length) {
+                function normalizeText(value) {
+                    return (value || '')
+                        .toString()
+                        .normalize('NFD')
+                        .replace(/[\u0300-\u036f]/g, '')
+                        .trim()
+                        .toLowerCase();
+                }
+
+                function filterStudents() {
+                    var term = normalizeText(studentSearch.value);
+                    var firstMatch = null;
+                    var matches = [];
+
+                    studentItems.forEach(function (item) {
+                        var name = normalizeText(item.getAttribute('data-student-name') || item.textContent);
+                        var visible = !term || name.indexOf(term) !== -1;
+                        item.style.display = visible ? '' : 'none';
+                        if (visible && !firstMatch && item.tagName.toLowerCase() === 'a') {
+                            firstMatch = item;
+                        }
+                        if (term && visible && item.tagName.toLowerCase() === 'a') {
+                            matches.push(item);
+                        }
+                    });
+
+                    if (studentSuggestions) {
+                        studentSuggestions.innerHTML = '';
+                        matches.slice(0, 5).forEach(function (item) {
+                            var suggestion = document.createElement('a');
+                            suggestion.href = item.href;
+                            suggestion.textContent = item.textContent.trim();
+                            suggestion.className = 'treinos-student-suggestion';
+                            studentSuggestions.appendChild(suggestion);
+                        });
+                        studentSuggestions.hidden = matches.length === 0;
+                    }
+
+                    return firstMatch;
+                }
+
+                studentSearch.addEventListener('input', filterStudents);
+                studentSearch.addEventListener('change', function () {
+                    var firstMatch = filterStudents();
+                    var term = normalizeText(studentSearch.value);
+                    if (firstMatch && normalizeText(firstMatch.getAttribute('data-student-name') || firstMatch.textContent) === term) {
+                        window.location.href = firstMatch.href;
+                    }
+                });
+                studentSearch.addEventListener('keydown', function (event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        var firstMatch = filterStudents();
+                        if (firstMatch) {
+                            window.location.href = firstMatch.href;
+                        }
+                    }
+                });
+            }
+
+            function syncTrainingStudent() {
+                if (!studentTrainingInput || !studentTrainingId) {
+                    return;
+                }
+
+                var typedName = studentTrainingInput.value.trim().toLowerCase();
+                var selected = studentOptions.find(function (option) {
+                    return option.value.trim().toLowerCase() === typedName;
+                });
+
+                studentTrainingId.value = selected ? selected.getAttribute('data-id') : '';
+                studentTrainingInput.setCustomValidity(selected || !studentTrainingInput.value ? '' : 'Selecione um aluno da lista.');
+            }
+
+            if (studentTrainingInput && studentTrainingId) {
+                studentTrainingInput.addEventListener('input', syncTrainingStudent);
+                studentTrainingInput.addEventListener('change', syncTrainingStudent);
+                syncTrainingStudent();
+            }
+
+            if (createForm && studentTrainingInput && studentTrainingId) {
+                createForm.addEventListener('submit', function (event) {
+                    syncTrainingStudent();
+                    if (!studentTrainingId.value) {
+                        event.preventDefault();
+                        studentTrainingInput.setCustomValidity('Selecione um aluno da lista.');
+                        studentTrainingInput.reportValidity();
+                    }
+                });
+            }
+
+            if (!search || !addButton || !target) {
+                return;
+            }
+
+            function addExerciseToTraining() {
+                var value = search.value.trim();
+                if (!value) {
+                    search.focus();
+                    return;
+                }
+
+                var current = target.value.trim();
+                target.value = current ? current + '\n' + value : value;
+                search.value = '';
+                target.focus();
+            }
+
+            addButton.addEventListener('click', addExerciseToTraining);
+
+            search.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    addExerciseToTraining();
+                }
+            });
+        })();
+    </script>
     <script src="mobile-nav.js"></script>
 </body>
 </html>

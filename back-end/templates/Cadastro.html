@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -77,22 +77,23 @@
 
                     <div class="checkbox-row">
                         <input type="checkbox" id="termos" required>
-                        <label for="termos">Eu aceito os <a href="#">Termos e Condições</a> e a <a href="#">Política de Privacidade</a></label>
+                        <label for="termos">
+                            Eu aceito os
+                            <a href="{{ url_for('static', filename='docs/termos-uso-privacidade.pdf') }}" target="_blank" rel="noopener">Termos e Condições</a>
+                            e a
+                            <a href="{{ url_for('static', filename='docs/termos-uso-privacidade.pdf') }}" target="_blank" rel="noopener">Política de Privacidade</a>
+                        </label>
                     </div>
 
                     <button class="button ui-btn ui-btn-primary button-block" type="submit">Criar conta</button>
                 </form>
-
-                <div class="auth-dev-entry">
-                    <p class="auth-dev-label">Quer apenas validar as telas agora?</p>
-                    <a class="button button-secondary button-block" href="{{ url_for('abrir_como_desenvolvedor') }}">Abrir como desenvolvedor</a>
-                </div>
 
                 <p class="link-row">Já tem uma conta? <a href="{{ login_url|default(url_for('login'), true) }}">Faça login</a></p>
                 <a class="back-link" href="{{ home_url|default(url_for('index'), true) }}">Voltar para home</a>
             </div>
         </section>
     </main>
+    <script src="{{ url_for('static', filename='mobile-nav.js') }}"></script>
 </body>
 </html>
 

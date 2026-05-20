@@ -6,7 +6,7 @@
     <title>{{ page_title|default('CONFIE - Minha Evolução', true) }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body class="aluno-page page-evolucao-aluno">
+<body class="aluno-page page-aluno-evolucao page-evolucao-aluno">
     <div class="dashboard-layout">
         <aside class="dashboard-sidebar">
             <input class="mobile-menu-toggle" type="checkbox" id="mobile-menu-toggle" aria-hidden="true">
@@ -19,9 +19,9 @@
             <nav class="sidebar-nav" aria-label="Menu do aluno">
                 <a class="sidebar-link {% if pagina_ativa == 'dashboard' %}is-active{% endif %}" href="{{ dashboard_url|default('/dashboard', true) }}">Dashboard</a>
                 <a class="sidebar-link {% if pagina_ativa == 'meu_treino' %}is-active{% endif %}" href="{{ meu_treino_url|default('/meu-treino', true) }}">Meu Treino</a>
-                <a class="sidebar-link {% if pagina_ativa == 'agenda' %}is-active{% endif %}" href="{{ agenda_aluno_url|default('/agenda', true) }}">Agendar Aula</a>
+                <a class="sidebar-link {% if pagina_ativa == 'agenda' %}is-active{% endif %}" href="{{ agenda_aluno_url|default('/agenda-aluno', true) }}">Agendar Aula</a>
                 <a class="sidebar-link {% if pagina_ativa == 'mensagens' %}is-active{% endif %}" href="{{ mensagens_url|default('/mensagens', true) }}">Mensagens</a>
-                <a class="sidebar-link {% if pagina_ativa == 'evolucao' %}is-active{% endif %}" href="{{ evolucao_aluno_url|default('/evolucao', true) }}">Evolução</a>
+                <a class="sidebar-link {% if pagina_ativa == 'evolucao' %}is-active{% endif %}" href="{{ evolucao_aluno_url|default('/evolucao-aluno', true) }}">Evolução</a>
                 <a class="sidebar-link" href="{{ logout_url|default('/logout', true) }}">Sair</a>
             </nav>
         </aside>
@@ -35,6 +35,12 @@
                 </div>
             </header>
 
+            {% if aviso_sincronizacao %}
+            <section class="student-feedback student-feedback-error" aria-label="Aviso de sincronização">
+                <p>{{ aviso_sincronizacao }}</p>
+            </section>
+            {% endif %}
+
             {% if sucesso %}
             <section class="student-feedback student-feedback-success" aria-label="Mensagem de sucesso">
                 <p>{{ sucesso }}</p>
@@ -45,6 +51,22 @@
             <section class="student-feedback student-feedback-error" aria-label="Mensagem de erro">
                 <p>{{ erro }}</p>
             </section>
+            {% endif %}
+
+            {% if historico|length > 1 %}
+            <form class="evolucao-assessment-form" action="{{ evolucao_aluno_url|default('/evolucao-aluno', true) }}" method="get">
+                <label for="avaliacao_id">Escolha a avaliação física</label>
+                <div class="evolucao-assessment-controls">
+                    <select id="avaliacao_id" name="avaliacao_id">
+                        {% for item in historico %}
+                        <option value="{{ item.id }}" {% if item.id == avaliacao_id_selecionada %}selected{% endif %}>
+                            Avaliação {{ loop.index }} - {{ item.data|default('Sem data', true) }} - {{ item.classificacao|default('Sem classificação', true) }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <button class="button" type="submit">Visualizar</button>
+                </div>
+            </form>
             {% endif %}
 
             <section class="evolucao-top-stats" aria-label="Indicadores da evolução">
@@ -172,12 +194,13 @@
 
                         <div class="evolucao-history-list">
                             {% for item in historico %}
-                            <article class="evolucao-history-item">
+                            <article class="evolucao-history-item {% if item.id == avaliacao_id_selecionada %}is-active{% endif %}">
                                 <div class="evolucao-history-dot" aria-hidden="true"></div>
                                 <div class="evolucao-history-copy">
                                     <p class="avaliacao-mini-label">Avaliação {{ loop.index }}</p>
                                     <strong>{{ item.data }}</strong>
                                     <p>{{ item.resumo|default(item.classificacao, true) }}</p>
+                                    <a class="evolucao-history-link" href="{{ evolucao_aluno_url|default('/evolucao-aluno', true) }}?avaliacao_id={{ item.id }}">Visualizar esta avaliação</a>
                                 </div>
                             </article>
                             {% else %}
@@ -197,4 +220,3 @@
     <script src="{{ url_for('static', filename='mobile-nav.js') }}"></script>
 </body>
 </html>
-
