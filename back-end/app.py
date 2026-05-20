@@ -224,6 +224,13 @@ def _update(table: str, row_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
     return _run_query(_op)
 
 
+def _update_raw(table: str, row_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def _op():
+        return _admin_client().table(table).update(payload).eq("id", row_id).execute()
+
+    return _run_query(_op)
+
+
 def _delete(table: str, row_id: str) -> Dict[str, Any]:
     def _op():
         return _admin_client().table(table).delete().eq("id", row_id).execute()
@@ -3349,7 +3356,15 @@ def cancelar_agendamento_aluno(agenda_id: str):
     if csrf_error:
         flash(csrf_error, "error")
         return redirect(url_for("agenda_aluno"))
-    result = _update(TABLE_AGENDA, agenda_id, {"aluno_id": None, "status": "disponivel"})
+
+    aluno = _current_student_row()
+    agenda_result = _select_one(TABLE_AGENDA, agenda_id)
+    agenda_item = agenda_result["data"] if agenda_result["ok"] else None
+    if not aluno or not agenda_item or agenda_item.get("aluno_id") != aluno.get("id"):
+        flash("Agendamento nao encontrado para este aluno.", "error")
+        return redirect(url_for("agenda_aluno"))
+
+    result = _update_raw(TABLE_AGENDA, agenda_id, {"aluno_id": None, "status": "disponivel"})
     flash("Agendamento cancelado." if result["ok"] else (result["error"] or "Nao foi possivel cancelar o agendamento."), "success" if result["ok"] else "error")
     return redirect(url_for("agenda_aluno"))
 
@@ -3567,7 +3582,10 @@ def evolucao_aluno():
     aluno_id = str(aluno.get("id") or "").strip()
     historico = _assessments(aluno_id) if aluno_id else []
     ultima = historico[0] if historico else {}
-    anterior = historico[1] if len(historico) > 1 else {}
+    avaliacao_id = str(request.args.get("avaliacao_id") or "").strip()
+    selecionada = next((item for item in historico if str(item.get("id")) == avaliacao_id), ultima)
+    selecionada_index = historico.index(selecionada) if selecionada in historico else 0
+    anterior = historico[selecionada_index + 1] if len(historico) > selecionada_index + 1 else {}
     variacao = {
         "peso": "Sem dados",
         "gordura": "Sem dados",
@@ -3576,7 +3594,7 @@ def evolucao_aluno():
     }
     if anterior:
         for campo in ("peso", "gordura", "massa_magra", "imc"):
-            atual = _first(ultima, campo, default="")
+            atual = _first(selecionada, campo, default="")
             previo = _first(anterior, campo, default="")
             if atual and previo:
                 variacao[campo] = f"{previo} -> {atual}"
@@ -3585,12 +3603,14 @@ def evolucao_aluno():
         historico_avaliacoes=historico,
         historico=historico,
         ultima_avaliacao=ultima,
-        resumo_atual=ultima,
-        peso_atual=ultima.get("peso", "—"),
-        gordura_atual=ultima.get("gordura", "—"),
-        altura_atual=ultima.get("altura", "—"),
+        avaliacao_selecionada=selecionada,
+        avaliacao_id_selecionada=selecionada.get("id", ""),
+        resumo_atual=selecionada,
+        peso_atual=selecionada.get("peso", "—"),
+        gordura_atual=selecionada.get("gordura", "—"),
+        altura_atual=selecionada.get("altura", "—"),
         total_avaliacoes=len(historico),
-        resumo_avaliacao=ultima,
+        resumo_avaliacao=selecionada,
         variacao=variacao,
         aluno_sincronizado=bool(aluno_id),
         aviso_sincronizacao="" if aluno_id else "Seu login ainda não está vinculado a um aluno cadastrado. Use o mesmo email do cadastro do aluno para sincronizar a evolução.",

@@ -2466,6 +2466,25 @@ select:-webkit-autofill:focus {
     width: min(100%, 320px);
 }
 
+.evolucao-assessment-form {
+    margin-top: 1rem;
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(17, 17, 22, 0.96);
+}
+
+.evolucao-assessment-form label {
+    display: block;
+    margin-bottom: 0.65rem;
+    color: #8f96a6;
+}
+
+.evolucao-assessment-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.75rem;
+}
+
 .evolucao-top-stats {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -2542,6 +2561,13 @@ select:-webkit-autofill:focus {
     grid-template-columns: 0.95rem 1fr;
     gap: 0.8rem;
     align-items: start;
+    padding: 0.65rem;
+    border: 1px solid transparent;
+}
+
+.evolucao-history-item.is-active {
+    border-color: rgba(255, 90, 10, 0.4);
+    background: rgba(255, 90, 10, 0.08);
 }
 
 .evolucao-history-dot {
@@ -2565,6 +2591,19 @@ select:-webkit-autofill:focus {
     margin-top: 0.45rem;
     color: #aeb4bf;
     font-size: 0.94rem;
+}
+
+.evolucao-history-link {
+    display: inline-flex;
+    margin-top: 0.55rem;
+    color: #ffb387;
+    font-size: 0.86rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.evolucao-history-link:hover {
+    color: #ffffff;
 }
 
 .evolucao-history-item-empty {
@@ -4118,6 +4157,7 @@ textarea:focus {
     .avaliacao-card-grid,
     .avaliacao-history-metrics,
     .avaliacao-top-stats,
+    .evolucao-assessment-controls,
     .evolucao-top-stats,
     .financeiro-stats {
         grid-template-columns: 1fr;
