@@ -1749,10 +1749,17 @@ def _optional_rows(table: str, *, order: Optional[str] = None, desc: bool = Fals
         return []
 
 
-def _messages_for_personal(contact_id: Optional[str]) -> Dict[str, Any]:
+def _messages_for_personal(contact_id: Optional[str], busca: str = "") -> Dict[str, Any]:
     contatos = _students()
+    termo = busca.strip().lower()
+    if termo:
+        contatos = [
+            contato
+            for contato in contatos
+            if termo in contato["nome"].lower() or termo in contato["email"].lower()
+        ]
     for contato in contatos:
-        contato["url"] = url_for("mensagens", contato_id=contato["id"])
+        contato["url"] = url_for("mensagens", contato_id=contato["id"], busca=busca) if busca else url_for("mensagens", contato_id=contato["id"])
     conversa_ativa = next((contato for contato in contatos if contato["id"] == contact_id), contatos[0] if contatos else None)
     mensagens = _optional_rows(TABLE_MENSAGENS, order="created_at")
     filtered: List[Dict[str, Any]] = []
@@ -1773,6 +1780,7 @@ def _messages_for_personal(contact_id: Optional[str]) -> Dict[str, Any]:
         "conversa_ativa": conversa_ativa or {},
         "mensagens": filtered,
         "ultima_mensagem_id": filtered[-1]["id"] if filtered else "",
+        "busca": busca,
     }
 
 
@@ -3115,7 +3123,8 @@ def excluir_exercicio(exercicio_id: str):
 @role_required("Personal Trainer", "Admin", "Professor")
 def mensagens():
     contact_id = request.args.get("contato_id", "")
-    context = _messages_for_personal(contact_id)
+    busca = request.args.get("busca", "").strip()
+    context = _messages_for_personal(contact_id, busca)
     return render_template(
         "mensagens.html",
         enviar_mensagem_url=url_for("enviar_mensagem"),

@@ -2021,6 +2021,39 @@ select:-webkit-autofill:focus {
     display: grid;
 }
 
+.mensagens-contact-search,
+.anamnese-student-search {
+    display: grid;
+    gap: 0.45rem;
+    padding: 0.9rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mensagens-contact-search label,
+.anamnese-student-search label {
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.mensagens-contact-search input,
+.anamnese-student-search input {
+    width: 100%;
+    min-height: 2.75rem;
+    padding: 0.75rem 0.85rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(8, 8, 11, 0.9);
+    color: var(--text);
+    font: inherit;
+    outline: none;
+}
+
+.mensagens-contact-search input:focus,
+.anamnese-student-search input:focus {
+    border-color: var(--line-strong);
+}
+
 .mensagens-contact-card {
     display: flex;
     align-items: center;
@@ -3007,7 +3040,7 @@ select:-webkit-autofill:focus {
 }
 
 .anamnese-mobile-search {
-    display: none;
+    display: grid;
 }
 
 .anamnese-contact-card {
