@@ -10,6 +10,7 @@
     var options = document.createElement("div");
     var brand = sidebar.querySelector(".sidebar-brand") || sidebar;
     var topButton = sidebar.querySelector(".mobile-menu-button");
+    var checkbox = sidebar.querySelector(".mobile-menu-toggle");
 
     bar.className = "mobile-options-bar";
     bar.setAttribute("aria-label", "Navegacao principal");
@@ -29,6 +30,10 @@
     function setMenuOpen(isOpen) {
         document.body.classList.toggle("mobile-nav-open", isOpen);
         topButton.setAttribute("aria-expanded", isOpen ? "true" : "false");
+
+        if (checkbox) {
+            checkbox.checked = isOpen;
+        }
     }
 
     topButton.addEventListener("click", function (event) {
@@ -62,7 +67,8 @@
         if (
             document.body.classList.contains("mobile-nav-open") &&
             !event.target.closest(".sidebar-nav") &&
-            !event.target.closest(".mobile-menu-button")
+            !event.target.closest(".mobile-menu-button") &&
+            !event.target.closest(".mobile-options-bar")
         ) {
             setMenuOpen(false);
         }
@@ -70,6 +76,12 @@
 
     document.addEventListener("keydown", function (event) {
         if (event.key === "Escape") {
+            setMenuOpen(false);
+        }
+    });
+
+    window.addEventListener("resize", function () {
+        if (window.innerWidth > 760) {
             setMenuOpen(false);
         }
     });

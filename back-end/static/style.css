@@ -4735,11 +4735,16 @@ textarea:focus {
 
     .page-index .hero-content {
         max-width: 26rem;
+        margin-left: auto;
+        margin-right: auto;
+        text-align: center;
     }
 
     .page-index .display-title {
-        font-size: clamp(4rem, 18vw, 5.6rem);
+        width: 100%;
+        font-size: 4.15rem;
         line-height: 0.9;
+        text-align: center;
     }
 
     .page-index .hero-copy {
@@ -5112,7 +5117,18 @@ textarea:focus {
     .page-alunos .student-modal-wrap,
     .page-agenda .student-modal-wrap,
     .page-avaliacoes .student-modal-wrap {
-        padding: 0.75rem;
+        height: 100dvh;
+        align-items: stretch;
+        justify-content: flex-start;
+        padding: calc(5.8rem + env(safe-area-inset-top)) 0.75rem calc(6rem + env(safe-area-inset-bottom));
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .page-alunos .student-modal-wrap:target,
+    .page-agenda .student-modal-wrap:target,
+    .page-avaliacoes .student-modal-wrap:target {
+        display: block;
     }
 
     .page-alunos .student-modal,
@@ -5120,8 +5136,9 @@ textarea:focus {
     .page-avaliacoes .student-modal {
         width: 100%;
         max-width: 100%;
-        max-height: calc(100svh - 1.5rem);
-        overflow-y: auto;
+        max-height: none;
+        margin: 0 auto;
+        overflow: visible;
     }
 
     .page-alunos .student-modal-header,
@@ -7497,11 +7514,19 @@ Observacao:
 
 /* Final mobile navigation override */
 @media (max-width: 760px) {
+    body.mobile-nav-open .dashboard-sidebar {
+        z-index: 70;
+    }
+
+    body.mobile-nav-open::before {
+        z-index: 45;
+    }
+
     .dashboard-sidebar .mobile-menu-button {
         position: absolute;
         top: 1.65rem;
         right: 0.95rem;
-        z-index: 55;
+        z-index: 80;
         width: 2.65rem;
         min-width: 2.65rem;
         height: 2.65rem;
@@ -7532,6 +7557,7 @@ Observacao:
     .personal-page .dashboard-sidebar .sidebar-nav,
     .aluno-page .dashboard-sidebar .sidebar-nav,
     .treinos-page .dashboard-sidebar .sidebar-nav {
+        z-index: 75;
         top: 5.25rem;
         bottom: auto;
         max-height: calc(100svh - 10.5rem);
@@ -7550,6 +7576,7 @@ Observacao:
     }
 
     .mobile-options-bar {
+        z-index: 50;
         min-height: 4.8rem;
         display: block;
         padding: 0.6rem 0 max(0.7rem, env(safe-area-inset-bottom));
@@ -7602,5 +7629,11 @@ Observacao:
     .mobile-nav-toggle,
     .mobile-options-label {
         display: none;
+    }
+}
+
+@media (max-width: 420px) {
+    .page-index .display-title {
+        font-size: 3.55rem;
     }
 }

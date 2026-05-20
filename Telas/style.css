@@ -3392,8 +3392,16 @@ textarea:focus {
         padding: 5rem 1.25rem 4rem;
     }
 
+    .hero-landing .hero-content {
+        margin-left: auto;
+        margin-right: auto;
+        text-align: center;
+    }
+
     .display-title {
-        font-size: clamp(3rem, 15vw, 4.8rem);
+        width: 100%;
+        font-size: 4.15rem;
+        text-align: center;
     }
 
     .feature-grid,
@@ -3656,11 +3664,19 @@ textarea:focus {
 
 /* Mobile navigation: top hamburger + visible options rail */
 @media (max-width: 760px) {
+    body.mobile-nav-open .dashboard-sidebar {
+        z-index: 70;
+    }
+
+    body.mobile-nav-open::before {
+        z-index: 45;
+    }
+
     .dashboard-sidebar .mobile-menu-button {
         position: absolute;
         top: 1.65rem;
         right: 0.95rem;
-        z-index: 55;
+        z-index: 80;
         width: 2.65rem;
         min-width: 2.65rem;
         height: 2.65rem;
@@ -3705,6 +3721,7 @@ textarea:focus {
     .personal-page .dashboard-sidebar .sidebar-nav,
     .aluno-page .dashboard-sidebar .sidebar-nav,
     .treinos-page .dashboard-sidebar .sidebar-nav {
+        z-index: 75;
         top: 5.25rem;
         bottom: auto;
         max-height: calc(100svh - 10.5rem);
@@ -3785,6 +3802,35 @@ textarea:focus {
     .mobile-nav-toggle,
     .mobile-options-label {
         display: none;
+    }
+}
+
+@media (max-width: 420px) {
+    .display-title {
+        font-size: 3.55rem;
+    }
+}
+
+@media (max-width: 760px) {
+    .student-modal-wrap {
+        height: 100dvh;
+        align-items: stretch;
+        justify-content: flex-start;
+        padding: calc(5.8rem + env(safe-area-inset-top)) 0.75rem calc(6rem + env(safe-area-inset-bottom));
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .student-modal-wrap:target {
+        display: block;
+    }
+
+    .student-modal {
+        width: 100%;
+        max-width: 100%;
+        max-height: none;
+        margin: 0 auto;
+        overflow: visible;
     }
 }
 
@@ -4275,6 +4321,7 @@ textarea:focus {
     }
 
     .mobile-options-bar {
+        z-index: 50;
         min-height: 4.8rem;
         display: block;
         padding: 0.6rem 0 max(0.7rem, env(safe-area-inset-bottom));
