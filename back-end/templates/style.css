@@ -3793,3 +3793,112 @@ textarea:focus {
         font-size: 0.92rem;
     }
 }
+/* Final mobile navigation override */
+@media (max-width: 760px) {
+    .dashboard-sidebar .mobile-menu-button {
+        position: absolute;
+        top: 1.65rem;
+        right: 0.95rem;
+        z-index: 55;
+        width: 2.65rem;
+        min-width: 2.65rem;
+        height: 2.65rem;
+        min-height: 2.65rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 0.28rem;
+        padding: 0;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.06);
+        color: #ffffff;
+    }
+
+    .dashboard-sidebar .mobile-menu-button span {
+        width: 1.35rem;
+        height: 0.12rem;
+        display: block;
+        background: currentColor;
+    }
+
+    body.mobile-nav-open .dashboard-sidebar .mobile-menu-button {
+        border-color: rgba(255, 90, 10, 0.78);
+        background: var(--primary);
+    }
+
+    .personal-page .dashboard-sidebar .sidebar-nav,
+    .aluno-page .dashboard-sidebar .sidebar-nav,
+    .treinos-page .dashboard-sidebar .sidebar-nav {
+        top: 5.25rem;
+        bottom: auto;
+        max-height: calc(100svh - 10.5rem);
+        display: grid;
+        grid-template-columns: 1fr;
+        transform: translateY(-0.8rem);
+        opacity: 0;
+        pointer-events: none;
+        box-shadow: 0 1.25rem 3rem rgba(0, 0, 0, 0.48);
+    }
+
+    body.mobile-nav-open .dashboard-sidebar .sidebar-nav {
+        transform: translateY(0);
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .mobile-options-bar {
+        min-height: 4.8rem;
+        display: block;
+        padding: 0.6rem 0 max(0.7rem, env(safe-area-inset-bottom));
+    }
+
+    .mobile-options-scroll {
+        display: flex;
+        gap: 0.45rem;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 0 0.75rem 0.1rem;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x proximity;
+    }
+
+    .mobile-options-scroll::-webkit-scrollbar {
+        display: none;
+    }
+
+    .mobile-option-link {
+        min-width: max-content;
+        min-height: 2.9rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        padding: 0 0.85rem;
+        border: 1px solid rgba(255, 255, 255, 0.11);
+        background: rgba(255, 255, 255, 0.04);
+        color: #d9dbe1;
+        font-family: var(--title-font);
+        font-size: 0.82rem;
+        line-height: 1;
+        text-align: center;
+        text-transform: uppercase;
+        scroll-snap-align: center;
+    }
+
+    .mobile-option-link svg {
+        display: none;
+    }
+
+    .mobile-option-link.is-active {
+        border-color: rgba(255, 90, 10, 0.84);
+        background: var(--primary);
+        color: #ffffff;
+    }
+
+    .mobile-nav-toggle,
+    .mobile-options-label {
+        display: none;
+    }
+}
