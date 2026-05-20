@@ -252,69 +252,126 @@
             }
 
             var recognition = new SpeechRecognition();
+            var wantsRecording = false;
             var isRecording = false;
+            var isStarting = false;
             var baseText = '';
+            var finalSegments = [];
 
             recognition.lang = 'pt-BR';
             recognition.continuous = true;
             recognition.interimResults = true;
 
-            function setRecordingState(active) {
-                isRecording = active;
-                recordButton.textContent = active ? 'Parar' : 'Gravar';
-                recordButton.classList.toggle('is-recording', active);
-                status.textContent = active ? 'Gravando... fale sua observacao.' : '';
+            function setButtonState(label, disabled, active) {
+                recordButton.textContent = label;
+                recordButton.disabled = !!disabled;
+                recordButton.classList.toggle('is-recording', !!active);
             }
+
+            function setIdleState(message) {
+                wantsRecording = false;
+                isRecording = false;
+                isStarting = false;
+                setButtonState('Gravar', false, false);
+                status.textContent = message || '';
+            }
+
+            function startRecognition() {
+                if (isStarting || isRecording) {
+                    return;
+                }
+
+                isStarting = true;
+                setButtonState('Iniciando...', true, false);
+                status.textContent = 'Autorize o microfone se o navegador pedir.';
+
+                try {
+                    recognition.start();
+                } catch (error) {
+                    isStarting = false;
+                    if (wantsRecording) {
+                        status.textContent = 'A gravacao ja esta sendo preparada. Aguarde um instante.';
+                        setButtonState('Parar', false, true);
+                    } else {
+                        setIdleState();
+                    }
+                }
+            }
+
+            recognition.onstart = function () {
+                isStarting = false;
+                isRecording = true;
+                setButtonState('Parar', false, true);
+                status.textContent = 'Gravando... fale sua observacao.';
+            };
 
             recognition.onresult = function (event) {
                 var interimText = '';
-                var finalText = '';
 
                 for (var index = event.resultIndex; index < event.results.length; index += 1) {
                     var transcript = event.results[index][0].transcript.trim();
                     if (event.results[index].isFinal) {
-                        finalText += transcript + ' ';
+                        finalSegments[index] = transcript;
                     } else {
                         interimText += transcript + ' ';
                     }
                 }
 
-                var nextText = [baseText, finalText, interimText]
+                textarea.value = [baseText, finalSegments.filter(Boolean).join(' '), interimText]
                     .map(function (part) { return part.trim(); })
                     .filter(Boolean)
                     .join(' ');
-
-                textarea.value = nextText;
-
-                if (finalText) {
-                    baseText = textarea.value.trim();
-                }
             };
 
             recognition.onerror = function (event) {
-                setRecordingState(false);
-                status.textContent = event.error === 'not-allowed'
-                    ? 'Permita o acesso ao microfone para gravar.'
-                    : 'Nao foi possivel iniciar a gravacao. Tente novamente.';
+                isStarting = false;
+                isRecording = false;
+
+                if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+                    setIdleState('Permita o acesso ao microfone para gravar.');
+                    return;
+                }
+
+                if (event.error === 'no-speech' && wantsRecording) {
+                    status.textContent = 'Nao ouvi nada ainda. Continue falando perto do microfone.';
+                    return;
+                }
+
+                setIdleState('Nao foi possivel iniciar a gravacao. Tente novamente.');
             };
 
             recognition.onend = function () {
-                setRecordingState(false);
+                isStarting = false;
+                isRecording = false;
+
+                if (wantsRecording) {
+                    baseText = textarea.value.trim();
+                    finalSegments = [];
+                    status.textContent = 'Continuando gravacao...';
+                    window.setTimeout(startRecognition, 250);
+                    return;
+                }
+
+                setIdleState();
             };
 
             recordButton.addEventListener('click', function () {
-                if (isRecording) {
-                    recognition.stop();
+                if (wantsRecording || isRecording || isStarting) {
+                    wantsRecording = false;
+                    setButtonState('Gravar', false, false);
+                    status.textContent = textarea.value.trim() ? 'Gravacao encerrada.' : '';
+                    try {
+                        recognition.stop();
+                    } catch (error) {
+                        setIdleState(status.textContent);
+                    }
                     return;
                 }
 
                 baseText = textarea.value.trim();
-                try {
-                    recognition.start();
-                    setRecordingState(true);
-                } catch (error) {
-                    status.textContent = 'A gravacao ja esta sendo iniciada. Aguarde um instante.';
-                }
+                finalSegments = [];
+                wantsRecording = true;
+                startRecognition();
             });
         })();
     </script>

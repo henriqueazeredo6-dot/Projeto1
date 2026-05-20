@@ -1362,7 +1362,7 @@ select:-webkit-autofill:focus {
 }
 
 .treinos-search-row {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: stretch;
 }
 
@@ -5243,6 +5243,64 @@ textarea:focus {
         line-height: 1.55;
     }
 
+    .page-aluno-meu-treino .aluno-header {
+        margin-bottom: 1.05rem;
+    }
+
+    .page-aluno-meu-treino .aluno-main-title {
+        font-size: clamp(2.55rem, 13vw, 3.75rem);
+        line-height: 0.92;
+    }
+
+    .page-aluno-meu-treino .aluno-main-subtitle {
+        width: max-content;
+        min-height: 1.9rem;
+        display: inline-flex;
+        align-items: center;
+        margin-top: 0.75rem;
+        padding: 0 0.7rem;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.04);
+        color: #c8ccd5;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+    }
+
+    .page-aluno-meu-treino .aluno-treinos-wrap {
+        margin-top: 1rem;
+        gap: 0.8rem;
+    }
+
+    .page-aluno-meu-treino .aluno-treino-card {
+        min-height: 0;
+        padding: 1rem;
+        border-color: rgba(255, 90, 10, 0.26);
+        background: #101014;
+    }
+
+    .page-aluno-meu-treino .aluno-treino-card-empty {
+        display: grid;
+        gap: 0.45rem;
+        border-color: rgba(255, 255, 255, 0.12);
+        background: linear-gradient(180deg, rgba(255, 90, 10, 0.08), #101014);
+    }
+
+    .page-aluno-meu-treino .aluno-treino-card-empty h2 {
+        font-size: clamp(1.35rem, 7vw, 1.9rem);
+        line-height: 1;
+    }
+
+    .page-aluno-meu-treino .aluno-treino-card-empty p {
+        margin-top: 0;
+        color: #a9aeb8;
+        font-size: 0.92rem;
+        line-height: 1.4;
+    }
+
+    .page-aluno-meu-treino .aluno-treino-head {
+        gap: 0.85rem;
+    }
+
     .page-aluno-meu-treino .aluno-outline-button,
     .page-aluno-meu-treino .aluno-start-button {
         width: 100%;
@@ -5652,14 +5710,24 @@ Observacao:
     }
 
     .page-dashboard .dashboard-quick-card {
-        min-height: 4.6rem;
-        padding: 0.85rem 0.95rem;
-        gap: 0.4rem;
+        min-height: 4.2rem;
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        align-items: center;
+        justify-content: stretch;
+        padding: 0.9rem 1rem;
+        gap: 0.75rem;
+    }
+
+    .page-dashboard .dashboard-quick-icon svg {
+        width: 1.15rem;
+        height: 1.15rem;
     }
 
     .page-dashboard .dashboard-quick-text {
         font-size: 1rem;
         line-height: 1.18;
+        overflow-wrap: anywhere;
     }
 
     /* Treinos - Lista de alunos, cards de treino e estado vazio */
@@ -5743,6 +5811,7 @@ Observacao:
 
     /* Financeiro - Cards, tabela mobile e planos */
     .page-financeiro .financeiro-stats {
+        grid-template-columns: 1fr;
         gap: 0.85rem;
         margin-top: 1.1rem;
     }
@@ -5782,14 +5851,74 @@ Observacao:
 
     .page-financeiro .financeiro-section {
         margin-top: 1.25rem;
+        width: 100%;
+        min-width: 0;
+        overflow: hidden;
     }
 
     .page-financeiro .financeiro-section-title {
         font-size: clamp(2rem, 10vw, 3rem);
         line-height: 1.05;
+        overflow-wrap: anywhere;
+    }
+
+    .page-financeiro .financeiro-payment-summary {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.55rem;
+        width: 100%;
+        min-width: 0;
+    }
+
+    .page-financeiro .financeiro-payment-summary-item {
+        min-width: 0;
+        min-height: 3.8rem;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+        gap: 0.25rem;
+        padding: 0.75rem 0.65rem;
+        overflow: hidden;
+    }
+
+    .page-financeiro .financeiro-payment-summary-item span {
+        max-width: 100%;
+        font-size: 0.62rem;
+        line-height: 1.1;
+        letter-spacing: 0.04em;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .page-financeiro .financeiro-payment-summary-item strong {
+        font-size: clamp(1.4rem, 8vw, 2rem);
+    }
+
+    .page-financeiro .financeiro-filters {
+        grid-template-columns: 1fr;
+        gap: 0.7rem;
+        width: 100%;
+        min-width: 0;
+    }
+
+    .page-financeiro .financeiro-filter-field,
+    .page-financeiro .financeiro-filter-actions {
+        min-width: 0;
+    }
+
+    .page-financeiro .financeiro-filter-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .page-financeiro .financeiro-filter-actions .button {
+        width: 100%;
+        padding-inline: 0.55rem;
     }
 
     .page-financeiro .financeiro-table-wrap {
+        width: 100%;
+        min-width: 0;
         border: 0;
         background: transparent;
         overflow: visible;
@@ -5808,6 +5937,8 @@ Observacao:
     }
 
     .page-financeiro .financeiro-table tr {
+        width: 100%;
+        min-width: 0;
         padding: 0.95rem;
         border: 1px solid rgba(255, 255, 255, 0.1);
         background: rgba(17, 17, 22, 0.96);
@@ -5867,6 +5998,8 @@ Observacao:
 
     .page-financeiro .financeiro-table select,
     .page-financeiro .financeiro-table button {
+        width: 100%;
+        min-width: 0;
         min-height: 2.9rem;
     }
 
@@ -6815,6 +6948,104 @@ Observacao:
         font-size: clamp(1.55rem, 8vw, 2.15rem);
     }
 
+    .page-aluno-dashboard .aluno-header {
+        margin-bottom: 1.05rem;
+    }
+
+    .page-aluno-dashboard .aluno-highlight-card {
+        display: grid;
+        gap: 0.9rem;
+        padding: 1rem;
+        border-color: rgba(255, 90, 10, 0.34);
+        background: linear-gradient(180deg, rgba(255, 90, 10, 0.16), rgba(16, 16, 20, 0.96));
+    }
+
+    .page-aluno-dashboard .aluno-highlight-empty {
+        border-style: solid;
+        padding: 1rem;
+    }
+
+    .page-aluno-dashboard .aluno-highlight-head {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0.55rem;
+    }
+
+    .page-aluno-dashboard .aluno-highlight-head h2 {
+        margin-top: 0.35rem;
+        font-size: clamp(1.45rem, 7.6vw, 2.15rem);
+        line-height: 1;
+    }
+
+    .page-aluno-dashboard .aluno-highlight-count {
+        width: max-content;
+        min-height: 1.9rem;
+        display: inline-flex;
+        align-items: center;
+        padding: 0 0.7rem;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(0, 0, 0, 0.22);
+        color: #c8ccd5;
+        font-size: 0.72rem;
+    }
+
+    .page-aluno-dashboard .aluno-highlight-line {
+        display: grid;
+        grid-template-columns: 1fr;
+        align-items: start;
+        gap: 0.35rem;
+        margin-top: 0;
+        padding: 0.8rem;
+        min-height: 0;
+    }
+
+    .page-aluno-dashboard .aluno-highlight-line strong {
+        line-height: 1.35;
+    }
+
+    .page-aluno-dashboard .aluno-highlight-line span {
+        line-height: 1.35;
+    }
+
+    .page-aluno-dashboard .aluno-start-button {
+        margin-top: 0;
+    }
+
+    .page-aluno-dashboard .aluno-stats-grid {
+        margin-top: 1rem;
+        gap: 0.75rem;
+    }
+
+    .page-aluno-dashboard .aluno-stat-card {
+        min-height: 0;
+        display: grid;
+        gap: 0.45rem;
+        padding: 0.9rem;
+    }
+
+    .page-aluno-dashboard .aluno-stat-head {
+        justify-content: flex-start;
+        gap: 0.65rem;
+    }
+
+    .page-aluno-dashboard .aluno-stat-head p {
+        font-size: 0.7rem;
+        line-height: 1.2;
+    }
+
+    .page-aluno-dashboard .aluno-stat-card strong {
+        margin-top: 0;
+        font-size: clamp(1.45rem, 7.2vw, 2rem);
+        line-height: 1;
+        overflow-wrap: anywhere;
+    }
+
+    .page-aluno-dashboard .aluno-stat-card span {
+        margin-top: 0;
+        font-size: 0.9rem;
+        line-height: 1.35;
+    }
+
     .dashboard-panel,
     .treinos-panel,
     .avaliacao-panel,
@@ -6842,6 +7073,14 @@ Observacao:
     .avaliacao-modal-actions {
         grid-template-columns: 1fr;
         gap: 0.7rem;
+    }
+
+    .treinos-modal-wrap {
+        align-items: flex-start;
+        justify-content: center;
+        overflow-y: auto;
+        padding: calc(1rem + env(safe-area-inset-top)) 0.75rem calc(6rem + env(safe-area-inset-bottom));
+        -webkit-overflow-scrolling: touch;
     }
 
     input,
@@ -6999,6 +7238,38 @@ Observacao:
         max-height: calc(100vh - 2rem);
         overflow-y: auto;
     }
+
+    .treinos-modal {
+        width: 100%;
+        max-height: none;
+        margin: 0 auto;
+        padding: 1rem;
+        overflow: visible;
+    }
+
+    .treinos-modal-header {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        margin: -1rem -1rem 0;
+        padding: 1rem 1rem 0.75rem;
+        background: #17181f;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .treinos-modal-form {
+        padding-bottom: 0.35rem;
+    }
+
+    .treinos-search-row {
+        grid-template-columns: 1fr;
+    }
+
+    .treinos-add-exercise-button,
+    .treinos-modal .button-block {
+        width: 100%;
+    }
+
 }
 
 @media (max-width: 480px) {
